@@ -1,0 +1,1108 @@
+local debug_init = "GAUNTLET DEBUG: ";
+
+local deepCopy;
+deepCopy = function (container) {
+	// Container must not have circular references
+	switch (typeof container) {
+		case "table":
+			local result = clone container;
+			foreach (k, v in container) result[k] = deepCopy(v);
+			return result;
+		case "array":
+			local result = [];
+			foreach (v in container) {
+				result.append(deepCopy(v));
+			}
+			return result;
+		default:
+			return container;
+	}
+}
+
+local formatValue = function (v) {
+	return typeof v == "string" ? "\"" + v + "\"" : v;
+}
+
+local dumpCustom;
+dumpCustom = function (value, indent = "") {
+	switch (typeof value) {
+		case "table":
+			this.logDebug(indent + "{");
+			foreach (k, v in value) {
+				if (typeof v == "table" || typeof v == "array") {
+					this.logDebug(indent + "  " + k + " =");
+					dumpCustom(v, indent + "  ");
+				} else {
+					this.logDebug(indent + "  " + k + " = " + formatValue(v));
+				}
+			}
+			this.logDebug(indent + "}");
+			break;
+
+		case "array":
+			this.logDebug(indent + "[");
+			foreach (i, v in value) {
+				if (typeof v == "table" || typeof v == "array") {
+					this.logDebug(indent + "  [" + i + "] =");
+					dumpCustom(v, indent + "  ");
+				} else {
+					this.logDebug(indent + "  [" + i + "] = " + formatValue(v));
+				}
+			}
+			this.logDebug(indent + "]");
+			break;
+
+		default:
+			this.logDebug(indent + formatValue(value));
+			break;
+	}
+	return "Dump done!"
+}
+
+local GauntletPool = function () {
+	return {
+		name = "",
+		pool = [],
+
+		function init(name, outside_pool) {
+			this.name = name
+			this.pool = deepCopy(outside_pool)
+			if (outside_pool.len() == 0) {
+				return;
+			}
+			if (!("Weight" in this.pool[0])) {
+				this.pool[0].Weight <- 1;
+			}
+			for (local i = 1; i < this.pool.len(); i++) {
+				if (!("Weight" in this.pool[i])) {
+					this.pool[i].Weight <- 1;
+				}
+				this.pool[i].Weight += this.pool[i - 1].Weight
+			}
+			::logDebug(debug_init + "Pool " + name + " is constructed! pool.len()=" + pool.len())
+		}
+
+		function pushUnit(new_unit) {
+			local unit = deepCopy(new_unit);
+			if (!("Weight" in unit)) {
+				unit.Weight <- 1;
+			}
+			if (this.pool.len() > 0) {
+				unit.Weight += this.pool[this.pool.len() - 1].Weight;
+			}
+			this.pool.push(unit);
+		}
+
+		function removeUnitAtIdx(idx) {
+			if ((typeof idx != "integer") || idx >= this.pool.len() || idx < 0) {
+				this.logDebug(debug_init + "INVALID INDEX!")
+				return null;
+			}
+			local unit = this.pool[idx];
+
+			local unit_og_weight = idx == 0 ? unit.Weight : unit.Weight - this.pool[idx - 1].Weight;
+			// ::logDebug(debug_init+"Unit to be removed: og_weight=" + unit_og_weight)
+			// dumpCustom(unit)
+			for (local i = idx + 1; i < this.pool.len(); i++) {
+				this.pool[i].Weight -= unit_og_weight;
+			}
+			this.pool.remove(idx);
+		}
+
+		function getIdxFromPickingRandomUnit() {
+			local r = 0;
+			if (this.pool.len() <= 0) {
+				this.logError(debug_init + "RANDOM PICK ON EMPTY POOL");
+				return;
+			}
+			while (true) {
+				// r = 1.0 * this.Math.rand() / ::RAND_MAX; // this will not reset seed (if you restart the game, you'll get the same gauntlet setup)
+				r = 1.0 * this.Math.rand(0, ::RAND_MAX) / ::RAND_MAX;
+				if (r >= 1) {
+					this.logDebug(debug_init + "Lucky roll!")
+					continue;
+				}
+				// this.logDebug(debug_init + "0-1 Random roll r=" + r)
+				r *= this.pool[this.pool.len() - 1].Weight; // last unit has total weight
+				// this.logDebug(debug_init + "Unit roll r=" + r)
+				break;
+			}
+			for (local i = 0; i < this.pool.len(); ++i) {
+				if (this.pool[i].Weight > r) {
+					return i
+				}
+			}
+			return this.pool.len() - 1;
+		}
+
+		function getUnitAtIdx(idx) {
+			return this.pool[idx];
+		}
+
+		function getUnits() {
+			return this.pool;
+		}
+		function getPoolLen() {
+			return this.pool.len()
+		}
+	}
+}
+
+local GauntletManager = function () {
+	return {
+		m = {
+			Pool = null,
+			RangePool = null,
+			CrowdControlPool = null,
+			// MeleePool = null,
+			SpawnList = null,
+			InitDifficulty = 0,
+			RemainingDifficulty = 0,
+
+			RangeMax = 0,
+			RangeTotal = 0,
+
+			CrowdControlMax = 0,
+			CrowdControlTotal = 0,
+
+			SquishyLimit = 0.5,
+			SquishyScore = 0,
+
+			Spawnlist = {
+				Cost = 0,
+				MovementSpeedMult = 1.0,
+				VisibilityMult = 1.0,
+				VisionMult = 1.0,
+				Body = "figure_noble_01",
+				Troops = []
+			}
+		}
+
+		function init(_pool) {
+			this.m.Pool = _pool;
+			this.createRangePool();
+			this.createCrowdControlPool();
+
+		}
+
+		function createFilteredArray(fun) {
+			//return array
+			local arr = [];
+			// dumpCustom(this.m)
+			foreach (i, _unit in this.m.Pool.getUnits()) {
+				if (fun(_unit)) {
+					local unit = deepCopy(_unit);
+					unit.Weight -= i == 0 ? 0 : this.m.Pool.getUnitAtIdx(i - 1).Weight;
+					arr.push(unit);
+				}
+			}
+			return arr;
+		}
+
+		function createRangePool() {
+			this.m.RangePool = GauntletPool();
+			this.m.RangePool.init("range", this.createFilteredArray(@(u)"IsRange" in u));
+		}
+
+		function createCrowdControlPool() {
+			this.m.CrowdControlPool = GauntletPool();
+			this.m.RangePool.init("crowdcontrol", this.createFilteredArray(@(u)"IsCrowdControl" in u));
+		}
+
+		function generateSpawnList(_difficultyScore, _currentDay, _survived, _bannerUnit = null) {
+			this.m.InitDifficulty = _difficultyScore;
+			this.m.RemainingDifficulty = _difficultyScore;
+
+			this.m.RangeMax = this.Math.rand(0, 3) - 1 + this.Math.min(5, _survived);
+			this.m.CrowdControlMax = this.Math.rand(0, 3) - 2 + this.Math.min(4, this.Math.floor(_survived / 2));
+
+			this.m.RangeTotal = 0;
+			this.m.CrowdControlTotal = 0;
+			this.m.SquishyScore = 0;
+
+			this.m.SpawnList = {
+				Cost = 0,
+				MovementSpeedMult = 1.0,
+				VisibilityMult = 1.0,
+				VisionMult = 1.0,
+				Body = "figure_noble_01",
+				Troops = []
+			};
+
+			this.generateTroopsFromPool(this.m.RangePool)
+			this.generateTroopsFromPool(this.m.CrowdControlPool)
+			this.generateTroopsFromPool();
+
+			if (_bannerUnit != null) {
+				local num = this.Math.ceil(this.m.SpawnList.Troops.len() / 24.0);
+
+				this.m.SpawnList.Troops.append({
+					Type = _bannerUnit,
+					Num = num
+				});
+
+				this.m.SpawnList.Cost += num * _bannerUnit.Cost;
+			}
+
+			return this.m.SpawnList;
+		}
+
+		function generateTroopsFromPool(_gauntlet_pool = null) {
+			local gauntlet_pool = _gauntlet_pool;
+			if (gauntlet_pool == null) {
+				gauntlet_pool = this.m.Pool;
+			}
+			while (this.m.RemainingDifficulty > 0 && gauntlet_pool.getPoolLen() > 0) {
+				// ::logDebug(debug_init+"Pool dump!")
+				// dumpCustom(gauntlet_pool)
+				local idx = gauntlet_pool.getIdxFromPickingRandomUnit();
+				local unit = gauntlet_pool.getUnitAtIdx(idx);
+
+				if (!this.canAddUnit(unit)) {
+					gauntlet_pool.removeUnitAtIdx(idx);
+					continue;
+				}
+
+				this.addUnit(unit);
+			}
+		}
+
+		function canAddUnit(_unit) {
+			if (_unit.DifficultyRating > this.m.RemainingDifficulty) {
+				return false;
+			}
+
+			local squishyLimit = this.m.InitDifficulty * this.m.SquishyLimit - _unit.DifficultyRating;
+
+			if ("IsRange" in _unit) {
+				if (this.m.RangeTotal >= this.m.RangeMax) {
+					return false;
+				}
+
+				if (this.m.SquishyScore >= squishyLimit) {
+					return false;
+				}
+			}
+
+			if ("IsSquishyMelee" in _unit) {
+				if (this.m.SquishyScore >= squishyLimit) {
+					return false;
+				}
+			}
+
+			if ("IsCrowdControl" in _unit) {
+				if (this.m.CrowdControlTotal >= this.m.CrowdControlMax) {
+					return false;
+				}
+
+				if (this.m.SquishyScore >= squishyLimit) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		function addUnit(_unit) {
+			if ("IsRange" in _unit) {
+				this.m.RangeTotal++;
+				this.m.SquishyScore += _unit.DifficultyRating;
+			}
+
+			if ("IsSquishyMelee" in _unit) {
+				this.m.SquishyScore += _unit.DifficultyRating;
+			}
+
+			if ("IsCrowdControl" in _unit) {
+				this.m.CrowdControlTotal++;
+				this.m.SquishyScore += _unit.DifficultyRating;
+			}
+			local num = "Num" in _unit ? _unit.Num : 1;
+			this.m.SpawnList.Troops.append({
+				Type = _unit.Type,
+				Num = num
+			});
+
+			this.m.SpawnList.Cost += _unit.Type.Cost;
+			this.m.RemainingDifficulty -= _unit.DifficultyRating;
+
+			this.addCoSpawn(_unit);
+		}
+
+		function addCoSpawn(_unit) {
+			if (!("CoSpawn" in _unit)) {
+				return;
+			}
+
+			foreach (co in _unit.CoSpawn) {
+				local num = "Num" in co ? co.Num : 1;
+				this.m.SpawnList.Troops.append({
+					Type = co.Type,
+					Num = num
+				});
+
+				this.m.SpawnList.Cost += co.Type.Cost;
+			}
+		}
+	}
+}
+
+local gauntlet_pool_early = [
+	// noble
+	{
+		Type = this.Const.World.Spawn.Troops.Footman,
+		DifficultyRating = 2,
+		Weight = 3
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Billman,
+		DifficultyRating = 2,
+		Weight = 3,
+		IsSquishyMelee = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Arbalester,
+		DifficultyRating = 3,
+		IsRange = true,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.ArmoredWardog
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.ManAtArms,
+		DifficultyRating = 3
+	},
+	// gilded
+	{
+		Type = this.Const.World.Spawn.Troops.Conscript,
+		DifficultyRating = 2,
+		Weight = 2
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.ConscriptPolearm,
+		DifficultyRating = 2,
+		Weight = 2
+	},
+	// brigand
+	{
+		Type = this.Const.World.Spawn.Troops.BanditRaider,
+		DifficultyRating = 1,
+		IsSquishyMelee = true,
+		Weight = 4
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.BanditMarksman,
+		DifficultyRating = 2,
+		IsRange = true,
+		Weight = 2,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.Wardog
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.BanditLeader,
+		DifficultyRating = 3,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.ArmoredWardog
+			}
+		]
+	},
+	// nomad
+	{
+		Type = this.Const.World.Spawn.Troops.NomadOutlaw,
+		DifficultyRating = 1,
+		Weight = 3
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.NomadArcher,
+		DifficultyRating = 1,
+		IsRange = true,
+		Weight = 2
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.NomadLeader,
+		DifficultyRating = 3
+	},
+	// barb
+	{
+		Type = this.Const.World.Spawn.Troops.BarbarianMarauder,
+		Num = 2,
+		DifficultyRating = 3,
+		Weight = 3
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.BarbarianChampion,
+		DifficultyRating = 4
+	},
+	// orc
+	{
+		Type = this.Const.World.Spawn.Troops.OrcYoung,
+		DifficultyRating = 1,
+		IsSquishyMelee = true,
+		Weight = 2
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.OrcBerserker,
+		DifficultyRating = 3,
+		IsSquishyMelee = true,
+		Weight = 2
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.OrcWarrior,
+		DifficultyRating = 4,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.OrcYoung
+			}
+		]
+	},
+	// gobbo
+	{
+		Type = this.Const.World.Spawn.Troops.GoblinSkirmisher,
+		DifficultyRating = 1,
+		IsSquishyMelee = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.GoblinAmbusher,
+		DifficultyRating = 2,
+		IsRange = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.GoblinWolfrider,
+		DifficultyRating = 2,
+		IsSquishyMelee = true
+	},
+	// beast
+	{
+		Type = this.Const.World.Spawn.Troops.Ghoul,
+		DifficultyRating = 1,
+		IsSquishyMelee = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Serpent,
+		DifficultyRating = 1,
+		IsSquishyMelee = true
+	},
+	// undead
+	{
+		Type = this.Const.World.Spawn.Troops.ZombieYeoman,
+		DifficultyRating = 1,
+		Weight = 3,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.Warhound
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.ZombieKnight,
+		DifficultyRating = 3,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.Warhound
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Ghost,
+		DifficultyRating = 5,
+		IsCrowdControl = true,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieYeoman
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieYeoman
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.Warhound
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.Warhound
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Necromancer,
+		DifficultyRating = 7,
+		IsCrowdControl = true,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieKnightBodyguard
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieYeoman
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.SkeletonMedium,
+		DifficultyRating = 3,
+		Weight = 2
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.SkeletonMediumPolearm,
+		DifficultyRating = 3,
+		Weight = 2
+	}
+]
+
+local gauntlet_pool_mid = [
+	// noble
+	{
+		Type = this.Const.World.Spawn.Troops.Footman,
+		DifficultyRating = 2,
+		Weight = 4
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Billman,
+		DifficultyRating = 1,
+		Weight = 4,
+		IsSquishyMelee = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Arbalester,
+		DifficultyRating = 2,
+		IsRange = true,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.ArmoredWardog
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.ManAtArms,
+		DifficultyRating = 3,
+		Weight = 3
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Sergeant,
+		DifficultyRating = 3,
+		Weight = 2,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.ArmoredWardog
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Greatsword,
+		DifficultyRating = 2,
+		Weight = 3,
+		IsSquishyMelee = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Knight,
+		DifficultyRating = 6
+	},
+	// gilded
+	{
+		Type = this.Const.World.Spawn.Troops.Conscript,
+		DifficultyRating = 1,
+		Weight = 4,
+		IsSquishyMelee = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.ConscriptPolearm,
+		DifficultyRating = 2,
+		Weight = 4
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Gunner,
+		DifficultyRating = 3,
+		Weight = 3,
+		IsSquishyMelee = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Officer,
+		DifficultyRating = 3,
+		Weight = 2
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Assassin,
+		DifficultyRating = 4,
+		Weight = 2,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.ArmoredWardog
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Mortar,
+		DifficultyRating = 10,
+		IsCrowdControl = true,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.Engineer,
+				Num = 2
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.ArmoredWardog,
+				Num = 2
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.Conscript,
+				Num = 2
+			}
+		]
+	},
+	// brigand
+	{
+		Type = this.Const.World.Spawn.Troops.BanditMarauder,
+		DifficultyRating = 4,
+		Weight = 2,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.ArmoredWardog
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.HedgeKnight,
+		DifficultyRating = 7
+	},
+	// nomad + glads
+	{
+		Type = this.Const.World.Spawn.Troops.Executioner,
+		DifficultyRating = 8
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Gladiator,
+		DifficultyRating = 6
+	},
+	// barb
+	{
+		Type = this.Const.World.Spawn.Troops.BarbarianMarauder,
+		DifficultyRating = 1,
+		Weight = 2,
+		IsSquishyMelee = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.BarbarianChampion,
+		DifficultyRating = 4,
+		Weight = 2
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.BarbarianUnhold,
+		DifficultyRating = 7,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.BarbarianBeastmaster
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.BarbarianDrummer
+			}
+		]
+	},
+	// orc
+	{
+		Type = this.Const.World.Spawn.Troops.OrcBerserker,
+		DifficultyRating = 2,
+		IsSquishyMelee = true,
+		Weight = 3
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.OrcWarrior,
+		DifficultyRating = 4,
+		Weight = 3
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.OrcWarlord,
+		DifficultyRating = 7,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.OrcYoung
+			}
+		]
+	},
+	// gobbo
+	{
+		Type = this.Const.World.Spawn.Troops.GoblinAmbusher,
+		DifficultyRating = 2,
+		IsRange = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.GoblinWolfrider,
+		DifficultyRating = 1,
+		IsSquishyMelee = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.GoblinOverseer,
+		DifficultyRating = 4,
+		IsRange = true
+	},
+	// beast
+	{
+		Type = this.Const.World.Spawn.Troops.GhoulHIGH,
+		DifficultyRating = 2,
+		IsSquishyMelee = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Serpent,
+		Num = 2,
+		DifficultyRating = 3,
+		IsSquishyMelee = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Unhold,
+		DifficultyRating = 6,
+		Weight = 2
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.UnholdFrost,
+		DifficultyRating = 8,
+		Weight = 2
+	},
+	// undead: zombie
+	{
+		Type = this.Const.World.Spawn.Troops.ZombieKnight,
+		DifficultyRating = 2,
+		Weight = 3,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.Warhound
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Ghost,
+		DifficultyRating = 5,
+		IsCrowdControl = true,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieYeoman
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieYeoman
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.Warhound
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.Warhound
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.Necromancer,
+		DifficultyRating = 9,
+		IsCrowdControl = true,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieKnightBodyguard
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieYeomanBodyguard
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieKnight
+			}
+		]
+	},
+	// undead: skellies
+	{
+		Type = this.Const.World.Spawn.Troops.SkeletonMedium,
+		DifficultyRating = 2,
+		Weight = 4
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.SkeletonMediumPolearm,
+		DifficultyRating = 2,
+		Weight = 4,
+		IsSquishyMelee = true
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.VampireLOW,
+		DifficultyRating = 4,
+		Weight = 2,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.SkeletonLight
+			}
+		]
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.SkeletonHeavy,
+		DifficultyRating = 4,
+		Weight = 2
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.SkeletonHeavyPolearm,
+		DifficultyRating = 4,
+		Weight = 2
+	},
+	{
+		Type = this.Const.World.Spawn.Troops.SkeletonPriest,
+		DifficultyRating = 12,
+		CoSpawn = [
+			{
+				Type = this.Const.World.Spawn.Troops.SkeletonHeavyBodyguard
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.SkeletonHeavyBodyguard
+			}
+		],
+		IsCrowdControl = true
+	}
+]
+
+mod_gauntlet_events <- inherit("scripts/events/event", {
+	m = {
+		BaseGauntletInterval = 10,
+		DifficultyScoreModifier = 1,
+		AllowLooting = 1,
+		GauntletSurvived = 0,
+		EndofEarlyGameThreshold = 20,
+		EndofMidGameThreshold = 40,
+		suppliesNum = 0
+	},
+
+	function create() {
+		this.m.ID = "event.mod_gauntlet_events";
+		this.m.Title = "The Gauntlet comes...";
+		this.m.IsSpecial = true;
+		this.m.Screens.push({
+			ID = "A",
+			Text = "[img]gfx/ui/events/event_90.png[/img]Here come the gauntlet.",
+			Image = "",
+			List = [],
+			Banner = [],
+			Options = [
+				{
+					Text = "To battle!",
+					function getResult(_event) {
+						local properties = this.World.State.getLocalCombatProperties(this.World.State.getPlayer().getPos());
+						properties.CombatID = "Event";
+						local music_arr = [];
+						music_arr.extend(this.Const.Music.NobleTracks)
+						music_arr.extend(this.Const.Music.BarbarianTracks)
+						music_arr.extend(this.Const.Music.BanditTracks)
+						music_arr.extend(this.Const.Music.UndeadTracks)
+						music_arr.extend(this.Const.Music.OrientalCityStateTracks)
+						music_arr.extend(this.Const.Music.OrcsTracks)
+						music_arr.extend(this.Const.Music.GoblinsTracks)
+						properties.Music = music_arr;
+						properties.IsAutoAssigningBases = false;
+						properties.Entities = [];
+						properties.IsFleeingProhibited = true;
+						properties.IsArenaMode = !(_event.m.AllowLooting);
+						// local supplies = _event.generateSuppliesFromNum(_event.calculateTotalDifficultyScore());
+						// this.logDebug(debug_init + "Given supplies" + supplies)
+						// properties.Loot.extend(supplies)
+						local spawnlist = _event.generateSpawnListBasedOnDay();
+						local resource = spawnlist.Cost + 100;
+						local spawnlist_arr = [];
+						spawnlist_arr.append(spawnlist)
+						this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy)
+						this.logDebug(debug_init + "properties.Entities constructed. Prepare to fight!");
+						// this.logDebug(debug_init + "sanity check: properties.Entities.len()=" + properties.Entities.len());
+						dumpCustom(properties)
+						local combat = this.World.State.startScriptedCombat(properties, false, false, true);
+						if (!combat) {
+							this.logError(debug_init + "ERROR: COMBAT NOT INITIATED!")
+						}
+						_event.registerToShowAfterCombat("Survived", "Survived");
+						return 0;
+					}
+				}
+			],
+
+			function start(_event) {
+				;
+			}
+		});
+		this.m.Screens.push({
+			ID = "Survived",
+			Text = "[img]gfx/ui/events/event_22.png[/img] The gauntlet passed.",
+			Image = "",
+			List = [],
+			Banner = [],
+			Options = [
+				{
+					Text = "We survived... for now.",
+					function getResult(_event) {
+						return 0
+					}
+				}
+			],
+
+			function start(_event) {
+				World.Statistics.getFlags().set("GauntletLastTriggeredOnDay", this.World.getTime().Days);
+				World.Statistics.getFlags().set("GauntletSurvivedFlag", _event.m.GauntletSurvived + 1);
+				// local supplies = _event.generateSuppliesFromNum(_event.m.suppliesNum);
+				local ecoDiffMod = (this.World.Assets.getEconomicDifficulty() + 1) * 0.1
+				local armorPartAmount = this.Math.ceil(_event.m.suppliesNum * (1.5 - ecoDiffMod))
+				local medicineAmount = this.Math.ceil(_event.m.suppliesNum * (0.75 - ecoDiffMod))
+				local ammoAmount = this.Math.ceil(_event.m.suppliesNum * (2 - ecoDiffMod))
+				this.World.Assets.addArmorParts(armorPartAmount);
+				this.World.Assets.addMedicine(medicineAmount);
+				this.World.Assets.addAmmo(ammoAmount);
+				local armorPartStr = "You gain [color=" + this.Const.UI.Color.PositiveEventValue + "]+" + armorPartAmount + "[/color] Tools and Supplies";
+				local medicineStr = "You gain [color=" + this.Const.UI.Color.PositiveEventValue + "]+" + medicineAmount + "[/color] Medicines";
+				local ammoStr = "You gain [color=" + this.Const.UI.Color.PositiveEventValue + "]+" + ammoAmount + "[/color] Ammunition";
+				this.List.push({
+					id = 10,
+					icon = "ui/icons/asset_supplies.png",
+					text = armorPartStr
+				})
+				this.List.push({
+					id = 10,
+					icon = "ui/icons/asset_medicine.png",
+					text = medicineStr
+				})
+				this.List.push({
+					id = 10,
+					icon = "ui/icons/asset_ammo.png",
+					text = ammoStr
+				})
+			}
+		})
+
+	}
+
+	function onUpdateScore() {
+		// local current_day = this.World.getTime().Days;
+		// local last_gauntlet_on_day = this.World.Statistics.getFlags().getAsInt("GauntletLastTriggeredOnDay");
+		// if (current_day < 7) {
+		// 	return;
+		// }
+		// if (current_day - last_gauntlet_on_day < this.m.BaseGauntletInterval) {
+		// 	return;
+		// }
+		// this.m.Score = 12000;
+	}
+
+	function onPrepare() {
+		// ::logDebug(debug_init + "getCombatDifficulty()=" + this.World.Assets.getCombatDifficulty())
+		this.m.DifficultyScoreModifier = 1.0 + (this.World.Assets.getCombatDifficulty() + 1) * 0.2;
+		if (!(World.Statistics.getFlags().get("GauntletSurvivedFlag"))) {
+			World.Statistics.getFlags().set("GauntletSurvivedFlag", 0);
+		}
+		this.m.GauntletSurvived = World.Statistics.getFlags().getAsInt("GauntletSurvivedFlag")
+		// ::logDebug(debug_init + "getEconomicDifficulty()=" + this.World.Assets.getEconomicDifficulty())
+		switch (this.World.Assets.getEconomicDifficulty()) {
+			case 0:
+				this.m.AllowLooting = true;
+				break;
+			case 1:
+				this.m.AllowLooting = this.m.GauntletSurvived > 1;
+				break;
+			case 2:
+				this.m.AllowLooting = false;
+				break;
+			default:
+				this.logError(debug_init + "ERROR: getEconomicDifficulty() does not return expected value!")
+		}
+		this.m.suppliesNum = this.calculateTotalDifficultyScore();
+	}
+
+	function onPrepareVariables(_vars) {}
+
+	function onClear() {
+		// this.m.Score = -20;
+	}
+
+	function isValid() {
+		local current_day = this.World.getTime().Days;
+		if (!(World.Statistics.getFlags().get("GauntletLastTriggeredOnDay"))) {
+			World.Statistics.getFlags().set("GauntletLastTriggeredOnDay", 0);
+		}
+		local last_triggered_on_day = this.World.Statistics.getFlags().getAsInt("GauntletLastTriggeredOnDay");
+		if (current_day < 7) {
+			return false;
+		}
+		if (current_day - last_triggered_on_day < this.m.BaseGauntletInterval) {
+			// this.logDebug(debug_init+"event checking: non-valid!")
+			return false;
+		}
+
+		return true;
+	}
+
+	function generateSuppliesFromNum(_num) {
+		local ecoDiffMod = this.World.Assets.getEconomicDifficulty() * 0.1
+		local armorParts = this.new("scripts/items/supplies/armor_parts_item");
+		armorParts.setAmount(this.Math.ceil(_num * (1.5 - ecoDiffMod)));
+		local medicine = this.new("scripts/items/supplies/medicine_item");
+		medicine.setAmount(this.Math.ceil(_num * (0.75 - ecoDiffMod)));
+		local ammo = this.new("scripts/items/supplies/ammo_item");
+		ammo.setAmount(this.Math.ceil(_num * (2 - ecoDiffMod)));
+		local loot = []
+		loot.push(armorParts);
+		loot.push(medicine);
+		loot.push(ammo);
+		return loot;
+	}
+
+	function approximateGauntletSurvivedFromDay(days) {
+		return this.Math.floor((days - 1) * 1.0 / this.m.BaseGauntletInterval)
+	}
+
+	function calculateTotalDifficultyScore() {
+		// TODO: explain how these equations come from a dream
+		local current_day = this.World.getTime().Days
+		if (current_day < this.m.EndofEarlyGameThreshold) {
+			return this.Math.ceil(current_day * this.m.DifficultyScoreModifier);
+		}
+		if (current_day < this.m.EndofMidGameThreshold) {
+			return this.Math.ceil(current_day * this.Math.max(this.m.DifficultyScoreModifier - 0.4, 0.9));
+		}
+		// baseline: score 45 (18 foot + 17 bill) on Expert on first Hard Gauntlet
+		// On day 105, score 90 (roughly one Black Monolith)
+		// TODO: implement mod options for date variables
+		local diffMult = -0.5 * this.m.DifficultyScoreModifier + 1.8; // 1 at Expert aka 1.6, 1.2 at Beginner
+
+		local maxdiff_gauntlet_score = 90;
+		local first_hard_gauntlet_score = 40;
+		local maxdiff_gauntlet_on_day = 120;
+		local first_hard_gauntlet_on_day = this.m.EndofMidGameThreshold;
+
+		local k = this.Math.log(maxdiff_gauntlet_score * 1.0 / first_hard_gauntlet_score) / (-maxdiff_gauntlet_on_day + first_hard_gauntlet_on_day);
+		local C = first_hard_gauntlet_score / (diffMult * this.Math.exp(-k*first_hard_gauntlet_on_day))
+
+		return this.Math.min(this.Math.ceil(C*this.Math.exp(-k * current_day)), maxdiff_gauntlet_score)
+
+		// local a = (maxdiff_gauntlet_score - first_hard_gauntlet_score) * 1.0 / ((maxdiff_gauntlet_on_day - first_hard_gauntlet_on_day));
+		// local b = first_hard_gauntlet_score - a * first_hard_gauntlet_on_day;
+		// return this.Math.ceil(a*current_day  + b);
+	}
+
+	function getGauntletPoolBasedOnDay() {
+		local current_days = this.World.getTime().Days;
+		// TODO: implement logic handle for different gauntlet pool
+
+		if (current_days < this.m.EndofEarlyGameThreshold) {
+			return gauntlet_pool_early
+		}
+		return gauntlet_pool_mid;
+	}
+
+	function generateSpawnListBasedOnDay() {
+		local current_day = this.World.getTime().Days;
+		local init_difficulty_score = this.calculateTotalDifficultyScore();
+
+		::logDebug(debug_init + "Difficulty score " + init_difficulty_score + " on day " + current_day)
+
+		local pool = GauntletPool();
+		pool.init("pool", this.getGauntletPoolBasedOnDay())
+
+		local pool_manager = GauntletManager();
+		pool_manager.init(pool)
+
+		local gauntlet_survived = this.approximateGauntletSurvivedFromDay(current_day)
+		local banner_unit = (current_day >= this.m.EndofEarlyGameThreshold
+			|| gauntlet_survived > 0)
+			? this.Const.World.Spawn.Troops.StandardBearer
+			: this.Const.World.Spawn.Troops.MilitiaCaptain;
+
+		return pool_manager.generateSpawnList(init_difficulty_score, current_day, gauntlet_survived, banner_unit)
+
+	}
+
+});
