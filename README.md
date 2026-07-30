@@ -4,19 +4,21 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
 # Features
 
 * Start a non-avoidable, non-retreatable combat at 10-days interval (currently set as default). 
-* Implemented as a special event to guaranteed events firing at the morning when a certain number of days passed since last gauntlet. \*
+* Implemented as a special event to guarantee events firing at the morning when a certain number of days passed since last gauntlet\*. 
 * The enemies composition based on days passed and combat difficulty. 
 ** Higher day counts draw tougher enemies from pools divided by early, mid and late game threshold.
 ** Enemies pools are hand-crafted and weighted accordingly to provide some degree of variety, while limiting too many annoying or squishy enemies. 
 * Looting after events is toggleable from economy difficulty (and from a mod option menu). However, players are guaranteed to receive some supplies after the fight.
-* Customizable thresholds, flags and date variable (WIP).
+* Customizable thresholds, flags and scalings. (WIP).
 
-\* While the special events (examples are new ambitions, desertion) are checked frequently, there are a few edge cases where events might be prevented from firing, such as wandering near a hostile party. 
+\*While the special events (examples are new ambitions and desertions) are checked frequently, there are a few edge cases where events might be prevented from firing, such as wandering near a hostile party. 
 
 # Requirements
 
 1. Adam Mill's Modding Script Hook (v20+).
-2. All of the game DLC.
+2. Modern Hooks (v0.6.0+).
+3. Modding Standards and Utilities (MSU, v1.9.0+).
+4. All of the game's DLCs.
 
 # Installation
 
@@ -25,7 +27,13 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
 
 Alternatively, you can just zip the two folders and put it inside the data folder, just like what the `build.bat` does.
 
+
+# Suggested cooldown setting (WIP)
+**For a normal campaign with a few occasional fights:** Cooldown 8-15.
+**For a combat-only start that almost ignore the overworld**: Cooldown 5-7, toggle on "Always Allow Looting".
+
 # To-do
+
 * Implementing and testing a late-game pool.
-* Create a mod option menu that allow further customization on date threshold, scaling and some toggles.
+* Create a mod option menu that allow further customization on date threshold, scaling and some toggles. (WIP!)
 * ...And more!
