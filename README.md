@@ -1,0 +1,31 @@
+# The Gauntlet
+A mod for Battle Brother that add a special event triggering a non-avoidable fight scaled by in-game days. Inspired by [Lezaleas's The Battle Trial](https://www.nexusmods.com/battlebrothers/mods/191?tab=description).
+
+# Features
+
+* Start a non-avoidable, non-retreatable combat at 10-days interval (currently set as default). 
+* Implemented as a special event to guaranteed events firing at the morning when a certain number of days passed since last gauntlet. \*
+* The enemies composition based on days passed and combat difficulty. 
+** Higher day counts draw tougher enemies from pools divided by early, mid and late game threshold.
+** Enemies pools are hand-crafted and weighted accordingly to provide some degree of variety, while limiting too many annoying or squishy enemies. 
+* Looting after events is toggleable from economy difficulty (and from a mod option menu). However, players are guaranteed to receive some supplies after the fight.
+* Customizable thresholds, flags and date variable (WIP).
+
+\* While the special events (examples are new ambitions, desertion) are checked frequently, there are a few edge cases where events might be prevented from firing, such as wandering near a hostile party. 
+
+# Requirements
+
+1. Adam Mill's Modding Script Hook (v20+).
+2. All of the game DLC.
+
+# Installation
+
+1. Open `build.bat`, edit your `MODKITDIR` to be your current folder containing the `scripts` and `script_hooks` folder, `GAME_DATA_DIR` to be the folder containing the game's data files.
+2. Run `build.bat`.
+
+Alternatively, you can just zip the two folders and put it inside the data folder, just like what the `build.bat` does.
+
+# To-do
+* Implementing and testing a late-game pool.
+* Create a mod option menu that allow further customization on date threshold, scaling and some toggles.
+* ...And more!
