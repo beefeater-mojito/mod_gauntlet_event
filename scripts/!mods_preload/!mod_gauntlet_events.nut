@@ -5,7 +5,7 @@
 
 ::ModGauntletEvents <- {
 	ID = "mod_gauntlet_events",
-	Name = "ModGauntletEvents",
+	Name = "The Gauntlet",
 	Version = "1.1.0",
 }
 // Instantiate the Modern Hooks object, add MSU as a requirement, and queue after MSU
