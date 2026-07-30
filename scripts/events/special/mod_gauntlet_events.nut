@@ -213,8 +213,8 @@ local GauntletManager = function () {
 			this.m.InitDifficulty = _difficultyScore;
 			this.m.RemainingDifficulty = _difficultyScore;
 
-			this.m.RangeMax = this.Math.rand(0, 3) - 1 + this.Math.min(5, _survived);
-			this.m.CrowdControlMax = this.Math.rand(0, 3) - 2 + this.Math.min(4, this.Math.floor(_survived / 2));
+			this.m.RangeMax = this.Math.rand(0, 3) - 1 + this.Math.min(3, _survived);
+			this.m.CrowdControlMax = this.Math.rand(0, 3) - 2 + this.Math.min(2, this.Math.floor(_survived / 2));
 
 			this.m.RangeTotal = 0;
 			this.m.CrowdControlTotal = 0;
@@ -435,10 +435,6 @@ local gauntlet_pool_early = [
 		DifficultyRating = 3,
 		Weight = 3
 	},
-	{
-		Type = this.Const.World.Spawn.Troops.BarbarianChampion,
-		DifficultyRating = 4
-	},
 	// orc
 	{
 		Type = this.Const.World.Spawn.Troops.OrcYoung,
@@ -604,8 +600,7 @@ local gauntlet_pool_mid = [
 	{
 		Type = this.Const.World.Spawn.Troops.Conscript,
 		DifficultyRating = 1,
-		Weight = 4,
-		IsSquishyMelee = true
+		Weight = 4
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.ConscriptPolearm,
@@ -820,7 +815,7 @@ local gauntlet_pool_mid = [
 	{
 		Type = this.Const.World.Spawn.Troops.VampireLOW,
 		DifficultyRating = 4,
-		Weight = 2,
+		IsRange = true,
 		CoSpawn = [
 			{
 				Type = this.Const.World.Spawn.Troops.SkeletonLight
@@ -839,11 +834,8 @@ local gauntlet_pool_mid = [
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.SkeletonPriest,
-		DifficultyRating = 12,
+		DifficultyRating = 11,
 		CoSpawn = [
-			{
-				Type = this.Const.World.Spawn.Troops.SkeletonHeavyBodyguard
-			},
 			{
 				Type = this.Const.World.Spawn.Troops.SkeletonHeavyBodyguard
 			}
@@ -854,12 +846,17 @@ local gauntlet_pool_mid = [
 
 mod_gauntlet_events <- inherit("scripts/events/event", {
 	m = {
+		// msu setting variable
 		BaseGauntletInterval = 10,
-		DifficultyScoreModifier = 1,
+		EndofEarlyGameThreshold = 15,
+		EndofMidGameThreshold = 35,
+		MaxDifficultyScore = 90,
+		MaxExpertDifficultyScoreOnDay = 120,
+		FirstLateGauntletExpertDifficultyScore = 40,
+
 		AllowLooting = 1,
+		DifficultyScoreModifier = 1,
 		GauntletSurvived = 0,
-		EndofEarlyGameThreshold = 20,
-		EndofMidGameThreshold = 40,
 		suppliesNum = 0
 	},
 
@@ -943,9 +940,9 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 				this.World.Assets.addArmorParts(armorPartAmount);
 				this.World.Assets.addMedicine(medicineAmount);
 				this.World.Assets.addAmmo(ammoAmount);
-				local armorPartStr = "You gain [color=" + this.Const.UI.Color.PositiveEventValue + "]+" + armorPartAmount + "[/color] Tools and Supplies";
-				local medicineStr = "You gain [color=" + this.Const.UI.Color.PositiveEventValue + "]+" + medicineAmount + "[/color] Medicines";
-				local ammoStr = "You gain [color=" + this.Const.UI.Color.PositiveEventValue + "]+" + ammoAmount + "[/color] Ammunition";
+				local armorPartStr = "You gain [color=" + this.Const.UI.Color.PositiveEventValue + "]+" + armorPartAmount + "[/color] Tools and Supplies.";
+				local medicineStr = "You gain [color=" + this.Const.UI.Color.PositiveEventValue + "]+" + medicineAmount + "[/color] Medicines.";
+				local ammoStr = "You gain [color=" + this.Const.UI.Color.PositiveEventValue + "]+" + ammoAmount + "[/color] Ammunition.";
 				this.List.push({
 					id = 10,
 					icon = "ui/icons/asset_supplies.png",
@@ -980,25 +977,48 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 
 	function onPrepare() {
 		// ::logDebug(debug_init + "getCombatDifficulty()=" + this.World.Assets.getCombatDifficulty())
-		this.m.DifficultyScoreModifier = 1.0 + (this.World.Assets.getCombatDifficulty() + 1) * 0.2;
+		// this.m.DifficultyScoreModifier = 1.0 + (this.World.Assets.getCombatDifficulty() + 1) * 0.2;
+		this.m.BaseGauntletInterval = ::ModGauntletEvents.Mod.ModSettings.getSetting("base_gauntlet_interval").getValue().tointeger();
+		this.m.MaxDifficultyScore = ::ModGauntletEvents.Mod.ModSettings.getSetting("max_difficulty_score").getValue().tointeger();
+		this.m.MaxExpertDifficultyScoreOnDay = ::ModGauntletEvents.Mod.ModSettings.getSetting("max_score_on_day").getValue().tointeger();
+		this.m.FirstLateGauntletExpertDifficultyScore = ::ModGauntletEvents.Mod.ModSettings.getSetting("first_late_gauntlet_score").getValue().tointeger();
+		this.m.EndofEarlyGameThreshold = ::ModGauntletEvents.Mod.ModSettings.getSetting("early_end_on_day").getValue().tointeger();
+		this.m.EndofMidGameThreshold = ::ModGauntletEvents.Mod.ModSettings.getSetting("mid_end_on_day").getValue().tointeger();
+
+		switch (this.World.Assets.getCombatDifficulty()) {
+			case 0:
+				this.m.DifficultyScoreModifier = 1.2;
+				break;
+			case 1:
+				this.m.DifficultyScoreModifier = 1.425;
+				break;
+			case 2:
+				this.m.DifficultyScoreModifier = 1.6;
+				break;
+		}
 		if (!(World.Statistics.getFlags().get("GauntletSurvivedFlag"))) {
 			World.Statistics.getFlags().set("GauntletSurvivedFlag", 0);
 		}
 		this.m.GauntletSurvived = World.Statistics.getFlags().getAsInt("GauntletSurvivedFlag")
 		// ::logDebug(debug_init + "getEconomicDifficulty()=" + this.World.Assets.getEconomicDifficulty())
-		switch (this.World.Assets.getEconomicDifficulty()) {
-			case 0:
-				this.m.AllowLooting = true;
-				break;
-			case 1:
-				this.m.AllowLooting = this.m.GauntletSurvived > 1;
-				break;
-			case 2:
-				this.m.AllowLooting = false;
-				break;
-			default:
-				this.logError(debug_init + "ERROR: getEconomicDifficulty() does not return expected value!")
+		if (::ModGauntletEvents.Mod.ModSettings.getSetting("always_allow_looting").getValue()) {
+			this.m.AllowLooting = true
+		} else {
+			switch (this.World.Assets.getEconomicDifficulty()) {
+				case 0:
+					this.m.AllowLooting = true;
+					break;
+				case 1:
+					this.m.AllowLooting = this.m.GauntletSurvived > 1;
+					break;
+				case 2:
+					this.m.AllowLooting = false;
+					break;
+				default:
+					this.logError(debug_init + "ERROR: getEconomicDifficulty() does not return expected value!")
+			}
 		}
+
 		this.m.suppliesNum = this.calculateTotalDifficultyScore();
 	}
 
@@ -1054,23 +1074,18 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			return this.Math.ceil(current_day * this.Math.max(this.m.DifficultyScoreModifier - 0.4, 0.9));
 		}
 		// baseline: score 45 (18 foot + 17 bill) on Expert on first Hard Gauntlet
-		// On day 105, score 90 (roughly one Black Monolith)
-		// TODO: implement mod options for date variables
 		local diffMult = -0.5 * this.m.DifficultyScoreModifier + 1.8; // 1 at Expert aka 1.6, 1.2 at Beginner
 
-		local maxdiff_gauntlet_score = 90;
-		local first_hard_gauntlet_score = 40;
-		local maxdiff_gauntlet_on_day = 120;
-		local first_hard_gauntlet_on_day = this.m.EndofMidGameThreshold;
+		local d1 = this.m.EndofMidGameThreshold;
+		local d2 = this.m.MaxExpertDifficultyScoreOnDay;
+		local s1 = this.m.FirstLateGauntletExpertDifficultyScore;
+		local s2 = this.m.MaxDifficultyScore;
+		// ::logDebug("d1="+d1+" d2="+d2+" s1="+s1+" s2="+s2)
 
-		local k = this.Math.log(maxdiff_gauntlet_score * 1.0 / first_hard_gauntlet_score) / (-maxdiff_gauntlet_on_day + first_hard_gauntlet_on_day);
-		local C = first_hard_gauntlet_score / (diffMult * this.Math.exp(-k*first_hard_gauntlet_on_day))
+		local k = log(s2/s1) / (-d2 + d1)
+		local C = s1 / (diffMult * exp(-k * d1))
 
-		return this.Math.min(this.Math.ceil(C*this.Math.exp(-k * current_day)), maxdiff_gauntlet_score)
-
-		// local a = (maxdiff_gauntlet_score - first_hard_gauntlet_score) * 1.0 / ((maxdiff_gauntlet_on_day - first_hard_gauntlet_on_day));
-		// local b = first_hard_gauntlet_score - a * first_hard_gauntlet_on_day;
-		// return this.Math.ceil(a*current_day  + b);
+		return this.Math.min(this.Math.ceil(C * exp(-k * current_day)), s2);
 	}
 
 	function getGauntletPoolBasedOnDay() {
