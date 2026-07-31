@@ -214,7 +214,7 @@ local GauntletManager = function () {
 			this.m.RemainingDifficulty = _difficultyScore;
 
 			this.m.RangeMax = this.Math.rand(0, 3) - 1 + this.Math.min(3, _survived);
-			this.m.CrowdControlMax = this.Math.rand(0, 3) - 2 + this.Math.min(2, this.Math.floor(_survived / 2));
+			this.m.CrowdControlMax = this.Math.rand(0, 3) - 2 + this.Math.min(2, this.Math.ceil(_survived * 1.0 / 2));
 
 			this.m.RangeTotal = 0;
 			this.m.CrowdControlTotal = 0;
@@ -381,9 +381,12 @@ local gauntlet_pool_early = [
 		Weight = 2
 	},
 	{
-		Type = this.Const.World.Spawn.Troops.ConscriptPolearm,
-		DifficultyRating = 2,
-		Weight = 2
+		Type = this.Const.World.Spawn.Troops.ConscriptPolearm, // 2.25 - 2.5
+		DifficultyRating = 3,
+		Weight = 2,
+		CoSpawn = [
+			{Type = this.Const.World.Spawn.Troops.MilitiaVeteran} // 0.75
+		]
 	},
 	// brigand
 	{
@@ -431,8 +434,7 @@ local gauntlet_pool_early = [
 	// barb
 	{
 		Type = this.Const.World.Spawn.Troops.BarbarianMarauder,
-		Num = 2,
-		DifficultyRating = 3,
+		DifficultyRating = 2,
 		Weight = 3
 	},
 	// orc
@@ -450,12 +452,7 @@ local gauntlet_pool_early = [
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.OrcWarrior,
-		DifficultyRating = 4,
-		CoSpawn = [
-			{
-				Type = this.Const.World.Spawn.Troops.OrcYoung
-			}
-		]
+		DifficultyRating = 4
 	},
 	// gobbo
 	{
@@ -486,53 +483,35 @@ local gauntlet_pool_early = [
 	},
 	// undead
 	{
-		Type = this.Const.World.Spawn.Troops.ZombieYeoman,
-		DifficultyRating = 1,
-		Weight = 3,
-		CoSpawn = [
-			{
-				Type = this.Const.World.Spawn.Troops.Warhound
-			}
-		]
-	},
-	{
 		Type = this.Const.World.Spawn.Troops.ZombieKnight,
-		DifficultyRating = 3,
-		CoSpawn = [
-			{
-				Type = this.Const.World.Spawn.Troops.Warhound
-			}
-		]
+		DifficultyRating = 3
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.Ghost,
-		DifficultyRating = 5,
+		DifficultyRating = 6,
 		IsCrowdControl = true,
 		CoSpawn = [
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieYeoman
+				Type = this.Const.World.Spawn.Troops.ZombieNomad
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieYeoman
-			},
-			{
-				Type = this.Const.World.Spawn.Troops.Warhound
-			},
-			{
-				Type = this.Const.World.Spawn.Troops.Warhound
+				Type = this.Const.World.Spawn.Troops.ZombieYeomanBodyguard,
+				Num = 2
 			}
 		]
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.Necromancer,
-		DifficultyRating = 7,
+		DifficultyRating = 8,
 		IsCrowdControl = true,
 		CoSpawn = [
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieKnightBodyguard
+				Type = this.Const.World.Spawn.Troops.ZombieYeomanBodyguard,
+				Num = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieYeoman
+				Type = this.Const.World.Spawn.Troops.ZombieNomad,
+				Num = 2
 			}
 		]
 	},
@@ -588,7 +567,7 @@ local gauntlet_pool_mid = [
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.Greatsword,
-		DifficultyRating = 2,
+		DifficultyRating = 3,
 		Weight = 3,
 		IsSquishyMelee = true
 	},
@@ -620,7 +599,7 @@ local gauntlet_pool_mid = [
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.Assassin,
-		DifficultyRating = 4,
+		DifficultyRating = 5,
 		Weight = 2,
 		CoSpawn = [
 			{
@@ -630,7 +609,7 @@ local gauntlet_pool_mid = [
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.Mortar,
-		DifficultyRating = 10,
+		DifficultyRating = 11,
 		IsCrowdControl = true,
 		CoSpawn = [
 			{
@@ -660,16 +639,16 @@ local gauntlet_pool_mid = [
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.HedgeKnight,
-		DifficultyRating = 7
+		DifficultyRating = 8
 	},
 	// nomad + glads
 	{
 		Type = this.Const.World.Spawn.Troops.Executioner,
-		DifficultyRating = 8
+		DifficultyRating = 9
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.Gladiator,
-		DifficultyRating = 6
+		DifficultyRating = 7
 	},
 	// barb
 	{
@@ -767,26 +746,22 @@ local gauntlet_pool_mid = [
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.Ghost,
-		DifficultyRating = 5,
+		DifficultyRating = 6,
 		IsCrowdControl = true,
 		CoSpawn = [
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieYeoman
+				Type = this.Const.World.Spawn.Troops.ZombieYeoman,
+				Num = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieYeoman
-			},
-			{
-				Type = this.Const.World.Spawn.Troops.Warhound
-			},
-			{
-				Type = this.Const.World.Spawn.Troops.Warhound
+				Type = this.Const.World.Spawn.Troops.ZombieNomad,
+				Num = 2
 			}
 		]
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.Necromancer,
-		DifficultyRating = 9,
+		DifficultyRating = 10,
 		IsCrowdControl = true,
 		CoSpawn = [
 			{
@@ -834,13 +809,13 @@ local gauntlet_pool_mid = [
 	},
 	{
 		Type = this.Const.World.Spawn.Troops.SkeletonPriest,
-		DifficultyRating = 11,
+		DifficultyRating = 12,
+		IsCrowdControl = true,
 		CoSpawn = [
 			{
 				Type = this.Const.World.Spawn.Troops.SkeletonHeavyBodyguard
 			}
-		],
-		IsCrowdControl = true
+		]
 	}
 ]
 
@@ -1074,7 +1049,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			return this.Math.ceil(current_day * this.Math.max(this.m.DifficultyScoreModifier - 0.4, 0.9));
 		}
 		// baseline: score 45 (18 foot + 17 bill) on Expert on first Hard Gauntlet
-		local diffMult = -0.5 * this.m.DifficultyScoreModifier + 1.8; // 1 at Expert aka 1.6, 1.2 at Beginner
+		local diffMult = -0.5 * this.m.DifficultyScoreModifier + 1.8; // 1 at Expert, 1.2 at Beginner
 
 		local d1 = this.m.EndofMidGameThreshold;
 		local d2 = this.m.MaxExpertDifficultyScoreOnDay;
