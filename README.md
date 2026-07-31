@@ -29,7 +29,9 @@ Alternatively, you can just zip the two folders and put it inside the data folde
 
 
 # Suggested cooldown setting (WIP)
+
 **For a normal campaign with a few occasional fights:** Cooldown 8-15.
+
 **For a combat-only start that almost ignore the overworld**: Cooldown 5-7, toggle on "Always Allow Looting".
 
 # To-do
