@@ -17,6 +17,7 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
 
 # Requirements
 
+0. Battle Brother ()
 1. Adam Mill's Modding Script Hook (v20+).
 2. Modern Hooks (v0.6.0+).
 3. Modding Standards and Utilities (MSU, v1.9.0+).
@@ -42,3 +43,8 @@ Alternatively, you can just zip the two folders and put it inside the data folde
 * Create a mod option menu that allow further customization on date threshold, scaling and some toggles. (WIP!)
 * Figure out how to either 1\) disable corpse resurrection on player's dead bros, or 2\) prevent gears lost for resurrected zombie bros. 
 * ...And more!
+
+# Acknowledgement
+
+Thank you to the BB modding community for numerous code references and guidance on technical side of the games.
+And thank you to Overhype for creating such an amazing game
