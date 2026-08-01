@@ -360,7 +360,8 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		AllowLooting = 1,
 		DifficultyScoreModifier = 1,
 		GauntletSurvived = 0,
-		suppliesNum = 0
+		SuppliesNum = 0
+		EnemyFaction = null
 	},
 
 	function create() {
@@ -378,6 +379,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 					Text = "To battle!",
 					function getResult(_event) {
 						local properties = this.World.State.getLocalCombatProperties(this.World.State.getPlayer().getPos());
+
 						properties.CombatID = "Event";
 						local music_arr = [];
 						music_arr.extend(this.Const.Music.NobleTracks)
@@ -388,33 +390,41 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 						music_arr.extend(this.Const.Music.OrcsTracks)
 						music_arr.extend(this.Const.Music.GoblinsTracks)
 						properties.Music = music_arr;
+
 						properties.IsAutoAssigningBases = false;
 						properties.Entities = [];
 						properties.IsFleeingProhibited = true;
 						properties.IsArenaMode = !(_event.m.AllowLooting);
-						// local supplies = _event.generateSuppliesFromNum(_event.calculateTotalDifficultyScore());
-						// this.logDebug(debug_init + "Given supplies" + supplies)
-						// properties.Loot.extend(supplies)
+
+						properties.PlayerDeploymentType = this.Const.Tactical.DeploymentType.Line;
+						// properties.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Line;
+
+						properties.AllyBanners = [
+							this.World.Assets.getBanner()
+						];
+						// properties.EnemyBanners = [
+						// 	this.World.getEntityByID(this.Flags.get("GauntletEnemyBase")).getBanner()
+						// ];
+
 						local spawnlist = _event.generateSpawnListBasedOnDay();
 						local resource = spawnlist.Cost + 100;
 						local spawnlist_arr = [];
 						spawnlist_arr.append(spawnlist)
 						this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy)
 						this.logDebug(debug_init + "properties.Entities constructed. Prepare to fight!");
-						// this.logDebug(debug_init + "sanity check: properties.Entities.len()=" + properties.Entities.len());
 						dumpCustom(properties)
-						local combat = this.World.State.startScriptedCombat(properties, false, false, true);
-						if (!combat) {
-							this.logError(debug_init + "ERROR: COMBAT NOT INITIATED!")
-						}
 						_event.registerToShowAfterCombat("Survived", "Survived");
-						return 0;
+
+						this.World.Contracts.startScriptedCombat(properties, false, true, true);
+						return 1; // 1 so that processInput doesn't throw a fuss
 					}
 				}
 			],
 
 			function start(_event) {
-				;
+				// for getting enemy banner
+				// local nearest_bandit = this.World.FactionManager.getFactionOfType(this.Const.FactionType.Bandits).getNearestSettlement(this.m.Origin.getTile())
+				World.Statistics.getFlags().set("HasGauntletInit", true);
 			}
 		});
 		this.m.Screens.push({
@@ -435,17 +445,21 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			function start(_event) {
 				World.Statistics.getFlags().set("GauntletLastTriggeredOnDay", this.World.getTime().Days);
 				World.Statistics.getFlags().set("GauntletSurvivedFlag", _event.m.GauntletSurvived + 1);
-				// local supplies = _event.generateSuppliesFromNum(_event.m.suppliesNum);
+				World.Statistics.getFlags().set("HasGauntletInit", false);
+
 				local ecoDiffMod = (this.World.Assets.getEconomicDifficulty() + 1) * 0.1
-				local armorPartAmount = this.Math.ceil(_event.m.suppliesNum * (1.5 - ecoDiffMod))
-				local medicineAmount = this.Math.ceil(_event.m.suppliesNum * (0.75 - ecoDiffMod))
-				local ammoAmount = this.Math.ceil(_event.m.suppliesNum * (2 - ecoDiffMod))
+				local armorPartAmount = this.Math.ceil(_event.m.SuppliesNum * (1.5 - ecoDiffMod))
+				local medicineAmount = this.Math.ceil(_event.m.SuppliesNum * (0.75 - ecoDiffMod))
+				local ammoAmount = this.Math.ceil(_event.m.SuppliesNum * (2 - ecoDiffMod))
+
 				this.World.Assets.addArmorParts(armorPartAmount);
 				this.World.Assets.addMedicine(medicineAmount);
 				this.World.Assets.addAmmo(ammoAmount);
+
 				local armorPartStr = "You gain [color=" + this.Const.UI.Color.PositiveEventValue + "]+" + armorPartAmount + "[/color] Tools and Supplies.";
 				local medicineStr = "You gain [color=" + this.Const.UI.Color.PositiveEventValue + "]+" + medicineAmount + "[/color] Medicines.";
 				local ammoStr = "You gain [color=" + this.Const.UI.Color.PositiveEventValue + "]+" + ammoAmount + "[/color] Ammunition.";
+
 				this.List.push({
 					id = 10,
 					icon = "ui/icons/asset_supplies.png",
@@ -522,7 +536,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			}
 		}
 
-		this.m.suppliesNum = this.calculateTotalDifficultyScore();
+		this.m.SuppliesNum = this.calculateTotalDifficultyScore();
 	}
 
 	function onPrepareVariables(_vars) {}
@@ -532,19 +546,19 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 	}
 
 	function isValid() {
+
 		local current_day = this.World.getTime().Days;
 		if (!(World.Statistics.getFlags().get("GauntletLastTriggeredOnDay"))) {
 			World.Statistics.getFlags().set("GauntletLastTriggeredOnDay", 0);
 		}
 		local last_triggered_on_day = this.World.Statistics.getFlags().getAsInt("GauntletLastTriggeredOnDay");
-		if (current_day < 7) {
+		if (current_day < 3) {
 			return false;
 		}
 		if (current_day - last_triggered_on_day < this.m.BaseGauntletInterval) {
 			// this.logDebug(debug_init+"event checking: non-valid!")
 			return false;
 		}
-
 		return true;
 	}
 

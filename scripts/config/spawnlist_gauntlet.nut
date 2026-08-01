@@ -172,7 +172,8 @@ gt.Const.World.Spawn.GauntletEarly <- [
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieNomad
+						Type = this.Const.World.Spawn.Troops.ZombieNomad,
+						Num = 2
 					},
 					{
 						Type = this.Const.World.Spawn.Troops.ZombieYeomanBodyguard,
@@ -336,14 +337,10 @@ gt.Const.World.Spawn.GauntletMid <- [
 					}
 				]
 			},
-			{
-				Type = this.Const.World.Spawn.Troops.HedgeKnight,
-				DifficultyRating = 8
-			},
 			// nomad + glads
 			{
-				Type = this.Const.World.Spawn.Troops.Executioner,
-				DifficultyRating = 9
+				Type = this.Const.World.Spawn.Troops.NomadLeader,
+				DifficultyRating = 3
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Gladiator,

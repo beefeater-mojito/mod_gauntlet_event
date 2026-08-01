@@ -28,6 +28,4 @@
 		::logDebug("Gauntlet event added!")
 
 	})
-
-
 })
