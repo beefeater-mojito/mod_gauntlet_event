@@ -7,17 +7,17 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
 * Implemented as a special event to guarantee events firing at the morning when a certain number of days passed since last gauntlet\*. 
 * The enemies composition based on days passed and combat difficulty. 
   * Higher day counts draw tougher enemies from pools divided by early, mid and late game threshold.
-  * Enemies pools are hand-crafted and weighted accordingly to provide some degree of variety, while limiting too many annoying or squishy enemies. 
+  * Enemies pools are hand-crafted and weighted to provide some degree of variety, while limiting too many annoying or squishy enemies. 
 * Looting after events is toggleable from economy difficulty (and from a mod option menu)\*\*. However, players are guaranteed to receive some supplies after the fight.
 * Customizable thresholds, flags and scalings. (WIP).
 
 \*While the special events (examples are new ambitions and desertions) are checked frequently, there are a few edge cases where events might be prevented from firing, such as wandering near a hostile party.
 
-\*\* This works by enabling `isArenaMode` in combat properties, allowing `gatherLoot` to remove non-players loot while let players recover gears from their fallen bros. However, this comes with a few unwanted behaviors. 
+\*\*This works by enabling `IsArenaMode` in combat properties, allowing `gatherLoot()` to remove non-players loot while let players recover gears from their fallen bros. However, this comes with a few unwanted behaviors, such as equiments lost when bros' corpses are resurrected. 
 
 # Requirements
 
-0. Battle Brother (v1.5.2.2+)
+0. Battle Brother (v1.5.2.2+).
 1. Adam Mill's Modding Script Hook (v20+).
 2. Modern Hooks (v0.6.0+).
 3. Modding Standards and Utilities (MSU, v1.9.0+).
@@ -48,4 +48,4 @@ Alternatively, you can just zip the two folders and put it inside the data folde
 
 Thank you to the BB modding community for numerous code references and guidance on technical side of the games.
 
-And thank you to Overhype for creating such an amazing game
+And thank you to Overhype for creating such an amazing game.
