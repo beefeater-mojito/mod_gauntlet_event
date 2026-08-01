@@ -25,6 +25,7 @@
 		FirstLateGauntletExpertDifficultyScore = "40",
 		EndofEarlyGameThreshold = "15",
 		EndofMidGameThreshold = "35",
+		SafeDaysUntilFirstGauntlet = "3"
 	};
 
 	local tools = {
@@ -94,7 +95,7 @@
 	});
 
 	local AlwaysAllowLooting = page.addBooleanSetting("always_allow_looting", ::ModGauntletEvents.Settings.AlwaysAllowLooting, "Always Allow Looting");
-	AlwaysAllowLooting.setDescription("Allow looting from enemies corpses, ignoring economic difficulty settings.")
+	AlwaysAllowLooting.setDescription("Allow looting from enemies corpses, ignoring economic difficulty settings. Does not work during mid-battle.")
 
 	local maxDifficultyScore = page.addStringSetting("max_difficulty_score", ::ModGauntletEvents.Settings.MaxDifficultyScore, "Maximum Difficulty Score");
 	maxDifficultyScore.setDescription("The upper limit of difficulty score, used for creating the gauntlet's composition.");
@@ -174,6 +175,22 @@
 
 		::logInfo("After change \'Midgame ends on Days\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
 		::ModGauntletEvents.Settings.EndofMidGameThreshold = ret.Value;
+	});
+
+	local safeDaysUntilFirstGauntlet = page.addStringSetting("safe_day_until_1st_gauntlet", ::ModGauntletEvents.Settings.SafeDaysUntilFirstGauntlet, "Days until 1st gauntlet starts");
+	safeDaysUntilFirstGauntlet.setDescription("Number of days before launching the 1st gauntlet events.");
+	safeDaysUntilFirstGauntlet.addAfterChangeCallback(function (_oldValue) {
+		if (this.getValue() == _oldValue) {
+			return;
+		}
+		local ret = tools.processIntegerInput(this.getValue(), _oldValue);
+
+		if (!ret.Result) {
+			this.set(_oldValue);
+		}
+
+		::logInfo("After change \'Days until 1st gauntlet starts\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
+		::ModGauntletEvents.Settings.SafeDaysUntilFirstGauntlet = ret.Value;
 	});
 
 	// Includes the 'load' file of your private folder

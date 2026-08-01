@@ -59,7 +59,7 @@ gt.Const.World.Spawn.GauntletEarly <- [
 				Weight = 2,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.MilitiaVeteran
+						Type = this.Const.World.Spawn.Troops.CaravanGuard
 					}
 				]
 			},
@@ -109,7 +109,8 @@ gt.Const.World.Spawn.GauntletEarly <- [
 			// barb
 			{
 				Type = this.Const.World.Spawn.Troops.BarbarianMarauder,
-				DifficultyRating = 2,
+				Num = 2,
+				DifficultyRating = 3,
 				Weight = 3
 			},
 			// orc

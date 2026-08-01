@@ -360,8 +360,8 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		AllowLooting = 1,
 		DifficultyScoreModifier = 1,
 		GauntletSurvived = 0,
-		SuppliesNum = 0
-		EnemyFaction = null
+		SuppliesNum = 0,
+		SafeDaysUntilFirstGauntlet = 3
 	},
 
 	function create() {
@@ -501,6 +501,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		this.m.FirstLateGauntletExpertDifficultyScore = ::ModGauntletEvents.Mod.ModSettings.getSetting("first_late_gauntlet_score").getValue().tointeger();
 		this.m.EndofEarlyGameThreshold = ::ModGauntletEvents.Mod.ModSettings.getSetting("early_end_on_day").getValue().tointeger();
 		this.m.EndofMidGameThreshold = ::ModGauntletEvents.Mod.ModSettings.getSetting("mid_end_on_day").getValue().tointeger();
+		this.m.SafeDaysUntilFirstGauntlet = ::ModGauntletEvents.Mod.ModSettings.getSetting("safe_day_until_1st_gauntlet").getValue().tointeger();
 
 		switch (this.World.Assets.getCombatDifficulty()) {
 			case 0:
@@ -552,11 +553,15 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			World.Statistics.getFlags().set("GauntletLastTriggeredOnDay", 0);
 		}
 		local last_triggered_on_day = this.World.Statistics.getFlags().getAsInt("GauntletLastTriggeredOnDay");
-		if (current_day < 3) {
+
+
+		local safe_days = ::ModGauntletEvents.Mod.ModSettings.getSetting("safe_day_until_1st_gauntlet").getValue().tointeger();
+		local interval = ::ModGauntletEvents.Mod.ModSettings.getSetting("base_gauntlet_interval").getValue().tointeger();
+
+		if (current_day < safe_days) {
 			return false;
 		}
-		if (current_day - last_triggered_on_day < this.m.BaseGauntletInterval) {
-			// this.logDebug(debug_init+"event checking: non-valid!")
+		if (current_day - last_triggered_on_day < interval) {
 			return false;
 		}
 		return true;

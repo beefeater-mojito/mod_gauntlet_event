@@ -6,12 +6,14 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
 * Start a non-avoidable, non-retreatable combat at 10-days interval (currently set as default). 
 * Implemented as a special event to guarantee events firing at the morning when a certain number of days passed since last gauntlet\*. 
 * The enemies composition based on days passed and combat difficulty. 
-** Higher day counts draw tougher enemies from pools divided by early, mid and late game threshold.
-** Enemies pools are hand-crafted and weighted accordingly to provide some degree of variety, while limiting too many annoying or squishy enemies. 
-* Looting after events is toggleable from economy difficulty (and from a mod option menu). However, players are guaranteed to receive some supplies after the fight.
+  * Higher day counts draw tougher enemies from pools divided by early, mid and late game threshold.
+  * Enemies pools are hand-crafted and weighted accordingly to provide some degree of variety, while limiting too many annoying or squishy enemies. 
+* Looting after events is toggleable from economy difficulty (and from a mod option menu)\*\*. However, players are guaranteed to receive some supplies after the fight.
 * Customizable thresholds, flags and scalings. (WIP).
 
-\*While the special events (examples are new ambitions and desertions) are checked frequently, there are a few edge cases where events might be prevented from firing, such as wandering near a hostile party. 
+\*While the special events (examples are new ambitions and desertions) are checked frequently, there are a few edge cases where events might be prevented from firing, such as wandering near a hostile party.
+
+\*\* This works by enabling `isArenaMode` in combat properties, allowing `gatherLoot` to remove non-players loot while let players recover gears from their fallen bros. However, this comes with a few unwanted behaviors. 
 
 # Requirements
 
@@ -38,4 +40,5 @@ Alternatively, you can just zip the two folders and put it inside the data folde
 
 * Implementing and testing a late-game pool.
 * Create a mod option menu that allow further customization on date threshold, scaling and some toggles. (WIP!)
+* Figure out how to either 1\) disable corpse resurrection on player's dead bros, or 2\) prevent gears lost for resurrected zombie bros. 
 * ...And more!
