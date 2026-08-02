@@ -397,7 +397,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 						properties.IsArenaMode = !(_event.m.AllowLooting);
 
 						properties.PlayerDeploymentType = this.Const.Tactical.DeploymentType.Line;
-						// properties.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Line;
+						properties.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Line;
 
 						properties.AllyBanners = [
 							this.World.Assets.getBanner()
@@ -508,10 +508,10 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 				this.m.DifficultyScoreModifier = 1.2;
 				break;
 			case 1:
-				this.m.DifficultyScoreModifier = 1.425;
+				this.m.DifficultyScoreModifier = 1.35;
 				break;
 			case 2:
-				this.m.DifficultyScoreModifier = 1.6;
+				this.m.DifficultyScoreModifier = 1.5;
 				break;
 		}
 		if (!(World.Statistics.getFlags().get("GauntletSurvivedFlag"))) {
@@ -592,11 +592,24 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		if (current_day < this.m.EndofEarlyGameThreshold) {
 			return this.Math.ceil(current_day * this.m.DifficultyScoreModifier);
 		}
+		local d0 = this.m.EndofEarlyGameThreshold;
+		local s0 = d0 * this.m.DifficultyScoreModifier;
 		if (current_day < this.m.EndofMidGameThreshold) {
-			return this.Math.ceil(current_day * this.Math.max(this.m.DifficultyScoreModifier - 0.4, 0.9));
+			return s0 + this.Math.ceil((current_day - d0) * this.m.DifficultyScoreModifier / 2.5);
 		}
-		// baseline: score 45 (18 foot + 17 bill) on Expert on first Hard Gauntlet
-		local diffMult = -0.5 * this.m.DifficultyScoreModifier + 1.8; // 1 at Expert, 1.2 at Beginner
+
+		local diffMult = 1;
+		switch(this.World.Assets.getCombatDifficulty()){
+			case 0:
+				diffMult = 1.2;
+				break;
+			case 1:
+				diffMult = 1.1;
+				break;
+			case 2:
+				diffMult = 1;
+				break;
+		}
 
 		local d1 = this.m.EndofMidGameThreshold;
 		local d2 = this.m.MaxExpertDifficultyScoreOnDay;
