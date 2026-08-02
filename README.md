@@ -1,4 +1,5 @@
 # The Gauntlet
+
 A mod for Battle Brother that add a special event triggering a non-avoidable fight scaled by in-game days. Inspired by [Lezaleas's The Battle Trial](https://www.nexusmods.com/battlebrothers/mods/191?tab=description).
 
 # Features
@@ -13,22 +14,21 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
 
 \*While the special events (examples are new ambitions and desertions) are checked frequently, there are a few edge cases where events might be prevented from firing, such as wandering near a hostile party.
 
-\*\*This works by enabling `IsArenaMode` in combat properties, allowing `gatherLoot()` to remove non-players loot while let players recover gears from their fallen bros. However, this comes with a few unwanted behaviors, such as equiments lost when bros' corpses are resurrected. 
+\*\*This works by enabling `IsArenaMode` in combat properties, allowing `gatherLoot()` to remove non-players loot while let players recover gears from their fallen bros. However, this comes with a few unwanted behaviors, such as corpse resurrection not having full gears. 
 
 # Requirements
 
-0. Battle Brother (v1.5.2.2+).
+0. Battle Brother (v1.5.2.2+), with all of the game's DLCs.
 1. Adam Mill's Modding Script Hook (v20+).
 2. Modern Hooks (v0.6.0+).
 3. Modding Standards and Utilities (MSU, v1.9.0+).
-4. All of the game's DLCs.
 
 # Installation
 
-1. Open `build.bat`, edit your `MODKITDIR` to be your current folder containing the `scripts` and `script_hooks` folder, `GAME_DATA_DIR` to be the folder containing the game's data files.
+1. Open `build.bat`, edit your `MODKITDIR` to be your current folder containing the `scripts` and `script_hooks` folder.
 2. Run `build.bat`.
 
-Alternatively, you can just zip the two folders and put it inside the data folder, just like what the `build.bat` does.
+Alternatively, you can just zip the two folders `scripts` and `script_hooks` and put it inside the data folder, just like what the `build.bat` does.
 
 
 # Suggested cooldown setting (WIP)
@@ -41,11 +41,11 @@ Alternatively, you can just zip the two folders and put it inside the data folde
 
 * Implementing and testing a late-game pool.
 * Create a mod option menu that allow further customization on date threshold, scaling and some toggles. (WIP!)
-* Figure out how to either 1\) disable corpse resurrection on player's dead bros, or 2\) prevent gears lost for resurrected zombie bros. 
+* ~~Figure out how to either 1\) disable corpse resurrection on player's dead bros, or 2\) prevent gears lost for resurrected zombie bros~~. At the moment, resurrection from the player's corpses while inside gauntlet fights is disabled.
 * ...And more!
 
 # Acknowledgement
 
-Thank you to the BB modding community for numerous code references and guidance on technical side of the games.
+Thank you to the BB modding community for numerous code references and guidance on technical side of the game.
 
 And thank you to Overhype for creating such an amazing game.

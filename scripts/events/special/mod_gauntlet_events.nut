@@ -642,4 +642,31 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 
 	}
 
+	function generateSpawnListDebug() {
+		local current_day = this.World.getTime().Days;
+		local init_difficulty_score = 10;
+
+		::logDebug(debug_init + "TEST FIGHT: Difficulty score " + init_difficulty_score + " on day " + current_day)
+
+		local debug_pool = [
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieKnight,
+				DifficultyRating = 1
+			}
+		]
+		local pool = GauntletPool();
+		pool.init("pool", debug_pool)
+
+		local pool_manager = GauntletManager();
+		pool_manager.init(pool)
+
+		local gauntlet_survived = this.approximateGauntletSurvivedFromDay(current_day)
+		local banner_unit = (current_day >= this.m.EndofEarlyGameThreshold
+			|| gauntlet_survived > 0)
+			? this.Const.World.Spawn.Troops.StandardBearer
+			: this.Const.World.Spawn.Troops.MilitiaCaptain;
+
+		return pool_manager.generateSpawnList(init_difficulty_score, current_day, gauntlet_survived, banner_unit)
+	}
+
 });

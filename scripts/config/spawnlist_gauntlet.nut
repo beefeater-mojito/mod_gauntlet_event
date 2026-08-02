@@ -181,7 +181,7 @@ gt.Const.World.Spawn.GauntletEarly <- [
 						Num = 2
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.Warhound,
+						Type = this.Const.World.Spawn.Troops.ArmoredWardog,
 						Num = 2
 					}
 				]

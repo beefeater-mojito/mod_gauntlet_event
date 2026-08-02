@@ -76,6 +76,46 @@
 		}
 	};
 
+	local formatValue = function (v) {
+		return typeof v == "string" ? "\"" + v + "\"" : v;
+	}
+
+	local dumpCustom;
+	dumpCustom = function (value, indent = "") {
+		switch (typeof value) {
+			case "table":
+				this.logDebug(indent + "{");
+				foreach (k, v in value) {
+					if (typeof v == "table" || typeof v == "array") {
+						this.logDebug(indent + "  " + k + " =");
+						dumpCustom(v, indent + "  ");
+					} else {
+						this.logDebug(indent + "  " + k + " = " + formatValue(v));
+					}
+				}
+				this.logDebug(indent + "}");
+				break;
+
+			case "array":
+				this.logDebug(indent + "[");
+				foreach (i, v in value) {
+					if (typeof v == "table" || typeof v == "array") {
+						this.logDebug(indent + "  [" + i + "] =");
+						dumpCustom(v, indent + "  ");
+					} else {
+						this.logDebug(indent + "  [" + i + "] = " + formatValue(v));
+					}
+				}
+				this.logDebug(indent + "]");
+				break;
+
+			default:
+				this.logDebug(indent + formatValue(value));
+				break;
+		}
+		return "Dump done!"
+	}
+
 	local page = ::ModGauntletEvents.Mod.ModSettings.addPage("general_page", "General");
 
 	local baseGauntletInterval = page.addStringSetting("base_gauntlet_interval", ::ModGauntletEvents.Settings.BaseGauntletInterval, "Gauntlet Cooldown");
@@ -198,7 +238,7 @@
 	// as to better organise your mod, not clutter this file, and load things in order
 	::include("script_hooks/hook_gauntlet.nut");
 
-	// Disable retreat on non-arena mode
+	// Disable retreat on the gauntlet fight
 	::ModGauntletEvents.MH.hookTree("scripts/ai/tactical/agent", function (q) {
 		q.onAddBehaviors = @(__original) function () {
 			__original();
@@ -207,4 +247,20 @@
 			}
 		}
 	});
+
+	// Disallow player's resurrection in Gauntlet mode, to prevent item lost
+	::ModGauntletEvents.MH.hookTree("scripts/entity/tactical/human", function (q) {
+		q.generateCorpse = @(__original) function ( _tile, _fatalityType, _killer) {
+			local corpse = __original( _tile, _fatalityType, _killer);
+			if (World.Statistics.getFlags().get("HasGauntletInit")){
+				::logDebug("GAUNTLET HOOK DEBUG: CHECKING SPAWN CORPSE!")
+				if (corpse.Faction == this.Const.Faction.Player){
+					::logDebug("GAUNTLET HOOK DEBUG: MAKE PLAYER'S CORPSE NON-RESURRECTABLE IN GAUNTLET MODE!")
+					corpse.IsResurrectable = false;
+				}
+			}
+			return corpse
+		}
+	});
+
 });
