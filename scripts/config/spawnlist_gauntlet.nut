@@ -127,7 +127,7 @@ gt.Const.World.Spawn.GauntletEarly <- [
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.OrcWarrior,
+				Type = this.Const.World.Spawn.Troops.OrcWarriorLOW,
 				DifficultyRating = 4
 			},
 			// gobbo
@@ -300,13 +300,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Assassin,
-				DifficultyRating = 5,
-				Weight = 2,
-				CoSpawn = [
-					{
-						Type = this.Const.World.Spawn.Troops.ArmoredWardog
-					}
-				]
+				DifficultyRating = 5
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Mortar,
@@ -365,9 +359,6 @@ gt.Const.World.Spawn.GauntletMid <- [
 				CoSpawn = [
 					{
 						Type = this.Const.World.Spawn.Troops.BarbarianBeastmaster
-					},
-					{
-						Type = this.Const.World.Spawn.Troops.BarbarianDrummer
 					}
 				]
 			},
@@ -385,12 +376,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.OrcWarlord,
-				DifficultyRating = 7,
-				CoSpawn = [
-					{
-						Type = this.Const.World.Spawn.Troops.OrcYoung
-					}
-				]
+				DifficultyRating = 8
 			},
 			// gobbo
 			{

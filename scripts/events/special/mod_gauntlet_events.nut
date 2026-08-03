@@ -355,7 +355,6 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		EndofMidGameThreshold = 35,
 		MaxDifficultyScore = 90,
 		MaxExpertDifficultyScoreOnDay = 120,
-		FirstLateGauntletExpertDifficultyScore = 40,
 
 		AllowLooting = 1,
 		DifficultyScoreModifier = 1,
@@ -481,24 +480,13 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 	}
 
 	function onUpdateScore() {
-		// local current_day = this.World.getTime().Days;
-		// local last_gauntlet_on_day = this.World.Statistics.getFlags().getAsInt("GauntletLastTriggeredOnDay");
-		// if (current_day < 7) {
-		// 	return;
-		// }
-		// if (current_day - last_gauntlet_on_day < this.m.BaseGauntletInterval) {
-		// 	return;
-		// }
-		// this.m.Score = 12000;
 	}
 
 	function onPrepare() {
 		// ::logDebug(debug_init + "getCombatDifficulty()=" + this.World.Assets.getCombatDifficulty())
-		// this.m.DifficultyScoreModifier = 1.0 + (this.World.Assets.getCombatDifficulty() + 1) * 0.2;
 		this.m.BaseGauntletInterval = ::ModGauntletEvents.Mod.ModSettings.getSetting("base_gauntlet_interval").getValue().tointeger();
 		this.m.MaxDifficultyScore = ::ModGauntletEvents.Mod.ModSettings.getSetting("max_difficulty_score").getValue().tointeger();
 		this.m.MaxExpertDifficultyScoreOnDay = ::ModGauntletEvents.Mod.ModSettings.getSetting("max_score_on_day").getValue().tointeger();
-		this.m.FirstLateGauntletExpertDifficultyScore = ::ModGauntletEvents.Mod.ModSettings.getSetting("first_late_gauntlet_score").getValue().tointeger();
 		this.m.EndofEarlyGameThreshold = ::ModGauntletEvents.Mod.ModSettings.getSetting("early_end_on_day").getValue().tointeger();
 		this.m.EndofMidGameThreshold = ::ModGauntletEvents.Mod.ModSettings.getSetting("mid_end_on_day").getValue().tointeger();
 		this.m.SafeDaysUntilFirstGauntlet = ::ModGauntletEvents.Mod.ModSettings.getSetting("safe_day_until_1st_gauntlet").getValue().tointeger();
@@ -587,7 +575,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 	}
 
 	function calculateTotalDifficultyScore() {
-		// TODO: explain how these equations come from a dream
+		// TODO: materialize these equations from a dream
 		local current_day = this.World.getTime().Days
 		if (current_day < this.m.EndofEarlyGameThreshold) {
 			return this.Math.ceil(current_day * this.m.DifficultyScoreModifier);
@@ -595,7 +583,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		local d0 = this.m.EndofEarlyGameThreshold;
 		local s0 = d0 * this.m.DifficultyScoreModifier;
 		if (current_day < this.m.EndofMidGameThreshold) {
-			return s0 + this.Math.ceil((current_day - d0) * this.m.DifficultyScoreModifier / 2.5);
+			return this.Math.ceil(s0 + (current_day - d0) * this.m.DifficultyScoreModifier / 2.5);
 		}
 
 		local diffMult = 1;
@@ -613,7 +601,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 
 		local d1 = this.m.EndofMidGameThreshold;
 		local d2 = this.m.MaxExpertDifficultyScoreOnDay;
-		local s1 = this.m.FirstLateGauntletExpertDifficultyScore;
+		local s1 = this.Math.ceil(s0 + (d1 - d0) * this.m.DifficultyScoreModifier / 2.5);
 		local s2 = this.m.MaxDifficultyScore;
 		// ::logDebug("d1="+d1+" d2="+d2+" s1="+s1+" s2="+s2)
 

@@ -22,7 +22,6 @@
 		AlwaysAllowLooting = false,
 		MaxDifficultyScore = "90",
 		MaxExpertDifficultyScoreOnDay = "120",
-		FirstLateGauntletExpertDifficultyScore = "40",
 		EndofEarlyGameThreshold = "15",
 		EndofMidGameThreshold = "35",
 		SafeDaysUntilFirstGauntlet = "3"
@@ -167,22 +166,6 @@
 
 		::logInfo("After change \'Maximum Difficulty Score reached on Days (Expert)\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
 		::ModGauntletEvents.Settings.maxScoreOnDay = ret.Value;
-	});
-
-	local firstLateGauntletScore = page.addStringSetting("first_late_gauntlet_score", ::ModGauntletEvents.Settings.FirstLateGauntletExpertDifficultyScore, "Difficulty score on the first lategame gauntlet event (Expert)");
-	firstLateGauntletScore.setDescription("The day where the maximum difficulty Score is reached, on Expert combat difficulty.");
-	firstLateGauntletScore.addAfterChangeCallback(function (_oldValue) {
-		if (this.getValue() == _oldValue) {
-			return;
-		}
-		local ret = tools.processIntegerInput(this.getValue(), _oldValue);
-
-		if (!ret.Result) {
-			this.set(_oldValue);
-		}
-
-		::logInfo("After change \'Difficulty score on the first lategame gauntlet event (Expert)\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
-		::ModGauntletEvents.Settings.FirstLateGauntletExpertDifficultyScore = ret.Value;
 	});
 
 	local earlyEndOnDay = page.addStringSetting("early_end_on_day", ::ModGauntletEvents.Settings.EndofEarlyGameThreshold, "Earlygame ends on Days");
