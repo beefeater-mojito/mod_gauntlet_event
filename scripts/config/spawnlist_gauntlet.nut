@@ -496,6 +496,17 @@ gt.Const.World.Spawn.GauntletMid <- [
 				DifficultyRating = 3,
 				Weight = 2
 			},
+			{
+				Type = this.Const.World.Spawn.Troops.SkeletonPriest,
+				DifficultyRating = 13,
+				IsCrowdControl = true,
+				CoSpawn = [
+					{
+						Type = this.Const.World.Spawn.Troops.SkeletonHeavyBodyguard,
+						Num = 1
+					}
+				]
+			},
 			// undead: golem
 			{
 				Type = this.Const.World.Spawn.Troops.LesserFleshGolem,

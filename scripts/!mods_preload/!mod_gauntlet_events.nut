@@ -20,7 +20,7 @@
 	::ModGauntletEvents.Settings <- {
 		BaseGauntletInterval = "10",
 		AlwaysAllowLooting = false,
-		MaxDifficultyScore = "135",
+		MaxDifficultyScore = "100",
 		MaxExpertDifficultyScoreOnDay = "120",
 		EndofEarlyGameThreshold = "15",
 		EndofMidGameThreshold = "35",
@@ -149,7 +149,7 @@
 		}
 
 		::logInfo("After change \'Maximum Difficulty Score\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
-		::ModGauntletEvents.Settings.maxDifficultyScore = ret.Value;
+		::ModGauntletEvents.Settings.MaxDifficultyScore = ret.Value;
 	});
 
 	local maxScoreOnDay = page.addStringSetting("max_score_on_day", ::ModGauntletEvents.Settings.MaxExpertDifficultyScoreOnDay, "Maximum Difficulty Score reached on Days (Expert)");
