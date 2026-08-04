@@ -20,7 +20,7 @@
 	::ModGauntletEvents.Settings <- {
 		BaseGauntletInterval = "10",
 		AlwaysAllowLooting = false,
-		MaxDifficultyScore = "90",
+		MaxDifficultyScore = "135",
 		MaxExpertDifficultyScoreOnDay = "120",
 		EndofEarlyGameThreshold = "15",
 		EndofMidGameThreshold = "35",

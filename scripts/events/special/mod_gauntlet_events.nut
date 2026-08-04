@@ -369,7 +369,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		this.m.IsSpecial = true;
 		this.m.Screens.push({
 			ID = "A",
-			Text = "[img]gfx/ui/events/event_90.png[/img]Here come the gauntlet.",
+			Text = "[img]gfx/ui/events/event_90.png[/img]Here comes the gauntlet.",
 			Image = "",
 			List = [],
 			Banner = [],
@@ -408,10 +408,10 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 						local spawnlist = _event.generateSpawnListBasedOnDay();
 						local resource = spawnlist.Cost + 100;
 						local spawnlist_arr = [];
-						spawnlist_arr.append(spawnlist)
-						this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy)
+						spawnlist_arr.append(spawnlist);
+						this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy, -100)
 						this.logDebug(debug_init + "properties.Entities constructed. Prepare to fight!");
-						dumpCustom(properties)
+						dumpCustom(properties);
 						_event.registerToShowAfterCombat("Survived", "Survived");
 
 						this.World.Contracts.startScriptedCombat(properties, false, true, true);
@@ -421,8 +421,6 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			],
 
 			function start(_event) {
-				// for getting enemy banner
-				// local nearest_bandit = this.World.FactionManager.getFactionOfType(this.Const.FactionType.Bandits).getNearestSettlement(this.m.Origin.getTile())
 				World.Statistics.getFlags().set("HasGauntletInit", true);
 			}
 		});
@@ -541,7 +539,6 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			World.Statistics.getFlags().set("GauntletLastTriggeredOnDay", 0);
 		}
 		local last_triggered_on_day = this.World.Statistics.getFlags().getAsInt("GauntletLastTriggeredOnDay");
-
 
 		local safe_days = ::ModGauntletEvents.Mod.ModSettings.getSetting("safe_day_until_1st_gauntlet").getValue().tointeger();
 		local interval = ::ModGauntletEvents.Mod.ModSettings.getSetting("base_gauntlet_interval").getValue().tointeger();
