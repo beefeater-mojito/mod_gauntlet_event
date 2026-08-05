@@ -1,6 +1,6 @@
 REM tar.exe acvf mod_gauntlet_events-1.0.zip scripts script_hooks
 set "MODNAME=mod_gauntlet_events"
-set "VERSION=1.0"
+set "VERSION=1.1"
 
 set "MODKITDIR=B:\games\light\BB\bb modding\wip\mod_gauntlet_events"
 set "GAME_DATA_DIR=B:\app\Steam\steamapps\common\Battle Brothers\data"

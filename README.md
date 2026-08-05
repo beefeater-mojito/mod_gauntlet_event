@@ -35,13 +35,13 @@ Alternatively, you can just zip the two folders `scripts` and `script_hooks` and
 
 **For a normal campaign with a few occasional fights:** Cooldown 8-15.
 
-**For a combat-only start that almost ignore the overworld**: Cooldown 5-7, toggle on "Always Allow Looting".
+**For a combat-only campaign that almost ignore the overworld**: Cooldown 5-7, toggle on "Always Allow Looting".
 
 # To-do
 
-* Implementing and testing a late-game pool.
+* Implementing and testing a late-game pool (WIP!).
 * Create a mod option menu that allow further customization on date threshold, scaling and some toggles. (WIP!)
-* ~~Figure out how to either 1\) disable corpse resurrection on player's dead bros, or 2\) prevent gears lost for resurrected zombie bros~~. At the moment, resurrection from the player's corpses while inside gauntlet fights is disabled.
+* ~~Figure out how to either 1\) disable corpse resurrection on player's dead bros, or 2\) prevent gears lost for resurrected zombie bros~~. At the moment, resurrection from the player's corpses while inside gauntlet fights is disabled, and zombies will be re-equipped randomly upon resurrection.
 * ...And more!
 
 # Acknowledgement

@@ -431,7 +431,8 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 						properties.AllyBanners = [
 							this.World.Assets.getBanner()
 						];
-						local spawnlist = _event.generateSpawnListBasedOnDay();
+						// local spawnlist = _event.generateSpawnListBasedOnDay();
+						local spawnlist = _event.generateSpawnListDebug();
 						local resource = spawnlist.Cost + 100;
 						if (::ModGauntletEvents.Mod.ModSettings.getSetting("allow_champions")) {
 							local boss_spawnlist = {
@@ -668,23 +669,24 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			: this.calculateTotalDifficultyScore();
 		::logDebug(debug_init + "Difficulty score " + init_difficulty_score + " on day " + current_day)
 
+		local gauntlet_survived = this.approximateGauntletSurvivedFromDay(current_day)
+
 		local pool = GauntletPool();
 		pool.init("pool", this.getGauntletPoolBasedOnDay())
 
 		local boss_max = 0;
-		if (::ModGauntletEvents.Mod.ModSettings.getSetting("allow_champions")) {
+		if (::ModGauntletEvents.Mod.ModSettings.getSetting("allow_champions") && current_day >= this.m.EndofMidGameThreshold) {
 			local boss_pool = this.Const.World.Spawn.GauntletBoss[0].Pool;
 			foreach (boss in boss_pool) {
 				boss.IsBoss <- true;
 				pool.pushUnit(boss);
 			}
-			boss_max = this.Math.rand(0, 3);
+			boss_max = this.Math.rand(0, 3) + this.Math.rand(0, this.Math.min(3, this.Math.floor(gauntlet_survived*1.0/2)));
 		}
 
 		local pool_manager = GauntletManager();
 		pool_manager.init(pool)
 
-		local gauntlet_survived = this.approximateGauntletSurvivedFromDay(current_day)
 		local banner_unit = (current_day >= this.m.EndofEarlyGameThreshold
 			|| gauntlet_survived > 0)
 			? this.Const.World.Spawn.Troops.StandardBearer
@@ -702,8 +704,18 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 
 		local debug_pool = [
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieKnight,
+				Type = this.Const.World.Spawn.Troops.ZombieYeoman,
 				DifficultyRating = 1
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieKnight,
+				DifficultyRating = 2
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.Necromancer,
+				DifficultyRating = 4,
+				IsSquishyMelee = true,
+				Weight = 3
 			}
 		]
 

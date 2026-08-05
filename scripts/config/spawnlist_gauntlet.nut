@@ -295,7 +295,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Officer,
-				DifficultyRating = 4
+				DifficultyRating = 5
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Assassin,
@@ -650,11 +650,11 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Swordmaster,
-				DifficultyRating = 17
+				DifficultyRating = 20
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.MasterArcher,
-				DifficultyRating = 25,
+				DifficultyRating = 30,
 				IsRange = true
 			},
 			// nomad + glads
@@ -664,11 +664,11 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.DesertDevil,
-				DifficultyRating = 18
+				DifficultyRating = 21
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.DesertStalker,
-				DifficultyRating = 25,
+				DifficultyRating = 30,
 				IsRange = true
 			},
 			{
