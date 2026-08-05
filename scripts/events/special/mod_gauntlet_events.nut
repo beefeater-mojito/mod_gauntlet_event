@@ -366,10 +366,14 @@ local GauntletManager = function () {
 
 			foreach (co in _unit.CoSpawn) {
 				local num = "Num" in co ? co.Num : 1;
-				this.m.SpawnList.Troops.append({
+				local member = {
 					Type = co.Type,
 					Num = num
-				});
+				};
+				if ("IsBoss" in _unit && _unit.IsBoss){
+					member.IsBoss <- true;
+				}
+				this.m.SpawnList.Troops.append(member);
 
 				this.m.SpawnList.Cost += co.Type.Cost;
 			}
