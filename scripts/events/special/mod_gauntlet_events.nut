@@ -154,7 +154,7 @@ local GauntletManager = function () {
 			Pool = null,
 			RangePool = null,
 			CrowdControlPool = null,
-			// MeleePool = null,
+			BossPool = null,
 			SpawnList = null,
 			InitDifficulty = 0,
 			RemainingDifficulty = 0,
@@ -167,6 +167,11 @@ local GauntletManager = function () {
 
 			SquishyLimit = 0.5,
 			SquishyScore = 0,
+
+			BossLimit = 0.5,
+			BossScore = 0,
+			BossMax = 1,
+			BossTotal = 0
 
 			Spawnlist = {
 				Cost = 0,
@@ -209,12 +214,18 @@ local GauntletManager = function () {
 			this.m.RangePool.init("crowdcontrol", this.createFilteredArray(@(u)"IsCrowdControl" in u));
 		}
 
-		function generateSpawnList(_difficultyScore, _currentDay, _survived, _bannerUnit = null) {
+		function createBossPool() {
+			this.m.BossPool = GauntletPool();
+			this.m.RangePool.init("boss", this.Const.World.Spawn.GauntletBoss[0].Pool)
+		}
+
+		function generateSpawnList(_difficultyScore, _currentDay, _survived, _bannerUnit = null, _bossMax = 0) {
 			this.m.InitDifficulty = _difficultyScore;
 			this.m.RemainingDifficulty = _difficultyScore;
 
 			this.m.RangeMax = this.Math.rand(0, 3) - 1 + this.Math.min(3, _survived);
 			this.m.CrowdControlMax = this.Math.rand(0, 3) - 2 + this.Math.min(2, this.Math.ceil(_survived * 1.0 / 2));
+			this.m.BossMax = _bossMax
 
 			this.m.RangeTotal = 0;
 			this.m.CrowdControlTotal = 0;
@@ -229,12 +240,13 @@ local GauntletManager = function () {
 				Troops = []
 			};
 
-			this.generateTroopsFromPool(this.m.RangePool)
-			this.generateTroopsFromPool(this.m.CrowdControlPool)
+			this.generateTroopsFromPool(this.m.BossPool);
+			this.generateTroopsFromPool(this.m.RangePool);
+			this.generateTroopsFromPool(this.m.CrowdControlPool);
 			this.generateTroopsFromPool();
 
 			if (_bannerUnit != null) {
-				local num = this.Math.ceil(this.m.SpawnList.Troops.len() / 24.0);
+				local num = this.Math.ceil(this.m.SpawnList.Troops.len() / 22.0);
 
 				this.m.SpawnList.Troops.append({
 					Type = _bannerUnit,
@@ -300,28 +312,46 @@ local GauntletManager = function () {
 				}
 			}
 
+			if ("IsBoss" in _unit) {
+				if (this.m.BossTotal >= this.m.BossMax) {
+					return false;
+				}
+				local boss_limit = this.m.InitDifficulty * this.m.BossLimit - _unit.DifficultyRating
+				if (this.m.BossScore >= boss_limit) {
+					return false;
+				}
+			}
+
 			return true;
 		}
 
 		function addUnit(_unit) {
-			if ("IsRange" in _unit) {
+			if ("IsRange" in _unit && _unit.IsRange) {
 				this.m.RangeTotal++;
 				this.m.SquishyScore += _unit.DifficultyRating;
 			}
 
-			if ("IsSquishyMelee" in _unit) {
+			if ("IsSquishyMelee" in _unit && _unit.IsSquishyMelee) {
 				this.m.SquishyScore += _unit.DifficultyRating;
 			}
 
-			if ("IsCrowdControl" in _unit) {
+			if ("IsCrowdControl" in _unit && _unit.IsCrowdControl) {
 				this.m.CrowdControlTotal++;
 				this.m.SquishyScore += _unit.DifficultyRating;
 			}
 			local num = "Num" in _unit ? _unit.Num : 1;
-			this.m.SpawnList.Troops.append({
+			local member = {
 				Type = _unit.Type,
 				Num = num
-			});
+			}
+
+			if ("IsBoss" in _unit && _unit.IsBoss) {
+				this.m.BossTotal++;
+				this.m.BossScore += _unit.DifficultyRating;
+				member.IsBoss <- true;
+			}
+
+			this.m.SpawnList.Troops.append(member);
 
 			this.m.SpawnList.Cost += _unit.Type.Cost;
 			this.m.RemainingDifficulty -= _unit.DifficultyRating;
@@ -378,7 +408,6 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 					Text = "To battle!",
 					function getResult(_event) {
 						local properties = this.World.State.getLocalCombatProperties(this.World.State.getPlayer().getPos());
-
 						properties.CombatID = "Event";
 						local music_arr = [];
 						music_arr.extend(this.Const.Music.NobleTracks)
@@ -389,31 +418,42 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 						music_arr.extend(this.Const.Music.OrcsTracks)
 						music_arr.extend(this.Const.Music.GoblinsTracks)
 						properties.Music = music_arr;
-
 						properties.IsAutoAssigningBases = false;
 						properties.Entities = [];
 						properties.IsFleeingProhibited = true;
 						properties.IsArenaMode = !(_event.m.AllowLooting);
-
 						properties.PlayerDeploymentType = this.Const.Tactical.DeploymentType.Line;
 						properties.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Line;
-
 						properties.AllyBanners = [
 							this.World.Assets.getBanner()
 						];
-						// properties.EnemyBanners = [
-						// 	this.World.getEntityByID(this.Flags.get("GauntletEnemyBase")).getBanner()
-						// ];
-
 						local spawnlist = _event.generateSpawnListBasedOnDay();
 						local resource = spawnlist.Cost + 100;
+						if (::ModGauntletEvents.Mod.ModSettings.getSetting("allow_champions")) {
+							local boss_spawnlist = {
+								Cost = 0,
+								MovementSpeedMult = 1.0,
+								VisibilityMult = 1.0,
+								VisionMult = 1.0,
+								Body = "figure_noble_01",
+								Troops = []
+							};
+							foreach (i, troop in spawnlist.Troops) {
+								if ("IsBoss" in troop && troop.IsBoss) {
+									boss_spawnlist.Troops.append(troop)
+									spawnlist.Troops.remove(i)
+								}
+							}
+							local boss_spawnlist_arr = [];
+							boss_spawnlist_arr.append(boss_spawnlist)
+							this.Const.World.Common.addUnitsToCombat(properties.Entities, boss_spawnlist_arr, resource, this.Const.Faction.Enemy, 150)
+						}
 						local spawnlist_arr = [];
 						spawnlist_arr.append(spawnlist);
 						this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy, -100)
 						this.logDebug(debug_init + "properties.Entities constructed. Prepare to fight!");
 						dumpCustom(properties);
 						_event.registerToShowAfterCombat("Survived", "Survived");
-
 						this.World.Contracts.startScriptedCombat(properties, false, true, true);
 						return 1; // 1 so that processInput doesn't throw a fuss
 					}
@@ -477,8 +517,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 
 	}
 
-	function onUpdateScore() {
-	}
+	function onUpdateScore() {}
 
 	function onPrepare() {
 		// ::logDebug(debug_init + "getCombatDifficulty()=" + this.World.Assets.getCombatDifficulty())
@@ -584,7 +623,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		}
 
 		local diffMult = 1;
-		switch(this.World.Assets.getCombatDifficulty()){
+		switch (this.World.Assets.getCombatDifficulty()) {
 			case 0:
 				diffMult = 1.2;
 				break;
@@ -618,14 +657,25 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		return this.Const.World.Spawn.GauntletMid[0].Pool;
 	}
 
-	function generateSpawnListBasedOnDay() {
-		local current_day = this.World.getTime().Days;
-		local init_difficulty_score = this.calculateTotalDifficultyScore();
-
+	function generateSpawnListBasedOnDay(_days = null, _diffScore = null) {
+		local current_day = _days != null ? _days : this.World.getTime().Days;
+		local init_difficulty_score = _diffScore != null
+			? _diffScore
+			: this.calculateTotalDifficultyScore();
 		::logDebug(debug_init + "Difficulty score " + init_difficulty_score + " on day " + current_day)
 
 		local pool = GauntletPool();
 		pool.init("pool", this.getGauntletPoolBasedOnDay())
+
+		local boss_max = 0;
+		if (::ModGauntletEvents.Mod.ModSettings.getSetting("allow_champions")) {
+			local boss_pool = this.Const.World.Spawn.GauntletBoss[0].Pool;
+			foreach (boss in boss_pool) {
+				boss.IsBoss <- true;
+				pool.pushUnit(boss);
+			}
+			boss_max = this.Math.rand(0, 3);
+		}
 
 		local pool_manager = GauntletManager();
 		pool_manager.init(pool)
@@ -636,7 +686,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			? this.Const.World.Spawn.Troops.StandardBearer
 			: this.Const.World.Spawn.Troops.MilitiaCaptain;
 
-		return pool_manager.generateSpawnList(init_difficulty_score, current_day, gauntlet_survived, banner_unit)
+		return pool_manager.generateSpawnList(init_difficulty_score, current_day, gauntlet_survived, banner_unit, boss_max)
 
 	}
 
@@ -652,6 +702,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 				DifficultyRating = 1
 			}
 		]
+
 		local pool = GauntletPool();
 		pool.init("pool", debug_pool)
 

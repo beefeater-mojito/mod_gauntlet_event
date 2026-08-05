@@ -20,6 +20,7 @@
 	::ModGauntletEvents.Settings <- {
 		BaseGauntletInterval = "10",
 		AlwaysAllowLooting = false,
+		AllowChampions = false,
 		MaxDifficultyScore = "100",
 		MaxExpertDifficultyScoreOnDay = "120",
 		EndofEarlyGameThreshold = "15",
@@ -133,8 +134,11 @@
 		::ModGauntletEvents.Settings.BaseGauntletInterval = ret.Value;
 	});
 
-	local AlwaysAllowLooting = page.addBooleanSetting("always_allow_looting", ::ModGauntletEvents.Settings.AlwaysAllowLooting, "Always Allow Looting");
-	AlwaysAllowLooting.setDescription("Allow looting from enemies corpses, ignoring economic difficulty settings. Does not work during mid-battle.")
+	local alwaysAllowLooting = page.addBooleanSetting("always_allow_looting", ::ModGauntletEvents.Settings.AlwaysAllowLooting, "Always Allow Looting");
+	alwaysAllowLooting.setDescription("Allow looting from enemies corpses, ignoring economic difficulty settings. Does not work during mid-battle.")
+
+	local allowChampion = page.addBooleanSetting("allow_champions", ::ModGauntletEvents.Settings.AllowChampions, "Allow Champions/Bosses spawn in Gauntlet");
+	allowChampion.setDescription("Allow champions AND certain bosses to be spawn in the gauntlet events.")
 
 	local maxDifficultyScore = page.addStringSetting("max_difficulty_score", ::ModGauntletEvents.Settings.MaxDifficultyScore, "Maximum Difficulty Score");
 	maxDifficultyScore.setDescription("The upper limit of difficulty score, used for creating the gauntlet's composition.");
