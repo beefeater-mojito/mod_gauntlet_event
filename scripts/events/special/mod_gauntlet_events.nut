@@ -223,7 +223,7 @@ local GauntletManager = function () {
 			this.m.InitDifficulty = _difficultyScore;
 			this.m.RemainingDifficulty = _difficultyScore;
 
-			this.m.RangeMax = this.Math.rand(0, 3) - 1 + this.Math.min(3, _survived);
+			this.m.RangeMax = this.Math.rand(0, 2) - 1 + this.Math.min(3, _survived);
 			this.m.CrowdControlMax = this.Math.rand(0, 3) - 2 + this.Math.min(2, this.Math.ceil(_survived * 1.0 / 2));
 			this.m.BossMax = _bossMax
 
@@ -431,8 +431,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 						properties.AllyBanners = [
 							this.World.Assets.getBanner()
 						];
-						// local spawnlist = _event.generateSpawnListBasedOnDay();
-						local spawnlist = _event.generateSpawnListDebug();
+						local spawnlist = _event.generateSpawnListBasedOnDay();
 						local resource = spawnlist.Cost + 100;
 						if (::ModGauntletEvents.Mod.ModSettings.getSetting("allow_champions")) {
 							local boss_spawnlist = {
