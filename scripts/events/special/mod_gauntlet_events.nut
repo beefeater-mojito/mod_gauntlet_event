@@ -239,10 +239,17 @@ local GauntletManager = function () {
 				Body = "figure_noble_01",
 				Troops = []
 			};
+			if(this.m.BossMax > 0){
+				::logDebug(debug_init+ "Picking bosses!")
+				this.generateTroopsFromPool(this.m.BossPool);
+			}
+			if(this.m.RangeMax > 0){
+				this.generateTroopsFromPool(this.m.RangePool);
+			}
+			if(this.m.CrowdControlMax > 0){
+				this.generateTroopsFromPool(this.m.CrowdControlPool);
+			}
 
-			this.generateTroopsFromPool(this.m.BossPool);
-			this.generateTroopsFromPool(this.m.RangePool);
-			this.generateTroopsFromPool(this.m.CrowdControlPool);
 			this.generateTroopsFromPool();
 
 			if (_bannerUnit != null) {
@@ -622,7 +629,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		local d0 = this.m.EndofEarlyGameThreshold;
 		local s0 = d0 * this.m.DifficultyScoreModifier;
 		if (current_day < this.m.EndofMidGameThreshold) {
-			return this.Math.ceil(s0 + (current_day - d0) * this.m.DifficultyScoreModifier / 2.5);
+			return this.Math.ceil(s0 + (current_day - d0) * this.m.DifficultyScoreModifier / 2);
 		}
 
 		local diffMult = 1;

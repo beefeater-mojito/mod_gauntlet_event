@@ -358,7 +358,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.BarbarianChampion,
-				DifficultyRating = 4,
+				DifficultyRating = 5,
 				Weight = 2
 			},
 			{
@@ -682,7 +682,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			// barb
 			{
 				Type = this.Const.World.Spawn.Troops.BarbarianChampion,
-				DifficultyRating = 4,
+				DifficultyRating = 5,
 				Weight = 3
 			},
 			{
@@ -811,6 +811,11 @@ gt.Const.World.Spawn.GauntletLate <- [
 						Num = 2
 					}
 				]
+			},
+			//undead: golem
+			{
+				Type = this.Const.World.Spawn.Troops.GreaterFleshGolem,
+				DifficultyRating = 8
 			}
 		]
 	}
@@ -883,7 +888,7 @@ gt.Const.World.Spawn.GauntletBoss <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Executioner,
-				DifficultyRating = 18
+				DifficultyRating = 16
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.BarbarianChampion,
@@ -907,7 +912,7 @@ gt.Const.World.Spawn.GauntletBoss <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.ZombieBoss,
-				DifficultyRating = 50,
+				DifficultyRating = 45,
 				IsCrowdControl = true
 			},
 			{
@@ -923,7 +928,7 @@ gt.Const.World.Spawn.GauntletBoss <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.SkeletonBoss,
-				DifficultyRating = 21
+				DifficultyRating = 19
 			}
 		]
 	}
