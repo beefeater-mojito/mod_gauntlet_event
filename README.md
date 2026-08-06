@@ -8,7 +8,8 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
 * Implemented as a special event to guarantee events firing at the morning when a certain number of days passed since last gauntlet\*. 
 * The enemies composition based on days passed and combat difficulty. 
   * Higher day counts draw tougher enemies from pools divided by early, mid and late game threshold.
-  * Enemies pools are hand-crafted and weighted to provide some degree of variety, while limiting too many annoying or squishy enemies. 
+  * Enemies pools are hand-crafted and weighted to provide some degree of variety, while limiting too many annoying or squishy enemies.
+  * Champions and bosses can spawn in late game pool (requiring toggle on "Allow Champions" in the Mod Settings).
 * Looting after events is toggleable from economy difficulty (and from a mod option menu)\*\*. However, players are guaranteed to receive some supplies after the fight.
 * Customizable thresholds, flags and scalings. (WIP).
 
@@ -46,6 +47,6 @@ Alternatively, you can just zip the two folders `scripts` and `script_hooks` and
 
 # Acknowledgement
 
-Thank you to the BB modding community for numerous code references and guidance on technical side of the game.
+Thank you to the BB modding community for numerous code references and guidance on technical side of the game. The special event format was inspired by [Sato's Rebalanced Vanilla](https://github.com/jcsato/sato_rebalanced_vanilla_origins/tree/master) origin implementation for Cultist scenario.
 
 And thank you to Overhype for creating such an amazing game.
