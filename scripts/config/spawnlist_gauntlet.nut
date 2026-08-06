@@ -656,6 +656,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			{
 				Type = this.Const.World.Spawn.Troops.MasterArcher,
 				DifficultyRating = 30,
+				Weight = 0.5,
 				IsRange = true
 			},
 			// nomad + glads
@@ -671,6 +672,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			{
 				Type = this.Const.World.Spawn.Troops.DesertStalker,
 				DifficultyRating = 30,
+				Weight = 0.5,
 				IsRange = true
 			},
 			{
@@ -905,7 +907,7 @@ gt.Const.World.Spawn.GauntletBoss <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.GrandDiviner,
-				DifficultyRating = 30,
+				DifficultyRating = 35,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
