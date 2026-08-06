@@ -137,8 +137,8 @@
 	local alwaysAllowLooting = page.addBooleanSetting("always_allow_looting", ::ModGauntletEvents.Settings.AlwaysAllowLooting, "Always Allow Looting");
 	alwaysAllowLooting.setDescription("Allow looting from enemies corpses, ignoring economic difficulty settings. Does not work during mid-battle.")
 
-	local allowChampion = page.addBooleanSetting("allow_champions", ::ModGauntletEvents.Settings.AllowChampions, "Allow Champions/Bosses spawn in Gauntlet");
-	allowChampion.setDescription("Allow champions AND certain bosses to be spawn in the gauntlet events.")
+	local allowChampion = page.addBooleanSetting("allow_champions", ::ModGauntletEvents.Settings.AllowChampions, "Allow Champions/Bosses spawn.");
+	allowChampion.setDescription("Allow champions AND certain bosses to be spawn in the LATEGAME gauntlet events. This setting isn't affected by global or bonus champion chance.")
 
 	local maxDifficultyScore = page.addStringSetting("max_difficulty_score", ::ModGauntletEvents.Settings.MaxDifficultyScore, "Maximum Difficulty Score");
 	maxDifficultyScore.setDescription("The upper limit of difficulty score, used for creating the gauntlet's composition.");

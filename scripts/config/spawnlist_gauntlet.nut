@@ -539,7 +539,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			{
 				Type = this.Const.World.Spawn.Troops.Billman,
 				DifficultyRating = 1,
-				Weight = 3,
+				Weight = 2,
 				IsSquishyMelee = true
 			},
 			{
@@ -642,36 +642,36 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.HedgeKnight,
-				DifficultyRating = 7
+				DifficultyRating = 6
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Oathbringer,
-				DifficultyRating = 8
+				DifficultyRating = 7
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Swordmaster,
-				DifficultyRating = 20,
+				DifficultyRating = 25,
 				Weight = 0.5
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.MasterArcher,
-				DifficultyRating = 30,
+				DifficultyRating = 28,
 				Weight = 0.5,
 				IsRange = true
 			},
 			// nomad + glads
 			{
 				Type = this.Const.World.Spawn.Troops.Executioner,
-				DifficultyRating = 9
+				DifficultyRating = 8
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.DesertDevil,
-				DifficultyRating = 21,
+				DifficultyRating = 25,
 				Weight = 0.5
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.DesertStalker,
-				DifficultyRating = 30,
+				DifficultyRating = 28,
 				Weight = 0.5,
 				IsRange = true
 			},
@@ -714,7 +714,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 				Type = this.Const.World.Spawn.Troops.OrcBerserker,
 				DifficultyRating = 2,
 				Weight = 2,
-				IsSquishyMelee = true,
+				IsSquishyMelee = true
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.OrcWarrior,
@@ -741,7 +741,12 @@ gt.Const.World.Spawn.GauntletLate <- [
 			{
 				Type = this.Const.World.Spawn.Troops.ZombieKnight,
 				DifficultyRating = 2,
-				Weight = 2
+				Weight = 2,
+				CoSpawn = [
+					{
+						Type = this.Const.World.Spawn.Troops.ZombieNomad
+					}
+				]
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Ghost,
@@ -793,12 +798,12 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.SkeletonHeavyPolearm,
-				DifficultyRating = 4,
+				DifficultyRating = 3,
 				Weight = 2
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.SkeletonPriest,
-				DifficultyRating = 13,
+				DifficultyRating = 14,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -858,11 +863,11 @@ gt.Const.World.Spawn.GauntletBoss <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.HedgeKnight,
-				DifficultyRating = 17
+				DifficultyRating = 15
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Knight,
-				DifficultyRating = 16
+				DifficultyRating = 14
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.BanditLeader,
@@ -878,7 +883,7 @@ gt.Const.World.Spawn.GauntletBoss <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Executioner,
-				DifficultyRating = 20
+				DifficultyRating = 18
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.BarbarianChampion,
@@ -886,19 +891,19 @@ gt.Const.World.Spawn.GauntletBoss <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.BarbarianChosen,
-				DifficultyRating = 16
+				DifficultyRating = 14
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Officer,
-				DifficultyRating = 15
+				DifficultyRating = 13
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Gladiator,
-				DifficultyRating = 17
+				DifficultyRating = 15
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Oathbringer,
-				DifficultyRating = 18
+				DifficultyRating = 16
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.ZombieBoss,
@@ -918,7 +923,7 @@ gt.Const.World.Spawn.GauntletBoss <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.SkeletonBoss,
-				DifficultyRating = 25
+				DifficultyRating = 21
 			}
 		]
 	}

@@ -454,7 +454,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 						}
 						local spawnlist_arr = [];
 						spawnlist_arr.append(spawnlist);
-						this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy, -100)
+						this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy, -150)
 						this.logDebug(debug_init + "properties.Entities constructed. Prepare to fight!");
 						dumpCustom(properties);
 						_event.registerToShowAfterCombat("Survived", "Survived");
