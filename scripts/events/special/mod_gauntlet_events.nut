@@ -187,7 +187,7 @@ local GauntletManager = function () {
 			this.m.Pool = _pool;
 			this.createRangePool();
 			this.createCrowdControlPool();
-
+			this.createBossPool();
 		}
 
 		function createFilteredArray(fun) {
@@ -211,12 +211,12 @@ local GauntletManager = function () {
 
 		function createCrowdControlPool() {
 			this.m.CrowdControlPool = GauntletPool();
-			this.m.RangePool.init("crowdcontrol", this.createFilteredArray(@(u)"IsCrowdControl" in u));
+			this.m.CrowdControlPool.init("crowdcontrol", this.createFilteredArray(@(u)"IsCrowdControl" in u));
 		}
 
 		function createBossPool() {
 			this.m.BossPool = GauntletPool();
-			this.m.RangePool.init("boss", this.Const.World.Spawn.GauntletBoss[0].Pool)
+			this.m.BossPool.init("boss", this.Const.World.Spawn.GauntletBoss[0].Pool)
 		}
 
 		function generateSpawnList(_difficultyScore, _currentDay, _survived, _bannerUnit = null, _bossMax = 0) {
