@@ -647,7 +647,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 
 		local d1 = this.m.EndofMidGameThreshold;
 		local d2 = this.m.MaxExpertDifficultyScoreOnDay;
-		local s1 = this.Math.ceil(s0 + (d1 - d0) * this.m.DifficultyScoreModifier / 2.5);
+		local s1 = this.Math.ceil(s0 + (d1 - d0) * this.m.DifficultyScoreModifier / 2);
 		local s2 = this.m.MaxDifficultyScore;
 		// ::logDebug("d1="+d1+" d2="+d2+" s1="+s1+" s2="+s2)
 
@@ -684,7 +684,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		pool.init("pool", this.getGauntletPoolBasedOnDay())
 
 		local boss_max = 0;
-		if (::ModGauntletEvents.Mod.ModSettings.getSetting("allow_champions") && current_day >= this.m.EndofMidGameThreshold) {
+		if (::ModGauntletEvents.Mod.ModSettings.getSetting("allow_champions").getValue() && current_day >= this.m.EndofMidGameThreshold) {
 			local boss_pool = this.Const.World.Spawn.GauntletBoss[0].Pool;
 			foreach (boss in boss_pool) {
 				boss.IsBoss <- true;
