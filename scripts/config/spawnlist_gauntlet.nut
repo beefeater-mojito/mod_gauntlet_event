@@ -650,7 +650,8 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Swordmaster,
-				DifficultyRating = 20
+				DifficultyRating = 20,
+				Weight = 0.5
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.MasterArcher,
@@ -664,7 +665,8 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.DesertDevil,
-				DifficultyRating = 21
+				DifficultyRating = 21,
+				Weight = 0.5
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.DesertStalker,

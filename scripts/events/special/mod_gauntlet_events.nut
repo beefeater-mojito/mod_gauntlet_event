@@ -216,14 +216,14 @@ local GauntletManager = function () {
 
 		function createBossPool() {
 			this.m.BossPool = GauntletPool();
-			this.m.BossPool.init("boss", this.Const.World.Spawn.GauntletBoss[0].Pool)
+			this.m.BossPool.init("boss", this.createFilteredArray(@(u)"IsBoss" in u))
 		}
 
 		function generateSpawnList(_difficultyScore, _currentDay, _survived, _bannerUnit = null, _bossMax = 0) {
 			this.m.InitDifficulty = _difficultyScore;
 			this.m.RemainingDifficulty = _difficultyScore;
 
-			this.m.RangeMax = this.Math.rand(0, 2) - 1 + this.Math.min(3, _survived);
+			this.m.RangeMax = this.Math.rand(0, 2) - 1 + this.Math.min(2, _survived);
 			this.m.CrowdControlMax = this.Math.rand(0, 3) - 2 + this.Math.min(2, this.Math.ceil(_survived * 1.0 / 2));
 			this.m.BossMax = _bossMax
 
@@ -615,7 +615,6 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 	}
 
 	function calculateTotalDifficultyScore() {
-		// TODO: materialize these equations from a dream
 		local current_day = this.World.getTime().Days
 		if (current_day < this.m.EndofEarlyGameThreshold) {
 			return this.Math.ceil(current_day * this.m.DifficultyScoreModifier);
@@ -658,7 +657,11 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		if (current_days < this.m.EndofEarlyGameThreshold) {
 			return this.Const.World.Spawn.GauntletEarly[0].Pool;
 		}
-		return this.Const.World.Spawn.GauntletMid[0].Pool;
+
+		if (current_days < this.m.EndofMidGameThreshold){
+			return this.Const.World.Spawn.GauntletMid[0].Pool
+		}
+		return this.Const.World.Spawn.GauntletLate[0].Pool;
 	}
 
 	function generateSpawnListBasedOnDay(_days = null, _diffScore = null) {
