@@ -47,6 +47,6 @@ Alternatively, you can just zip the two folders `scripts` and `script_hooks` and
 
 # Acknowledgement
 
-Thank you to the BB modding community for numerous code references and guidance on technical side of the game.
+Thank you to the BB modding community for numerous code references and guidance on technical side of the game. The special event format was inspired by [Sato's Rebalanced Vanilla](https://github.com/jcsato/sato_rebalanced_vanilla_origins/tree/master) origin implementation for Cultist scenario.
 
 And thank you to Overhype for creating such an amazing game.
