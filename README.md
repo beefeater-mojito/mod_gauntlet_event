@@ -9,7 +9,7 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
 * The enemies composition based on days passed and combat difficulty. 
   * Higher day counts draw tougher enemies from pools divided by early, mid and late game threshold.
   * Enemies pools are hand-crafted and weighted to provide some degree of variety, while limiting too many annoying or squishy enemies.
-  * Champions and bosses can spawn in late game pool (requiring toggle on "Allow Champions" in the Mod Settings).
+  * Champions and bosses can spawn in late game pool (requiring some toggles in the Mod Settings).
 * Looting after events is toggleable from economy difficulty (and from a mod option menu)\*\*. However, players are guaranteed to receive some supplies after the fight.
 * Customizable thresholds, flags and scalings. (WIP).
 
@@ -36,17 +36,17 @@ Alternatively, you can just zip the two folders `scripts` and `script_hooks` and
 
 **For a normal campaign with a few occasional fights:** Cooldown 8-15.
 
-**For a combat-only campaign that almost ignore the overworld**: Cooldown 5-7, toggle on "Always Allow Looting".
+**For a heavy fighting campaign that almost ignore the overworld**: Cooldown 5-7, toggle on "Always Allow Looting".
 
 # To-do
 
 * Implementing and testing a late-game pool (WIP!).
 * Create a mod option menu that allow further customization on date threshold, scaling and some toggles. (WIP!)
-* ~~Figure out how to either 1\) disable corpse resurrection on player's dead bros, or 2\) prevent gears lost for resurrected zombie bros~~. At the moment, resurrection from the player's corpses while inside gauntlet fights is disabled, and zombies will be re-equipped randomly upon resurrection.
+* ~~Figure out how to either 1\) disable corpse resurrection on player's dead bros, or 2\) prevent gears lost for resurrected zombie bros~~. At the moment, resurrection from the player's corpses while inside gauntlet fights is disabled, and unarmed, resurrected zombies and skeletons will be re-equipped randomly.
 * ...And more!
 
 # Acknowledgement
 
-Thank you to the BB modding community for numerous code references and guidance on technical side of the game. The special event format was inspired by [Sato's Rebalanced Vanilla](https://github.com/jcsato/sato_rebalanced_vanilla_origins/tree/master) origin implementation for Cultist scenario.
+Thank you to the BB modding community for numerous code references and guidance on technical side of the game. The special event format was inspired by [Sato's Rebalanced Vanilla Origin's](https://github.com/jcsato/sato_rebalanced_vanilla_origins/tree/master) implementation for the Cultist scenario.
 
 And thank you to Overhype for creating such an amazing game.

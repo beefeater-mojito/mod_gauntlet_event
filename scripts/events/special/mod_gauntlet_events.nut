@@ -394,6 +394,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		BaseGauntletInterval = 10,
 		EndofEarlyGameThreshold = 15,
 		EndofMidGameThreshold = 35,
+		MinDifficultyScore = 0,
 		MaxDifficultyScore = 90,
 		MaxExpertDifficultyScoreOnDay = 120,
 
@@ -446,10 +447,10 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 						local spawnlist = _event.generateSpawnListBasedOnDay();
 						local resource = spawnlist.Cost + 100;
 
-						local boss_spawnlist = _event.getBossSpawnList(spawnlist)
-						local boss_spawnlist_arr = [];
-						boss_spawnlist_arr.append(boss_spawnlist)
-						this.Const.World.Common.addUnitsToCombat(properties.Entities, boss_spawnlist_arr, resource, this.Const.Faction.Enemy, 150)
+						local champion_spawnlist = _event.getBossSpawnList(spawnlist)
+						local champion_spawnlist_arr = [];
+						champion_spawnlist_arr.append(champion_spawnlist)
+						this.Const.World.Common.addUnitsToCombat(properties.Entities, champion_spawnlist_arr, resource, this.Const.Faction.Enemy, 150)
 
 						local spawnlist_arr = [];
 						spawnlist_arr.append(spawnlist);
@@ -491,9 +492,9 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 				World.Statistics.getFlags().set("HasGauntletInit", false);
 
 				local ecoDiffMod = (this.World.Assets.getEconomicDifficulty() + 1) * 0.1
-				local armorPartAmount = this.Math.ceil(_event.m.SuppliesNum * (1.5 - ecoDiffMod))
+				local armorPartAmount = this.Math.ceil(_event.m.SuppliesNum * (1.25 - ecoDiffMod))
 				local medicineAmount = this.Math.ceil(_event.m.SuppliesNum * (0.75 - ecoDiffMod))
-				local ammoAmount = this.Math.ceil(_event.m.SuppliesNum * (2 - ecoDiffMod))
+				local ammoAmount = this.Math.ceil(_event.m.SuppliesNum * (1.75 - ecoDiffMod))
 
 				this.World.Assets.addArmorParts(armorPartAmount);
 				this.World.Assets.addMedicine(medicineAmount);
@@ -528,6 +529,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 	function onPrepare() {
 		// ::logDebug(debug_init + "getCombatDifficulty()=" + this.World.Assets.getCombatDifficulty())
 		this.m.BaseGauntletInterval = ::ModGauntletEvents.Mod.ModSettings.getSetting("base_gauntlet_interval").getValue().tointeger();
+		this.m.MinDifficultyScore = ::ModGauntletEvents.Mod.ModSettings.getSetting("min_difficulty_score").getValue().tointeger();
 		this.m.MaxDifficultyScore = ::ModGauntletEvents.Mod.ModSettings.getSetting("max_difficulty_score").getValue().tointeger();
 		this.m.MaxExpertDifficultyScoreOnDay = ::ModGauntletEvents.Mod.ModSettings.getSetting("max_score_on_day").getValue().tointeger();
 		this.m.EndofEarlyGameThreshold = ::ModGauntletEvents.Mod.ModSettings.getSetting("early_end_on_day").getValue().tointeger();
@@ -568,7 +570,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			}
 		}
 
-		this.m.SuppliesNum = this.calculateTotalDifficultyScore();
+		this.m.SuppliesNum = this.getDifficultyScore();
 	}
 
 	function onPrepareVariables(_vars) {}
@@ -619,6 +621,17 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		return this.Math.floor((days - 1) * 1.0 / this.m.BaseGauntletInterval)
 	}
 
+	function getDifficultyScore(){
+		local score = calculateTotalDifficultyScore();
+		if (score < this.m.MinDifficultyScore){
+			return this.m.MinDifficultyScore;
+		}
+		if (score > this.m.MaxDifficultyScore){
+			return this.m.MaxDifficultyScore
+		}
+		return score;
+	}
+
 	function calculateTotalDifficultyScore() {
 		local current_day = this.World.getTime().Days
 		if (current_day < this.m.EndofEarlyGameThreshold) {
@@ -630,19 +643,6 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			return this.Math.ceil(s0 + (current_day - d0) * this.m.DifficultyScoreModifier / 2);
 		}
 
-		local diffMult = 1;
-		switch (this.World.Assets.getCombatDifficulty()) {
-			case 0:
-				diffMult = 1.2;
-				break;
-			case 1:
-				diffMult = 1.1;
-				break;
-			case 2:
-				diffMult = 1;
-				break;
-		}
-
 		local d1 = this.m.EndofMidGameThreshold;
 		local d2 = this.m.MaxExpertDifficultyScoreOnDay;
 		local s1 = this.Math.ceil(s0 + (d1 - d0) * this.m.DifficultyScoreModifier / 2);
@@ -650,7 +650,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		// ::logDebug("d1="+d1+" d2="+d2+" s1="+s1+" s2="+s2)
 
 		local k = log(s2 / s1) / (-d2 + d1)
-		local C = s1 / (diffMult * exp(-k * d1))
+		local C = s1 / (exp(-k * d1))
 
 		return this.Math.min(this.Math.ceil(C * exp(-k * current_day)), s2);
 	}
@@ -685,8 +685,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 				pool.append(boss);
 			}
 		}
-		return pool
-
+		return pool;
 	}
 
 	function IsChampionAllowed() {
@@ -708,7 +707,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		local current_day = _days != null ? _days : this.World.getTime().Days;
 		local init_difficulty_score = _diffScore != null
 			? _diffScore
-			: this.calculateTotalDifficultyScore();
+			: this.getDifficultyScore();
 		::logDebug(debug_init + "Difficulty score " + init_difficulty_score + " on day " + current_day)
 
 		local gauntlet_survived = this.approximateGauntletSurvivedFromDay(current_day)

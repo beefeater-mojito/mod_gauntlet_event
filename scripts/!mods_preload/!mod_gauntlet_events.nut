@@ -24,6 +24,7 @@
 		AllowChampions = false,
 		AllowMiniBosses = false,
 		AllowBosses = false,
+		MinDifficultyScore = "10",
 		MaxDifficultyScore = "120",
 		MaxExpertDifficultyScoreOnDay = "110",
 		EndofEarlyGameThreshold = "15",
@@ -31,6 +32,7 @@
 		SafeDaysUntilFirstGauntlet = "3"
 	};
 
+	local debug_init = "GAUNTLET HOOK DEBUG: ";
 	local tools = {
 		processIntegerInput = function (_input, _oldValue) {
 			if (typeof _input != "string") {
@@ -123,11 +125,12 @@
 
 	local enableGauntlet = page.addBooleanSetting("enable_gauntlet", ::ModGauntletEvents.Settings.GauntletEnabled, "Enable Gauntlet Events")
 	enableGauntlet.setDescription("Enable the gauntlet events to be fired.");
-	enableGauntlet.addAfterChangeCallback(function (_oldValue)
-	{
-		if (this.getValue() == _oldValue) return;
+	enableGauntlet.addAfterChangeCallback(function (_oldValue) {
+		if (this.getValue() == _oldValue) {
+			return;
+		}
 		::logInfo("After change \'Enable Gauntlet Events\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
-	    ::ModGauntletEvents.Settings.GauntletEnabled = this.getValue();
+		::ModGauntletEvents.Settings.GauntletEnabled = this.getValue();
 	});
 
 	local baseGauntletInterval = page.addStringSetting("base_gauntlet_interval", ::ModGauntletEvents.Settings.BaseGauntletInterval, "Gauntlet Cooldown");
@@ -148,38 +151,55 @@
 
 	local alwaysAllowLooting = page.addBooleanSetting("always_allow_looting", ::ModGauntletEvents.Settings.AlwaysAllowLooting, "Always Allow Looting");
 	alwaysAllowLooting.setDescription("Allow looting from enemies corpses, ignoring economic difficulty settings. Does not work during mid-battle.")
-	alwaysAllowLooting.addAfterChangeCallback(function (_oldValue)
-	{
-		if (this.getValue() == _oldValue) return;
+	alwaysAllowLooting.addAfterChangeCallback(function (_oldValue) {
+		if (this.getValue() == _oldValue) {
+			return;
+		}
 		::logInfo("After change \'factorDifficulty\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
-	    ::ModGauntletEvents.Settings.AlwaysAllowLooting = this.getValue();
+		::ModGauntletEvents.Settings.AlwaysAllowLooting = this.getValue();
 	});
 
 	local allowChampion = page.addBooleanSetting("allow_champions", ::ModGauntletEvents.Settings.AllowChampions, "Allow Champions spawn");
 	allowChampion.setDescription("Allow champions to be spawn in LATEGAME gauntlet events. Range champions are not included. This setting isn't affected by global or bonus champion chance.")
-	allowChampion.addAfterChangeCallback(function (_oldValue)
-	{
-		if (this.getValue() == _oldValue) return;
+	allowChampion.addAfterChangeCallback(function (_oldValue) {
+		if (this.getValue() == _oldValue) {
+			return;
+		}
 		::logInfo("After change \'Allow Champions spawn\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
-	    ::ModGauntletEvents.Settings.AllowChampions = this.getValue();
+		::ModGauntletEvents.Settings.AllowChampions = this.getValue();
 	});
 
 	local allowMiniBoss = page.addBooleanSetting("allow_minibosses", ::ModGauntletEvents.Settings.AllowMiniBosses, "Allow Mini-Bosses spawn");
 	allowMiniBoss.setDescription("Allow non-champion/non-boss but highly disruptive enemies to be spawn in LATEGAME gauntlet events, such as swordmasters, master archers and lindwurms.")
-	allowMiniBoss.addAfterChangeCallback(function (_oldValue)
-	{
-		if (this.getValue() == _oldValue) return;
+	allowMiniBoss.addAfterChangeCallback(function (_oldValue) {
+		if (this.getValue() == _oldValue) {
+			return;
+		}
 		::logInfo("After change \'Allow Mini-Bosses spawn\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
-	    ::ModGauntletEvents.Settings.AllowMiniBosses = this.getValue();
+		::ModGauntletEvents.Settings.AllowMiniBosses = this.getValue();
 	});
 
 	local allowBoss = page.addBooleanSetting("allow_bosses", ::ModGauntletEvents.Settings.AllowBosses, "Allow Bosses spawn");
 	allowBoss.setDescription("Allow legendary bosses and dangerous champions to be spawn in LATEGAME gauntlet events. Range champions are not included.")
-	allowBoss.addAfterChangeCallback(function (_oldValue)
-	{
-		if (this.getValue() == _oldValue) return;
+	allowBoss.addAfterChangeCallback(function (_oldValue) {
+		if (this.getValue() == _oldValue) {
+			return;
+		}
 		::logInfo("After change \'Allow Bosses spawn\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
-	    ::ModGauntletEvents.Settings.AllowBosses = this.getValue();
+		::ModGauntletEvents.Settings.AllowBosses = this.getValue();
+	});
+
+	local minDifficultyScore = page.addStringSetting("min_difficulty_score", ::ModGauntletEvents.Settings.MinDifficultyScore, "Minimum Difficulty Score");
+	minDifficultyScore.setDescription("The lower limit of difficulty score, used for creating the gauntlet's composition.");
+	minDifficultyScore.addAfterChangeCallback(function (_oldValue) {
+		if (this.getValue() == _oldValue) {
+			return;
+		}
+		local ret = tools.processIntegerInput(this.getValue(), _oldValue);
+
+		if (!ret.Result) {
+			this.set(_oldValue);
+		}
 	});
 
 	local maxDifficultyScore = page.addStringSetting("max_difficulty_score", ::ModGauntletEvents.Settings.MaxDifficultyScore, "Maximum Difficulty Score");
@@ -282,9 +302,9 @@
 		q.generateCorpse = @(__original) function (_tile, _fatalityType, _killer) {
 			local corpse = __original(_tile, _fatalityType, _killer);
 			if (World.Statistics.getFlags().get("HasGauntletInit")) {
-				::logDebug("GAUNTLET HOOK DEBUG: CHECKING SPAWN CORPSE!")
+				::logDebug(debug_init + "CHECKING SPAWN CORPSE!")
 				if (corpse.Faction == this.Const.Faction.Player) {
-					::logDebug("GAUNTLET HOOK DEBUG: MAKE PLAYER'S CORPSE NON-RESURRECTABLE IN GAUNTLET MODE!")
+					::logDebug(debug_init + "MAKE PLAYER'S CORPSE NON-RESURRECTABLE IN GAUNTLET MODE!")
 					corpse.IsResurrectable = false;
 				}
 			}
@@ -297,14 +317,15 @@
 		q.onResurrected = @(__original) function (_info) {
 			__original(_info);
 			if (World.Statistics.getFlags().get("HasGauntletInit")) {
-				::logDebug("GAUNTLET HOOK DEBUG: CHECKING RESURRECTED ZOMBIES!")
+				::logDebug(debug_init + "CHECKING RESURRECTED ZOMBIES!")
 
 				if (this.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand) == null) {
-					::logDebug("GAUNTLET HOOK DEBUG: EQUIPPING UNARMED ZOMBIES NEW EQUIPMENT")
+					::logDebug(debug_init + "EQUIPPING UNARMED ZOMBIES NEW EQUIPMENTs")
 					local weapons = [];
 					switch (this.getType()) {
 						case this.Const.EntityType.Zombie:
 						case this.Const.EntityType.ZombieYeoman:
+						case this.Const.EntityType.SkeletonLight:
 							weapons = [
 								"weapons/falchion",
 								"weapons/hand_axe",
