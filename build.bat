@@ -1,10 +1,21 @@
-REM tar.exe acvf mod_gauntlet_events-1.0.zip scripts script_hooks
-set "MODNAME=mod_gauntlet_events"
-set "VERSION=1.1"
+@echo off
+setlocal
 
-set "MODKITDIR=B:\games\light\BB\bb modding\wip\mod_gauntlet_events"
-set "GAME_DATA_DIR=B:\app\Steam\steamapps\common\Battle Brothers\data"
+rem Read config
+for /f "usebackq tokens=1,* delims==" %%A in ("build.cfg") do (
+    set "%%A=%%B"
+)
 
-call tar.exe acvf "%MODNAME%-%VERSION%.zip" scripts script_hooks
+cd /d "%MODKITDIR%"
 
-copy /Y "%MODNAME%-%VERSION%.zip" "%GAME_DATA_DIR%" 
+rem Remove previous archives
+del "%MODNAME%-*.zip" 2>nul
+
+tar.exe -acf "%MODNAME%-%VERSION%.zip" scripts script_hooks
+
+rem Replace old archive in game folder
+del "%GAME_DATA_DIR%\%MODNAME%-*.zip" 2>nul
+copy /Y "%MODNAME%-%VERSION%.zip" "%GAME_DATA_DIR%\"
+
+echo Done.
+pause
