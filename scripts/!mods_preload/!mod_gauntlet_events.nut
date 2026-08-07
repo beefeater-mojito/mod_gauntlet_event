@@ -18,11 +18,14 @@
 	::ModGauntletEvents.Mod <- ::MSU.Class.Mod(::ModGauntletEvents.ID, ::ModGauntletEvents.Version, ::ModGauntletEvents.Name);
 
 	::ModGauntletEvents.Settings <- {
+		GauntletEnabled = true,
 		BaseGauntletInterval = "10",
 		AlwaysAllowLooting = false,
 		AllowChampions = false,
-		MaxDifficultyScore = "105",
-		MaxExpertDifficultyScoreOnDay = "120",
+		AllowMiniBosses = false,
+		AllowBosses = false,
+		MaxDifficultyScore = "120",
+		MaxExpertDifficultyScoreOnDay = "110",
 		EndofEarlyGameThreshold = "15",
 		EndofMidGameThreshold = "35",
 		SafeDaysUntilFirstGauntlet = "3"
@@ -118,6 +121,15 @@
 
 	local page = ::ModGauntletEvents.Mod.ModSettings.addPage("general_page", "General");
 
+	local enableGauntlet = page.addBooleanSetting("enable_gauntlet", ::ModGauntletEvents.Settings.GauntletEnabled, "Enable Gauntlet Events")
+	enableGauntlet.setDescription("Enable the gauntlet events to be fired.");
+	enableGauntlet.addAfterChangeCallback(function (_oldValue)
+	{
+		if (this.getValue() == _oldValue) return;
+		::logInfo("After change \'Enable Gauntlet Events\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
+	    ::ModGauntletEvents.Settings.GauntletEnabled = this.getValue();
+	});
+
 	local baseGauntletInterval = page.addStringSetting("base_gauntlet_interval", ::ModGauntletEvents.Settings.BaseGauntletInterval, "Gauntlet Cooldown");
 	baseGauntletInterval.setDescription("Days cooldown between two gauntlet events.");
 	baseGauntletInterval.addAfterChangeCallback(function (_oldValue) {
@@ -143,13 +155,31 @@
 	    ::ModGauntletEvents.Settings.AlwaysAllowLooting = this.getValue();
 	});
 
-	local allowChampion = page.addBooleanSetting("allow_champions", ::ModGauntletEvents.Settings.AllowChampions, "Allow Champions/Bosses spawn.");
-	allowChampion.setDescription("Allow champions AND certain bosses to be spawn in the LATEGAME gauntlet events. This setting isn't affected by global or bonus champion chance.")
+	local allowChampion = page.addBooleanSetting("allow_champions", ::ModGauntletEvents.Settings.AllowChampions, "Allow Champions spawn");
+	allowChampion.setDescription("Allow champions to be spawn in LATEGAME gauntlet events. Range champions are not included. This setting isn't affected by global or bonus champion chance.")
 	allowChampion.addAfterChangeCallback(function (_oldValue)
 	{
 		if (this.getValue() == _oldValue) return;
-		::logInfo("After change \'factorDifficulty\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
+		::logInfo("After change \'Allow Champions spawn\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
 	    ::ModGauntletEvents.Settings.AllowChampions = this.getValue();
+	});
+
+	local allowMiniBoss = page.addBooleanSetting("allow_minibosses", ::ModGauntletEvents.Settings.AllowMiniBosses, "Allow Mini-Bosses spawn");
+	allowMiniBoss.setDescription("Allow non-champion/non-boss but highly disruptive enemies to be spawn in LATEGAME gauntlet events, such as swordmasters, master archers and lindwurms.")
+	allowMiniBoss.addAfterChangeCallback(function (_oldValue)
+	{
+		if (this.getValue() == _oldValue) return;
+		::logInfo("After change \'Allow Mini-Bosses spawn\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
+	    ::ModGauntletEvents.Settings.AllowMiniBosses = this.getValue();
+	});
+
+	local allowBoss = page.addBooleanSetting("allow_bosses", ::ModGauntletEvents.Settings.AllowBosses, "Allow Bosses spawn");
+	allowBoss.setDescription("Allow legendary bosses and dangerous champions to be spawn in LATEGAME gauntlet events. Range champions are not included.")
+	allowBoss.addAfterChangeCallback(function (_oldValue)
+	{
+		if (this.getValue() == _oldValue) return;
+		::logInfo("After change \'Allow Bosses spawn\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
+	    ::ModGauntletEvents.Settings.AllowBosses = this.getValue();
 	});
 
 	local maxDifficultyScore = page.addStringSetting("max_difficulty_score", ::ModGauntletEvents.Settings.MaxDifficultyScore, "Maximum Difficulty Score");
@@ -181,7 +211,7 @@
 		}
 
 		::logInfo("After change \'Maximum Difficulty Score reached on Days (Expert)\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
-		::ModGauntletEvents.Settings.maxScoreOnDay = ret.Value;
+		::ModGauntletEvents.Settings.MaxDifficultyScore = ret.Value;
 	});
 
 	local earlyEndOnDay = page.addStringSetting("early_end_on_day", ::ModGauntletEvents.Settings.EndofEarlyGameThreshold, "Earlygame ends on Days");
