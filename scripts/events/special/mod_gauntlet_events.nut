@@ -323,7 +323,7 @@ local GauntletManager = function () {
 				if (this.m.BossTotal >= this.m.BossMax) {
 					return false;
 				}
-				local boss_limit = this.m.InitDifficulty * this.m.BossLimit - _unit.DifficultyRating
+				local boss_limit = this.m.InitDifficulty * this.m.BossLimit - _unit.DifficultyRating;
 				if (this.m.BossScore >= boss_limit) {
 					return false;
 				}
@@ -457,7 +457,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 						this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy, -150)
 
 						this.logDebug(debug_init + "properties.Entities constructed. Prepare to fight!");
-						dumpCustom(properties);
+						// dumpCustom(properties);
 
 						_event.registerToShowAfterCombat("Survived", "Survived");
 						this.World.Contracts.startScriptedCombat(properties, false, true, true);

@@ -474,8 +474,8 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.VampireLOW,
-				DifficultyRating = 5,
-				IsRange = true,
+				DifficultyRating = 6,
+				IsSquishyMelee = true
 				CoSpawn = [
 					{
 						Type = this.Const.World.Spawn.Troops.SkeletonLight
@@ -764,8 +764,8 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Vampire,
-				DifficultyRating = 4,
-				IsRange = true
+				DifficultyRating = 5,
+				IsSquishyMelee = true
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.SkeletonHeavy,
@@ -780,7 +780,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.SkeletonPriest,
-				DifficultyRating = 12,
+				DifficultyRating = 13,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
