@@ -18,4 +18,3 @@ del "%GAME_DATA_DIR%\%MODNAME%-*.zip" 2>nul
 copy /Y "%MODNAME%-%VERSION%.zip" "%GAME_DATA_DIR%\"
 
 echo Done.
-pause

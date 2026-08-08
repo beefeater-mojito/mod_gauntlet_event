@@ -29,10 +29,11 @@
 		MaxExpertDifficultyScoreOnDay = "110",
 		EndofEarlyGameThreshold = "15",
 		EndofMidGameThreshold = "35",
-		SafeDaysUntilFirstGauntlet = "3"
+		SafeDaysUntilFirstGauntlet = "3",
+		UsePresetSpawnlist = false,
+		PresetSpawnlistScore = "30"
 	};
 
-	local debug_init = "GAUNTLET HOOK DEBUG: ";
 	local tools = {
 		processIntegerInput = function (_input, _oldValue) {
 			if (typeof _input != "string") {
@@ -282,102 +283,34 @@
 		::ModGauntletEvents.Settings.SafeDaysUntilFirstGauntlet = ret.Value;
 	});
 
+	local usePresetSpawnlist = page.addBooleanSetting("use_preset_spawnlist", ::ModGauntletEvents.Settings.UsePresetSpawnlist, "Use a preset spawnlist (for debugging)");
+	usePresetSpawnlist.setDescription("Use a preset spawnlist instead of randomly generated one. Intended usage is for debug only.")
+	usePresetSpawnlist.addAfterChangeCallback(function (_oldValue) {
+		if (this.getValue() == _oldValue) {
+			return;
+		}
+		::logInfo("After change \'Use a preset spawnlist\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
+		::ModGauntletEvents.Settings.UsePresetSpawnlist = this.getValue();
+	});
+
+	local presetSpawnlistScore = page.addStringSetting("preset_spawnlist_score", ::ModGauntletEvents.Settings.PresetSpawnlistScore, "Preset Spawnlist's Difficulty Score");
+	presetSpawnlistScore.setDescription("Difficulty score for the preset spawnlist. Intended usage is for debug only.");
+	presetSpawnlistScore.addAfterChangeCallback(function (_oldValue) {
+		if (this.getValue() == _oldValue) {
+			return;
+		}
+		local ret = tools.processIntegerInput(this.getValue(), _oldValue);
+
+		if (!ret.Result) {
+			this.set(_oldValue);
+		}
+
+		::logInfo("After change \'Preset Spawnlist's Difficulty Score\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
+		::ModGauntletEvents.Settings.PresetSpawnlistScore = ret.Value;
+	});
+
 	// Includes the 'load' file of your private folder
 	// Within this file, you can execute things or load more files (such as hooks)
 	// as to better organise your mod, not clutter this file, and load things in order
 	::include("script_hooks/hook_gauntlet.nut");
-
-	// Disable retreat on the gauntlet fight
-	::ModGauntletEvents.MH.hookTree("scripts/ai/tactical/agent", function (q) {
-		q.onAddBehaviors = @(__original) function () {
-			__original();
-			if (World.Statistics.getFlags().get("HasGauntletInit")) {
-				this.removeBehavior(::Const.AI.Behavior.ID.Retreat);
-			}
-		}
-	});
-
-	// Disallow player's resurrection in Gauntlet mode, to prevent item lost
-	::ModGauntletEvents.MH.hookTree("scripts/entity/tactical/human", function (q) {
-		q.generateCorpse = @(__original) function (_tile, _fatalityType, _killer) {
-			local corpse = __original(_tile, _fatalityType, _killer);
-			if (World.Statistics.getFlags().get("HasGauntletInit")) {
-				::logDebug(debug_init + "CHECKING SPAWN CORPSE!")
-				if (corpse.Faction == this.Const.Faction.Player) {
-					::logDebug(debug_init + "MAKE PLAYER'S CORPSE NON-RESURRECTABLE IN GAUNTLET MODE!")
-					corpse.IsResurrectable = false;
-				}
-			}
-			return corpse
-		}
-	});
-
-	// Give resurrected zombie equipment, similar to raise undead all
-	::ModGauntletEvents.MH.hookTree("scripts/entity/tactical/enemies/zombie", function (q) {
-		q.onResurrected = @(__original) function (_info) {
-			__original(_info);
-			if (World.Statistics.getFlags().get("HasGauntletInit")) {
-				::logDebug(debug_init + "CHECKING RESURRECTED ZOMBIES!")
-
-				if (this.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand) == null) {
-					::logDebug(debug_init + "EQUIPPING UNARMED ZOMBIES NEW EQUIPMENTs")
-					local weapons = [];
-					switch (this.getType()) {
-						case this.Const.EntityType.Zombie:
-						case this.Const.EntityType.ZombieYeoman:
-						case this.Const.EntityType.SkeletonLight:
-							weapons = [
-								"weapons/falchion",
-								"weapons/hand_axe",
-								"weapons/scramasax",
-								"weapons/boar_spear",
-								"weapons/military_pick",
-								"weapons/morning_star",
-								"weapons/two_handed_wooden_flail",
-								"weapons/two_handed_mace",
-								"weapons/two_handed_wooden_hammer",
-								"weapons/longsword",
-								"weapons/barbarians/crude_axe",
-								"weapons/barbarians/axehammer",
-								"weapons/barbarians/blunt_cleaver",
-								"weapons/oriental/two_handed_saif",
-								"weapons/oriental/light_southern_mace",
-							];
-							break;
-
-						default:
-							weapons = [
-								"weapons/arming_sword",
-								"weapons/fighting_axe",
-								"weapons/military_cleaver",
-								"weapons/fighting_spear",
-								"weapons/warhammer",
-								"weapons/winged_mace",
-								"weapons/two_handed_flail",
-								"weapons/two_handed_flanged_mace",
-								"weapons/two_handed_hammer",
-								"weapons/greatsword",
-								"weapons/greataxe",
-								"weapons/exesword",
-								"weapons/barbarians/heavy_rusty_axe",
-								"weapons/oriental/two_handed_schimitar",
-								"weapons/oriental/heavy_southern_mace",
-							]
-					}
-					this.getItems().equip(this.new("scripts/items/" + weapons[this.Math.rand(0, weapons.len() - 1)]));
-
-					if (this.m.Items.getItemAtSlot(this.Const.ItemSlot.Offhand) == null
-						&& this.Math.rand(1, 100) <= 66)
-					{
-						local shields = [
-							"shields/worn_heater_shield"
-						];
-						this.getItems().equip(this.new("scripts/items/" + shields[this.Math.rand(0, shields.len() - 1)]));
-					}
-				}
-
-			}
-		}
-	})
-
 });

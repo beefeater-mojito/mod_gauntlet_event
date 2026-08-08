@@ -64,10 +64,10 @@ local GauntletPool = function () {
 		name = "",
 		pool = [],
 
-		function init(name, outside_pool) {
+		function init(name, troops_array) {
 			this.name = name
-			this.pool = deepCopy(outside_pool)
-			if (outside_pool.len() == 0) {
+			this.pool = deepCopy(troops_array)
+			if (troops_array.len() == 0) {
 				return;
 			}
 			if (!("Weight" in this.pool[0])) {
@@ -136,6 +136,10 @@ local GauntletPool = function () {
 		}
 
 		function getUnitAtIdx(idx) {
+			if ((typeof idx != "integer") || idx >= this.pool.len() || idx < 0) {
+				this.logDebug(debug_init + "INVALID INDEX!")
+				return null;
+			}
 			return this.pool[idx];
 		}
 
@@ -171,7 +175,7 @@ local GauntletManager = function () {
 			BossLimit = 0.5,
 			BossScore = 0,
 			BossMax = 1,
-			BossTotal = 0
+			BossTotal = 0,
 
 			Spawnlist = {
 				Cost = 0,
@@ -180,7 +184,10 @@ local GauntletManager = function () {
 				VisionMult = 1.0,
 				Body = "figure_noble_01",
 				Troops = []
-			}
+			},
+
+			EnemyBucket = {},
+			TroopNum = 0
 		}
 
 		function init(_pool) {
@@ -253,7 +260,7 @@ local GauntletManager = function () {
 			this.generateTroopsFromPool();
 
 			if (_bannerUnit != null) {
-				local num = this.Math.ceil(this.m.SpawnList.Troops.len() / 22.0);
+				local num = this.Math.ceil(this.m.TroopNum * 1.0 / 22);
 
 				this.m.SpawnList.Troops.append({
 					Type = _bannerUnit,
@@ -317,6 +324,10 @@ local GauntletManager = function () {
 				if (this.m.SquishyScore >= squishyLimit) {
 					return false;
 				}
+
+				if (!this.canAddSpecialCrowdControl(_unit)){
+					return false
+				}
 			}
 
 			if ("IsBoss" in _unit) {
@@ -330,6 +341,18 @@ local GauntletManager = function () {
 			}
 
 			return true;
+		}
+
+		function canAddSpecialCrowdControl(_unit){
+			switch(_unit.Type.ID){
+				case ::Const.EntityType.GoblinShaman:
+				case ::Const.EntityType.Necromancer:
+					return !(_unit.Type.ID in this.m.EnemyBucket) || this.m.EnemyBucket[_unit.Type.ID] <= 1;
+				case ::Const.EntityType.Hexe:
+				case ::Const.EntityType.FaultFinder:
+					return !(_unit.Type.ID in this.m.EnemyBucket) || this.m.EnemyBucket[_unit.Type.ID] <= 2;
+			}
+			return true
 		}
 
 		function addUnit(_unit) {
@@ -346,6 +369,13 @@ local GauntletManager = function () {
 				this.m.CrowdControlTotal++;
 				this.m.SquishyScore += _unit.DifficultyRating;
 			}
+
+			if(_unit.Type.ID in this.m.EnemyBucket){
+				this.m.EnemyBucket[_unit.Type.ID]++;
+			} else {
+				this.m.EnemyBucket[_unit.Type.ID] <- 0;
+			}
+
 			local num = "Num" in _unit ? _unit.Num : 1;
 			local member = {
 				Type = _unit.Type,
@@ -362,6 +392,7 @@ local GauntletManager = function () {
 
 			this.m.SpawnList.Cost += _unit.Type.Cost;
 			this.m.RemainingDifficulty -= _unit.DifficultyRating;
+			this.m.TroopNum += num;
 
 			this.addCoSpawn(_unit);
 		}
@@ -381,8 +412,8 @@ local GauntletManager = function () {
 					member.IsBoss <- true;
 				}
 				this.m.SpawnList.Troops.append(member);
-
 				this.m.SpawnList.Cost += co.Type.Cost;
+				this.m.TroopNum += num;
 			}
 		}
 	}
@@ -402,7 +433,9 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		DifficultyScoreModifier = 1,
 		GauntletSurvived = 0,
 		SuppliesNum = 0,
-		SafeDaysUntilFirstGauntlet = 3
+		SafeDaysUntilFirstGauntlet = 3,
+		UsePresetSpawnList = false,
+		PresetSpawnListScore = 10
 	},
 
 	function create() {
@@ -461,7 +494,6 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 
 						_event.registerToShowAfterCombat("Survived", "Survived");
 						this.World.Contracts.startScriptedCombat(properties, false, true, true);
-
 						return 1; // 1 so that processInput doesn't throw a fuss
 					}
 				}
@@ -535,6 +567,8 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		this.m.EndofEarlyGameThreshold = ::ModGauntletEvents.Mod.ModSettings.getSetting("early_end_on_day").getValue().tointeger();
 		this.m.EndofMidGameThreshold = ::ModGauntletEvents.Mod.ModSettings.getSetting("mid_end_on_day").getValue().tointeger();
 		this.m.SafeDaysUntilFirstGauntlet = ::ModGauntletEvents.Mod.ModSettings.getSetting("safe_day_until_1st_gauntlet").getValue().tointeger();
+		this.m.UsePresetSpawnList = ::ModGauntletEvents.Mod.ModSettings.getSetting("use_preset_spawnlist").getValue();
+		this.m.PresetSpawnListScore = ::ModGauntletEvents.Mod.ModSettings.getSetting("preset_spawnlist_score").getValue().tointeger();
 
 		switch (this.World.Assets.getCombatDifficulty()) {
 			case 0:
@@ -580,7 +614,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 	}
 
 	function isValid() {
-		if(!(::ModGauntletEvents.Mod.ModSettings.getSetting("enable_gauntlet").getValue())){
+		if (!(::ModGauntletEvents.Mod.ModSettings.getSetting("enable_gauntlet").getValue())) {
 			return false
 		}
 
@@ -621,12 +655,12 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		return this.Math.floor((days - 1) * 1.0 / this.m.BaseGauntletInterval)
 	}
 
-	function getDifficultyScore(){
+	function getDifficultyScore() {
 		local score = calculateTotalDifficultyScore();
-		if (score < this.m.MinDifficultyScore){
+		if (score < this.m.MinDifficultyScore) {
 			return this.m.MinDifficultyScore;
 		}
-		if (score > this.m.MaxDifficultyScore){
+		if (score > this.m.MaxDifficultyScore) {
 			return this.m.MaxDifficultyScore
 		}
 		return score;
@@ -655,7 +689,11 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		return this.Math.min(this.Math.ceil(C * exp(-k * current_day)), s2);
 	}
 
-	function getGauntletPoolBasedOnDay() {
+	function getTroopsArrayPreset() {
+		return this.Const.World.Spawn.GauntletPreset[0].Pool
+	}
+
+	function getTroopsArrayBasedOnDay() {
 		local current_days = this.World.getTime().Days;
 		// TODO: implement logic handle for different gauntlet pool
 		local pool = [];
@@ -705,15 +743,17 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 
 	function generateSpawnListBasedOnDay(_days = null, _diffScore = null) {
 		local current_day = _days != null ? _days : this.World.getTime().Days;
-		local init_difficulty_score = _diffScore != null
-			? _diffScore
-			: this.getDifficultyScore();
+
+		local init_difficulty_score = _diffScore != null ? _diffScore : this.getDifficultyScore();
+		if (this.m.UsePresetSpawnList){
+			init_difficulty_score = this.m.PresetSpawnListScore
+		}
 		::logDebug(debug_init + "Difficulty score " + init_difficulty_score + " on day " + current_day)
 
 		local gauntlet_survived = this.approximateGauntletSurvivedFromDay(current_day)
 
 		local pool = GauntletPool();
-		pool.init("pool", this.getGauntletPoolBasedOnDay())
+		pool.init("pool", this.m.UsePresetSpawnList ? this.getTroopsArrayPreset() : this.getTroopsArrayBasedOnDay())
 
 		local boss_max = this.Math.rand(0, 3) + this.Math.rand(0, this.Math.min(3, this.Math.floor(gauntlet_survived * 1.0 / 2)));
 

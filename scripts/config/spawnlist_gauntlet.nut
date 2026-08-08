@@ -275,7 +275,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Knight,
-				DifficultyRating = 6
+				DifficultyRating = 5
 			},
 			// gilded
 			{
@@ -344,7 +344,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Gladiator,
-				DifficultyRating = 7
+				DifficultyRating = 6
 			},
 			// barb
 			{
@@ -446,7 +446,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Necromancer,
-				DifficultyRating = 10,
+				DifficultyRating = 12,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -736,7 +736,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Necromancer,
-				DifficultyRating = 13,
+				DifficultyRating = 15,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -928,7 +928,7 @@ gt.Const.World.Spawn.GauntletBoss <- [
 		Pool = [ // enemies here, along with co-spawn, will be spawn as Champion
 			{
 				Type = this.Const.World.Spawn.Troops.Necromancer,
-				DifficultyRating = 25,
+				DifficultyRating = 30,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -969,6 +969,47 @@ gt.Const.World.Spawn.GauntletBoss <- [
 	}
 ]
 
+gt.Const.World.Spawn.GauntletPreset <- [
+	{
+		Cost = 0,
+		MovementSpeedMult = 1.0,
+		VisibilityMult = 1.0,
+		VisionMult = 1.0,
+		Body = "figure_bandit_01",
+		Troops = [
+			{
+				Type = this.Const.World.Spawn.Troops.Wardog,
+				Num = 8
+			}
+		],
+		Pool = [ // enemies here, along with co-spawn, will be spawn as Champion
+		{
+				Type = this.Const.World.Spawn.Troops.Necromancer,
+				DifficultyRating = 10,
+				Weight = 5,
+				IsBoss = true,
+				IsCrowdControl = true
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieYeoman,
+				DifficultyRating = 1
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.ZombieKnight,
+				DifficultyRating = 2
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.SkeletonLight,
+				DifficultyRating = 1
+			},
+			{
+				Type = this.Const.World.Spawn.Troops.SkeletonHeavy,
+				DifficultyRating = 3
+			}
+		]
+	}
+]
+
 function onCostCompare(_t1, _t2) {
 	if (_t1.Cost < _t2.Cost) {
 		return -1;
@@ -1001,3 +1042,4 @@ this.calculateCosts(this.Const.World.Spawn.GauntletLate)
 this.calculateCosts(this.Const.World.Spawn.GauntletChampion)
 this.calculateCosts(this.Const.World.Spawn.GauntletMiniBoss)
 this.calculateCosts(this.Const.World.Spawn.GauntletBoss)
+this.calculateCosts(this.Const.World.Spawn.GauntletPreset)
