@@ -63,6 +63,7 @@ local GauntletPool = function () {
 	return {
 		name = "",
 		pool = [],
+		lowestDiffScore = null
 
 		function init(name, troops_array) {
 			this.name = name
@@ -73,11 +74,25 @@ local GauntletPool = function () {
 			if (!("Weight" in this.pool[0])) {
 				this.pool[0].Weight <- 1;
 			}
+			if (!("DifficultyRating" in this.pool[0])) {
+				::logError("Unit at idx 0 has no DR score! Dumping unit!")
+				dumpCustom(this.pool[0])
+			}
+			this.lowestDiffScore = this.pool[0].DifficultyRating;
+
 			for (local i = 1; i < this.pool.len(); i++) {
 				if (!("Weight" in this.pool[i])) {
 					this.pool[i].Weight <- 1;
 				}
-				this.pool[i].Weight += this.pool[i - 1].Weight
+				if (!("DifficultyRating" in this.pool[i])) {
+					::logError("Unit at idx " + i + " has no DR score! Dumping unit!")
+					dumpCustom(this.pool[i])
+				}
+				if (this.pool[i].DifficultyRating < this.lowestDiffScore) {
+					this.lowestDiffScore = this.pool[i].DifficultyRating;
+				}
+
+				this.pool[i].Weight += this.pool[i - 1].Weight;
 			}
 			::logDebug(debug_init + "Pool " + name + " is constructed! pool.len()=" + pool.len())
 		}
@@ -169,7 +184,7 @@ local GauntletManager = function () {
 			CrowdControlMax = 0,
 			CrowdControlTotal = 0,
 
-			SquishyLimit = 0.5,
+			SquishyLimit = 0.45,
 			SquishyScore = 0,
 
 			BossLimit = 0.5,
@@ -186,12 +201,22 @@ local GauntletManager = function () {
 				Troops = []
 			},
 
+			MeleeTroops = [],
+			RangeTroops = [],
+			CrowdControlTroops = [],
+
 			EnemyBucket = {},
-			TroopNum = 0
+			TroopNum = 0,
+
+			MinTroopNum = 0,
+			MaxTroopNum = null,
+
+			MinDiffScoreFromUnit = 0
 		}
 
 		function init(_pool) {
 			this.m.Pool = _pool;
+			this.m.MinDiffScoreFromUnit = _pool.lowestDiffScore
 			this.createRangePool();
 			this.createCrowdControlPool();
 			this.createBossPool();
@@ -226,13 +251,13 @@ local GauntletManager = function () {
 			this.m.BossPool.init("boss", this.createFilteredArray(@(u)"IsBoss" in u))
 		}
 
-		function generateSpawnList(_difficultyScore, _currentDay, _survived, _bannerUnit = null, _bossMax = 0) {
+		function generateSpawnList(_difficultyScore, _currentDay, _survived, _bannerUnit = null, _minTroop = 0) {
 			this.m.InitDifficulty = _difficultyScore;
 			this.m.RemainingDifficulty = _difficultyScore;
 
 			this.m.RangeMax = this.Math.rand(0, 2) - 1 + this.Math.min(2, _survived);
 			this.m.CrowdControlMax = this.Math.rand(0, 3) - 2 + this.Math.min(2, this.Math.ceil(_survived * 1.0 / 2));
-			this.m.BossMax = _bossMax
+			this.m.BossMax = this.Math.rand(0, 3) + this.Math.rand(0, this.Math.min(3, this.Math.floor(_survived * 1.0 / 2)))
 
 			this.m.RangeTotal = 0;
 			this.m.CrowdControlTotal = 0;
@@ -246,6 +271,9 @@ local GauntletManager = function () {
 				Body = "figure_noble_01",
 				Troops = []
 			};
+
+			this.m.MinTroopNum = _minTroop
+
 			if (this.m.BossMax > 0) {
 				::logDebug(debug_init + "Picking bosses!")
 				this.generateTroopsFromPool(this.m.BossPool);
@@ -269,6 +297,11 @@ local GauntletManager = function () {
 
 				this.m.SpawnList.Cost += num * _bannerUnit.Cost;
 			}
+
+			// Finalize Spawnlist
+			this.m.SpawnList.Troops.extend(this.m.MeleeTroops)
+			this.m.SpawnList.Troops.extend(this.m.RangeTroops)
+			this.m.SpawnList.Troops.extend(this.m.CrowdControlTroops)
 
 			return this.m.SpawnList;
 		}
@@ -298,6 +331,12 @@ local GauntletManager = function () {
 				return false;
 			}
 
+			local lowestDRTroopNum = this.Math.floor((this.m.RemainingDifficulty - _unit.DifficultyRating) * 1.0 / this.m.MinDiffScoreFromUnit)
+			local unitNum = "Num" in _unit ? _unit.Num : 1;
+			if (lowestDRTroopNum + unitNum + this.m.TroopNum < this.m.MinTroopNum) {
+				return false
+			}
+
 			local squishyLimit = this.m.InitDifficulty * this.m.SquishyLimit - _unit.DifficultyRating;
 
 			if ("IsRange" in _unit) {
@@ -325,7 +364,7 @@ local GauntletManager = function () {
 					return false;
 				}
 
-				if (!this.canAddSpecialCrowdControl(_unit)){
+				if (!this.canAddSpecialCrowdControl(_unit)) {
 					return false
 				}
 			}
@@ -343,22 +382,27 @@ local GauntletManager = function () {
 			return true;
 		}
 
-		function canAddSpecialCrowdControl(_unit){
-			switch(_unit.Type.ID){
+		function canAddSpecialCrowdControl(_unit) {
+			switch (_unit.Type.ID) {
 				case ::Const.EntityType.GoblinShaman:
 				case ::Const.EntityType.Necromancer:
-					return !(_unit.Type.ID in this.m.EnemyBucket) || this.m.EnemyBucket[_unit.Type.ID] <= 1;
+					return !(_unit.Type.ID in this.m.EnemyBucket)
+						|| this.m.EnemyBucket[_unit.Type.ID] <= 2;
 				case ::Const.EntityType.Hexe:
 				case ::Const.EntityType.FaultFinder:
-					return !(_unit.Type.ID in this.m.EnemyBucket) || this.m.EnemyBucket[_unit.Type.ID] <= 2;
+					return !(_unit.Type.ID in this.m.EnemyBucket)
+						|| this.m.EnemyBucket[_unit.Type.ID] <= 3;
 			}
 			return true
 		}
 
 		function addUnit(_unit) {
+			local isRangeFlag = false;
+			local isCrowdControlFlag = false;
 			if ("IsRange" in _unit && _unit.IsRange) {
 				this.m.RangeTotal++;
 				this.m.SquishyScore += _unit.DifficultyRating;
+				isRangeFlag = true
 			}
 
 			if ("IsSquishyMelee" in _unit && _unit.IsSquishyMelee) {
@@ -368,12 +412,13 @@ local GauntletManager = function () {
 			if ("IsCrowdControl" in _unit && _unit.IsCrowdControl) {
 				this.m.CrowdControlTotal++;
 				this.m.SquishyScore += _unit.DifficultyRating;
+				isCrowdControlFlag = true
 			}
 
-			if(_unit.Type.ID in this.m.EnemyBucket){
+			if (_unit.Type.ID in this.m.EnemyBucket) {
 				this.m.EnemyBucket[_unit.Type.ID]++;
 			} else {
-				this.m.EnemyBucket[_unit.Type.ID] <- 0;
+				this.m.EnemyBucket[_unit.Type.ID] <- 1;
 			}
 
 			local num = "Num" in _unit ? _unit.Num : 1;
@@ -387,17 +432,23 @@ local GauntletManager = function () {
 				this.m.BossScore += _unit.DifficultyRating;
 				member.IsBoss <- true;
 			}
-
-			this.m.SpawnList.Troops.append(member);
+			if (isRangeFlag) {
+				this.m.RangeTroops.append(member)
+			} else if (isCrowdControlFlag) {
+				this.m.CrowdControlTroops.append(member)
+			} else {
+				this.m.MeleeTroops.append(member)
+			}
+			// this.m.SpawnList.Troops.append(member);
 
 			this.m.SpawnList.Cost += _unit.Type.Cost;
 			this.m.RemainingDifficulty -= _unit.DifficultyRating;
 			this.m.TroopNum += num;
 
-			this.addCoSpawn(_unit);
+			this.addCoSpawn(_unit, isRangeFlag, isCrowdControlFlag);
 		}
 
-		function addCoSpawn(_unit) {
+		function addCoSpawn(_unit, _isRangeFlag = false, _isCrowdControlFlag = false) {
 			if (!("CoSpawn" in _unit)) {
 				return;
 			}
@@ -411,7 +462,13 @@ local GauntletManager = function () {
 				if ("IsBoss" in _unit && _unit.IsBoss) {
 					member.IsBoss <- true;
 				}
-				this.m.SpawnList.Troops.append(member);
+				if (_isRangeFlag) {
+					this.m.RangeTroops.append(member)
+				} else if (_isCrowdControlFlag) {
+					this.m.CrowdControlTroops.append(member)
+				} else {
+					this.m.MeleeTroops.append(member)
+				}
 				this.m.SpawnList.Cost += co.Type.Cost;
 				this.m.TroopNum += num;
 			}
@@ -454,7 +511,6 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 					function getResult(_event) {
 						local properties = this.World.State.getLocalCombatProperties(this.World.State.getPlayer().getPos());
 						properties.CombatID = "Event";
-
 						local music_arr = [];
 						music_arr.extend(this.Const.Music.NobleTracks)
 						music_arr.extend(this.Const.Music.BarbarianTracks)
@@ -464,34 +520,26 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 						music_arr.extend(this.Const.Music.OrcsTracks)
 						music_arr.extend(this.Const.Music.GoblinsTracks)
 						properties.Music = music_arr;
-
 						properties.IsAutoAssigningBases = false;
 						properties.Entities = [];
 						properties.IsFleeingProhibited = true;
-
 						properties.IsArenaMode = !(_event.m.AllowLooting);
-
 						properties.PlayerDeploymentType = this.Const.Tactical.DeploymentType.Line;
 						properties.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Line;
-
 						properties.AllyBanners = [
 							this.World.Assets.getBanner()
 						];
 						local spawnlist = _event.generateSpawnListBasedOnDay();
 						local resource = spawnlist.Cost + 100;
-
 						local champion_spawnlist = _event.getBossSpawnList(spawnlist)
 						local champion_spawnlist_arr = [];
 						champion_spawnlist_arr.append(champion_spawnlist)
 						this.Const.World.Common.addUnitsToCombat(properties.Entities, champion_spawnlist_arr, resource, this.Const.Faction.Enemy, 150)
-
 						local spawnlist_arr = [];
 						spawnlist_arr.append(spawnlist);
 						this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy, -150)
-
 						this.logDebug(debug_init + "properties.Entities constructed. Prepare to fight!");
 						// dumpCustom(properties);
-
 						_event.registerToShowAfterCombat("Survived", "Survived");
 						this.World.Contracts.startScriptedCombat(properties, false, true, true);
 						return 1; // 1 so that processInput doesn't throw a fuss
@@ -636,21 +684,6 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		return true;
 	}
 
-	function generateSuppliesFromNum(_num) {
-		local ecoDiffMod = this.World.Assets.getEconomicDifficulty() * 0.1
-		local armorParts = this.new("scripts/items/supplies/armor_parts_item");
-		armorParts.setAmount(this.Math.ceil(_num * (1.5 - ecoDiffMod)));
-		local medicine = this.new("scripts/items/supplies/medicine_item");
-		medicine.setAmount(this.Math.ceil(_num * (0.75 - ecoDiffMod)));
-		local ammo = this.new("scripts/items/supplies/ammo_item");
-		ammo.setAmount(this.Math.ceil(_num * (2 - ecoDiffMod)));
-		local loot = []
-		loot.push(armorParts);
-		loot.push(medicine);
-		loot.push(ammo);
-		return loot;
-	}
-
 	function approximateGauntletSurvivedFromDay(days) {
 		return this.Math.floor((days - 1) * 1.0 / this.m.BaseGauntletInterval)
 	}
@@ -677,8 +710,19 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			return this.Math.ceil(s0 + (current_day - d0) * this.m.DifficultyScoreModifier / 2);
 		}
 
+		local extraDay = 0;
+		switch (this.World.Assets.getCombatDifficulty()) {
+			case 0:
+				extraDay = this.m.BaseGauntletInterval * 4;
+				break;
+			case 1:
+				extraDay = this.m.BaseGauntletInterval * 2;
+				break;
+			default:
+				extraDay = 0;
+		}
 		local d1 = this.m.EndofMidGameThreshold;
-		local d2 = this.m.MaxExpertDifficultyScoreOnDay;
+		local d2 = this.m.MaxExpertDifficultyScoreOnDay + extraDay;
 		local s1 = this.Math.ceil(s0 + (d1 - d0) * this.m.DifficultyScoreModifier / 2);
 		local s2 = this.m.MaxDifficultyScore;
 		// ::logDebug("d1="+d1+" d2="+d2+" s1="+s1+" s2="+s2)
@@ -695,7 +739,6 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 
 	function getTroopsArrayBasedOnDay() {
 		local current_days = this.World.getTime().Days;
-		// TODO: implement logic handle for different gauntlet pool
 		local pool = [];
 		if (current_days < this.m.EndofEarlyGameThreshold) {
 			pool.extend(this.Const.World.Spawn.GauntletEarly[0].Pool);
@@ -745,7 +788,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		local current_day = _days != null ? _days : this.World.getTime().Days;
 
 		local init_difficulty_score = _diffScore != null ? _diffScore : this.getDifficultyScore();
-		if (this.m.UsePresetSpawnList){
+		if (this.m.UsePresetSpawnList) {
 			init_difficulty_score = this.m.PresetSpawnListScore
 		}
 		::logDebug(debug_init + "Difficulty score " + init_difficulty_score + " on day " + current_day)
@@ -753,9 +796,9 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		local gauntlet_survived = this.approximateGauntletSurvivedFromDay(current_day)
 
 		local pool = GauntletPool();
-		pool.init("pool", this.m.UsePresetSpawnList ? this.getTroopsArrayPreset() : this.getTroopsArrayBasedOnDay())
-
-		local boss_max = this.Math.rand(0, 3) + this.Math.rand(0, this.Math.min(3, this.Math.floor(gauntlet_survived * 1.0 / 2)));
+		pool.init("pool", this.m.UsePresetSpawnList
+			? this.getTroopsArrayPreset()
+			: this.getTroopsArrayBasedOnDay())
 
 		local pool_manager = GauntletManager();
 		pool_manager.init(pool)
@@ -765,7 +808,10 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			? this.Const.World.Spawn.Troops.StandardBearer
 			: this.Const.World.Spawn.Troops.MilitiaCaptain;
 
-		return pool_manager.generateSpawnList(init_difficulty_score, current_day, gauntlet_survived, banner_unit, boss_max)
+		local fieldable_bros = this.Math.min(this.World.getPlayerRoster().getAll().len(), this.World.Assets.m.BrothersMaxInCombat + 1);
+		local min_troop_num = this.Math.min(fieldable_bros, current_day);
+
+		return pool_manager.generateSpawnList(init_difficulty_score, current_day, gauntlet_survived, banner_unit, min_troop_num)
 
 	}
 

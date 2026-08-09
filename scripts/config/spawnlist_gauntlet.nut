@@ -7,7 +7,9 @@ if (!("World" in gt.Const)) {
 if (!("Spawn" in gt.Const.World)) {
 	gt.Const.World.Spawn <- {};
 }
-
+// About pool creation, ensure every pool has a melee unit with a DR of 1.
+// This unit should also not have any special flag.
+// DR value should be positive integer, but technically float can work too
 gt.Const.World.Spawn.GauntletEarly <- [
 	{
 		Cost = 0,
@@ -304,7 +306,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Mortar,
-				DifficultyRating = 11,
+				DifficultyRating = 12,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -312,12 +314,8 @@ gt.Const.World.Spawn.GauntletMid <- [
 						Num = 2
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.ArmoredWardog,
-						Num = 2
-					},
-					{
-						Type = this.Const.World.Spawn.Troops.Conscript,
-						Num = 2
+						Type = this.Const.World.Spawn.Troops.Officer,
+						Num = 1
 					}
 				]
 			},
@@ -356,10 +354,6 @@ gt.Const.World.Spawn.GauntletMid <- [
 				Type = this.Const.World.Spawn.Troops.BarbarianChampion,
 				DifficultyRating = 4,
 				Weight = 2
-			},
-			{
-				Type = this.Const.World.Spawn.Troops.BarbarianChosen,
-				DifficultyRating = 7
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.BarbarianUnhold,
@@ -577,7 +571,8 @@ gt.Const.World.Spawn.GauntletLate <- [
 			// gilded
 			{
 				Type = this.Const.World.Spawn.Troops.Conscript,
-				DifficultyRating = 1,
+				DifficultyRating = 2,
+				Num = 2,
 				Weight = 3
 			},
 			{
@@ -604,7 +599,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Mortar,
-				DifficultyRating = 12,
+				DifficultyRating = 11,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -612,12 +607,8 @@ gt.Const.World.Spawn.GauntletLate <- [
 						Num = 2
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.ArmoredWardog,
-						Num = 2
-					},
-					{
-						Type = this.Const.World.Spawn.Troops.Conscript,
-						Num = 2
+						Type = this.Const.World.Spawn.Troops.Officer,
+						Num = 1
 					}
 				]
 			},
@@ -715,13 +706,8 @@ gt.Const.World.Spawn.GauntletLate <- [
 			// undead: zombie
 			{
 				Type = this.Const.World.Spawn.Troops.ZombieKnight,
-				DifficultyRating = 2,
-				Weight = 2,
-				CoSpawn = [
-					{
-						Type = this.Const.World.Spawn.Troops.ZombieNomad
-					}
-				]
+				DifficultyRating = 1,
+				Weight = 2
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Ghost,
@@ -983,12 +969,20 @@ gt.Const.World.Spawn.GauntletPreset <- [
 			}
 		],
 		Pool = [ // enemies here, along with co-spawn, will be spawn as Champion
-		{
-				Type = this.Const.World.Spawn.Troops.Necromancer,
-				DifficultyRating = 10,
-				Weight = 5,
-				IsBoss = true,
-				IsCrowdControl = true
+			{
+				Type = this.Const.World.Spawn.Troops.Mortar,
+				DifficultyRating = 12,
+				IsCrowdControl = true,
+				CoSpawn = [
+					{
+						Type = this.Const.World.Spawn.Troops.Engineer,
+						Num = 2
+					},
+					{
+						Type = this.Const.World.Spawn.Troops.Officer,
+						Num = 1
+					}
+				]
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.ZombieYeoman,
