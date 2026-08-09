@@ -171,7 +171,7 @@ gt.Const.World.Spawn.GauntletEarly <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Ghost,
-				DifficultyRating = 6,
+				DifficultyRating = 7,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -190,7 +190,7 @@ gt.Const.World.Spawn.GauntletEarly <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Necromancer,
-				DifficultyRating = 8,
+				DifficultyRating = 11,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -302,7 +302,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Assassin,
-				DifficultyRating = 5
+				DifficultyRating = 4
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Mortar,
@@ -425,7 +425,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Ghost,
-				DifficultyRating = 6,
+				DifficultyRating = 7,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -440,7 +440,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Necromancer,
-				DifficultyRating = 12,
+				DifficultyRating = 15,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -711,7 +711,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Ghost,
-				DifficultyRating = 10,
+				DifficultyRating = 6,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -722,7 +722,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Necromancer,
-				DifficultyRating = 15,
+				DifficultyRating = 17,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -744,7 +744,8 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.SkeletonMediumPolearm,
-				DifficultyRating = 2,
+				Num = 2,
+				DifficultyRating = 3,
 				Weight = 3,
 				IsSquishyMelee = true
 			},
@@ -914,12 +915,16 @@ gt.Const.World.Spawn.GauntletBoss <- [
 		Pool = [ // enemies here, along with co-spawn, will be spawn as Champion
 			{
 				Type = this.Const.World.Spawn.Troops.Necromancer,
-				DifficultyRating = 30,
+				DifficultyRating = 35,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieKnight,
+						Type = this.Const.World.Spawn.Troops.ZombieKnightBodyGuard,
 						Num = 2
+					},
+					{
+						Type = this.Const.World.Spawn.Troops.ZombieKnight
+						Num = 1
 					}
 				]
 			},
@@ -968,7 +973,7 @@ gt.Const.World.Spawn.GauntletPreset <- [
 				Num = 8
 			}
 		],
-		Pool = [ // enemies here, along with co-spawn, will be spawn as Champion
+		Pool = [ 
 			{
 				Type = this.Const.World.Spawn.Troops.Mortar,
 				DifficultyRating = 12,

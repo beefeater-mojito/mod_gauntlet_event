@@ -387,11 +387,11 @@ local GauntletManager = function () {
 				case ::Const.EntityType.GoblinShaman:
 				case ::Const.EntityType.Necromancer:
 					return !(_unit.Type.ID in this.m.EnemyBucket)
-						|| this.m.EnemyBucket[_unit.Type.ID] <= 2;
+						|| this.m.EnemyBucket[_unit.Type.ID] <= 1;
 				case ::Const.EntityType.Hexe:
 				case ::Const.EntityType.FaultFinder:
 					return !(_unit.Type.ID in this.m.EnemyBucket)
-						|| this.m.EnemyBucket[_unit.Type.ID] <= 3;
+						|| this.m.EnemyBucket[_unit.Type.ID] <= 2;
 			}
 			return true
 		}
