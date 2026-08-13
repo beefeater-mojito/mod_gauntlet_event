@@ -571,7 +571,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			// gilded
 			{
 				Type = this.Const.World.Spawn.Troops.Conscript,
-				DifficultyRating = 2,
+				DifficultyRating = 3,
 				Num = 2,
 				Weight = 3
 			},
@@ -919,7 +919,7 @@ gt.Const.World.Spawn.GauntletBoss <- [
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieKnightBodyGuard,
+						Type = this.Const.World.Spawn.Troops.ZombieKnightBodyguard,
 						Num = 2
 					},
 					{
@@ -973,7 +973,7 @@ gt.Const.World.Spawn.GauntletPreset <- [
 				Num = 8
 			}
 		],
-		Pool = [ 
+		Pool = [
 			{
 				Type = this.Const.World.Spawn.Troops.Mortar,
 				DifficultyRating = 12,
