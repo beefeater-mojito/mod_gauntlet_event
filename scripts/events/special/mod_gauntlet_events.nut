@@ -470,7 +470,9 @@ local GauntletManager = function () {
 					this.m.MeleeTroops.append(member)
 				}
 				this.m.SpawnList.Cost += co.Type.Cost;
-				this.m.TroopNum += num;
+				// Cospawns do not add toward troops' number,
+				// instead they should be treated as one block,
+				// and based on the main unit's num
 			}
 		}
 	}
@@ -731,6 +733,27 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		local C = s1 / (exp(-k * d1))
 
 		return this.Math.min(this.Math.ceil(C * exp(-k * current_day)), s2);
+	}
+
+	function getTroopsArrayFromFiles(){
+		local mod = ::ModGauntletEvents.Mod;
+		local current_day = this.World.getTime().Days;
+		foreach(filename in mod.PersistentData.getFiles()){
+			if(filename.find("Gauntlet") == null){
+				continue
+			}
+			local data = mod.PersistentData.readFile(filename)
+			local startpoint = data.DayStartPoint == null ? 0 : data.DayStartPoint;
+			local endpoint = data.DayEndpoint == null ? 0 : ::RAND_MAX;
+			if (current_day >= startpoint && current_day < endpoint){
+				return data.Pool;
+			} else {
+				continue;
+			}
+		}
+		::logError(debug_init+"CANNOT FOUND GAUNTLET FILE!")
+		::logError(debug_init+"EITHER FILE DOES NOT EXIST OR CANNOT SATISFY DAYS CONSTRAINT!")
+		return [];
 	}
 
 	function getTroopsArrayPreset() {

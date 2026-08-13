@@ -1,12 +1,7 @@
-// ::mods_registerMod("gauntlet_events", 1.0, "Gauntlet Event");
-// ::mods_queue("gauntlet_events", null, function(){
-// 	::include("script_hooks/hook_gauntlet")
-// });
-
 ::ModGauntletEvents <- {
 	ID = "mod_gauntlet_events",
 	Name = "The Gauntlet",
-	Version = "1.1.3",
+	Version = "1.1.5",
 }
 // Instantiate the Modern Hooks object, add MSU as a requirement, and queue after MSU
 // https://bbmodding.enduriel.com/docs/modern-hooks/mod-object/
@@ -17,6 +12,17 @@
 	// https://github.com/MSUTeam/MSU/wiki/Mod
 	::ModGauntletEvents.Mod <- ::MSU.Class.Mod(::ModGauntletEvents.ID, ::ModGauntletEvents.Version, ::ModGauntletEvents.Name);
 
+	// UI screen
+	::Hooks.registerJS("ui/mods/GauntletPoolEditorScreen.js");
+	::Hooks.registerCSS("ui/mods/GauntletPoolEditorScreen.css")
+	::ModGauntletEvents.Screen <- this.new("scripts/ui/screens/gauntlet_pool_editor_screen")
+	::MSU.Log.printData( ::ModGauntletEvents.Screen, 5, false )
+	::MSU.UI.registerConnection(::ModGauntletEvents.Screen)
+	// print data
+
+	::ModGauntletEvents.Mod.Keybinds.addSQKeybind("toggleGauntletPoolCustomization", "ctrl+shift+p", ::MSU.Key.State.World, ::ModGauntletEvents.Screen.toggle.bindenv(::ModGauntletEvents.Screen))
+
+	// Settings
 	::ModGauntletEvents.Settings <- {
 		GauntletEnabled = true,
 		BaseGauntletInterval = "10",
@@ -81,46 +87,6 @@
 			};
 		}
 	};
-
-	local formatValue = function (v) {
-		return typeof v == "string" ? "\"" + v + "\"" : v;
-	}
-
-	local dumpCustom;
-	dumpCustom = function (value, indent = "") {
-		switch (typeof value) {
-			case "table":
-				this.logDebug(indent + "{");
-				foreach (k, v in value) {
-					if (typeof v == "table" || typeof v == "array") {
-						this.logDebug(indent + "  " + k + " =");
-						dumpCustom(v, indent + "  ");
-					} else {
-						this.logDebug(indent + "  " + k + " = " + formatValue(v));
-					}
-				}
-				this.logDebug(indent + "}");
-				break;
-
-			case "array":
-				this.logDebug(indent + "[");
-				foreach (i, v in value) {
-					if (typeof v == "table" || typeof v == "array") {
-						this.logDebug(indent + "  [" + i + "] =");
-						dumpCustom(v, indent + "  ");
-					} else {
-						this.logDebug(indent + "  [" + i + "] = " + formatValue(v));
-					}
-				}
-				this.logDebug(indent + "]");
-				break;
-
-			default:
-				this.logDebug(indent + formatValue(value));
-				break;
-		}
-		return "Dump done!"
-	}
 
 	local page = ::ModGauntletEvents.Mod.ModSettings.addPage("general_page", "General");
 
@@ -313,4 +279,6 @@
 	// Within this file, you can execute things or load more files (such as hooks)
 	// as to better organise your mod, not clutter this file, and load things in order
 	::include("script_hooks/hook_gauntlet.nut");
+	::include("script_hooks/file_gauntlet.nut");
+	// ::include("script_hooks/keybind.nut");
 });

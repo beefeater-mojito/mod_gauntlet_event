@@ -1,0 +1,1 @@
+::ModGauntletEvents.Mod.Keybinds.addSQKeybind("toggleGauntletPoolCustomization", "ctrl+g", ::MSU.Key.State.World, ::ModGauntletEvents.Screen.toggle.bindenv(::ModGauntletEvents.Screen))

@@ -1,0 +1,486 @@
+"use strict";
+var ModGauntletEvents = {
+    ModID: "mod_gauntlet_events"
+}
+
+var GauntletPoolEditorScreen = function (_parent) {
+    MSUUIScreen.call(this);
+    this.mModID = "mod_gauntlet_events"
+    this.mID = "GauntletPoolEditorScreen";
+    // this.mSQHandle = null;
+
+    // generic containers
+    this.mContainer = null;
+    this.mDialogContainer = null;
+    this.mListContainer = null;
+    this.mListScrollContainer = null;
+
+    // buttons
+    this.mLeaveButton = null;
+
+    // generics
+    this.mIsVisible = false;
+
+    // selected entry
+    this.mSelectedEntry = null;
+};
+
+GauntletPoolEditorScreen.prototype = Object.create(MSUUIScreen.prototype)
+Object.defineProperty(GauntletPoolEditorScreen.prototype, 'constructor', {
+    value: GauntletPoolEditorScreen,
+    enumerable: false,
+    writable: true
+});
+
+GauntletPoolEditorScreen.prototype.isConnected = function () {
+    return this.mSQHandle !== null;
+};
+GauntletPoolEditorScreen.prototype.onConnection = function (_handle) {
+    this.mSQHandle = _handle;
+    this.register($('.root-screen'));
+};
+GauntletPoolEditorScreen.prototype.onDisconnection = function () {
+    this.mSQHandle = null; this.unregister();
+};
+GauntletPoolEditorScreen.prototype.getModule = function (_name) {
+    switch (_name)
+    {
+        default: return null;
+    }
+};
+GauntletPoolEditorScreen.prototype.getModules = function () {
+    return [];
+};
+
+GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
+    var self = this;
+
+    // create: containers (init hidden!)
+    this.mContainer = $('<div class="world-obituary-screen display-none opacity-none"/>');
+    _parentDiv.append(this.mContainer);
+
+    // create: containers (init hidden!)
+    var dialogLayout = $('<div class="l-obituary-dialog-container"/>');
+    this.mContainer.append(dialogLayout);
+    this.mDialogContainer = dialogLayout.createDialog('Gauntlet Pool Editor', '', '', true, 'dialog-1024-768');
+
+    // create tabs
+    var tabButtonsContainer = $('<div class="l-tab-container"/>');
+    this.mDialogContainer.findDialogTabContainer().append(tabButtonsContainer);
+
+    var gauntletArr = ["GauntletEarly", "GauntletMid", "GauntletLate", "GauntletPreset"]
+    createDropDownMenu(_parentDiv, tabButtonsContainer, gauntletArr, gauntletArr[0], null)
+
+    // create content
+    var content = this.mDialogContainer.findDialogContentContainer();
+
+    // column headers
+    var headers = $('<div class="table-header"/>');
+    content.append(headers);
+
+    this.mColumnName = $('<div class="table-header-name title title-font-big font-bold font-color-title">Name</div>');
+    headers.append(this.mColumnName);
+
+    this.mColumnNum = $('<div class="table-header-time title title-font-big font-bold font-color-title">Num</div>');
+    headers.append(this.mColumnNum);
+
+    this.mColumnDRScore = $('<div class="table-header-battles title title-font-big font-bold font-color-title">DR Score</div>');
+    headers.append(this.mColumnDRScore);
+
+    this.mColumnWeight = $('<div class="table-header-kills title title-font-big font-bold font-color-title">Weight</div>');
+    headers.append(this.mColumnWeight);
+
+    // left column
+    var column = $('<div class="column is-left"/>');
+    content.append(column);
+    var listContainerLayout = $('<div class="l-list-container"/>');
+    column.append(listContainerLayout);
+    this.mListContainer = listContainerLayout.createList(1.0/*8.85*/);
+    this.mListScrollContainer = this.mListContainer.findListScrollContainer();
+
+    // create footer button bar
+    var footerButtonBar = $('<div class="l-button-bar"/>');
+    this.mDialogContainer.findDialogFooterContainer().append(footerButtonBar);
+
+    // create: buttons
+    var layout = $('<div class="l-leave-button"/>');
+    footerButtonBar.append(layout);
+    this.mLeaveButton = layout.createTextButton("Close", function () {
+        self.notifyBackendCloseButtonPressed();
+    }, '', 1);
+
+    this.mIsVisible = false;
+};
+
+GauntletPoolEditorScreen.prototype.destroyDIV = function () {
+    //this.mAssets.destroyDIV();
+
+    this.mListScrollContainer.empty();
+    this.mListScrollContainer = null;
+    this.mListContainer.destroyList();
+    this.mListContainer.remove();
+    this.mListContainer = null;
+
+    this.mLeaveButton.remove();
+    this.mLeaveButton = null;
+
+    this.mDialogContainer.empty();
+    this.mDialogContainer.remove();
+    this.mDialogContainer = null;
+
+    this.mContainer.empty();
+    this.mContainer.remove();
+    this.mContainer = null;
+};
+
+
+GauntletPoolEditorScreen.prototype.addListEntry = function (_data) {
+    var result = $('<div class="l-row"/>');
+    this.mListScrollContainer.append(result);
+
+    var name = $('<div class="name text-font-normal font-color-description">' + _data.Name + '</div>');
+    result.append(name);
+
+    var num = $('<div class="time text-font-normal font-color-description">' + _data.Num + '</div>');
+    result.append(num);
+
+    var dr = $('<div class="battles text-font-normal font-color-description">' + _data.DifficultyRating + '</div>');
+    result.append(dr);
+
+    var weight = $('<div class="kills text-font-normal font-color-description">' + _data.Weight + '</div>');
+    result.append(weight);
+
+};
+
+GauntletPoolEditorScreen.prototype.bindTooltips = function () {
+    this.mColumnName.bindTooltip({ contentType: 'ui-element', elementId: TooltipIdentifier.WorldScreen.Obituary.ColumnName });
+    this.mColumnDRScore.bindTooltip({ contentType: 'ui-element', elementId: TooltipIdentifier.WorldScreen.Obituary.ColumnTime });
+    this.mColumnNum.bindTooltip({ contentType: 'ui-element', elementId: TooltipIdentifier.WorldScreen.Obituary.ColumnBattles });
+    this.mColumnWeight.bindTooltip({ contentType: 'ui-element', elementId: TooltipIdentifier.WorldScreen.Obituary.ColumnKills });
+};
+
+GauntletPoolEditorScreen.prototype.unbindTooltips = function () {
+    this.mColumnName.unbindTooltip();
+    this.mColumnDRScore.unbindTooltip();
+    this.mColumnNum.unbindTooltip();
+    this.mColumnWeight.unbindTooltip();
+};
+
+
+GauntletPoolEditorScreen.prototype.create = function (_parentDiv) {
+    this.createDIV(_parentDiv);
+    this.bindTooltips();
+};
+
+GauntletPoolEditorScreen.prototype.destroy = function () {
+    this.unbindTooltips();
+    this.destroyDIV();
+};
+
+
+GauntletPoolEditorScreen.prototype.register = function (_parentDiv) {
+    console.log('GauntletPoolEditorScreen::REGISTER');
+
+    if (this.mContainer !== null) {
+        console.error('ERROR: Failed to register Relations Screen. Reason: Already initialized.');
+        return;
+    }
+
+    if (_parentDiv !== null && typeof (_parentDiv) == 'object') {
+        this.create(_parentDiv);
+    }
+};
+
+GauntletPoolEditorScreen.prototype.unregister = function () {
+    console.log('GauntletPoolEditorScreen::UNREGISTER');
+
+    if (this.mContainer === null) {
+        console.error('ERROR: Failed to unregister Relations Screen. Reason: Not initialized.');
+        return;
+    }
+
+    this.destroy();
+};
+
+GauntletPoolEditorScreen.prototype.isRegistered = function () {
+    if (this.mContainer !== null) {
+        return this.mContainer.parent().length !== 0;
+    }
+
+    return false;
+};
+
+
+GauntletPoolEditorScreen.prototype.show = function (_data) {
+    this.loadFromData(_data);
+
+    if (!this.mIsVisible) {
+        var self = this;
+
+        var withAnimation = true;//(_data !== undefined && _data['withSlideAnimation'] !== null) ? _data['withSlideAnimation'] : true;
+        if (withAnimation === true) {
+            var offset = -(this.mContainer.parent().width() + this.mContainer.width());
+            this.mContainer.css({ 'left': offset });
+            this.mContainer.velocity("finish", true).velocity({ opacity: 1, left: '0', right: '0' }, {
+                duration: Constants.SCREEN_SLIDE_IN_OUT_DELAY,
+                easing: 'swing',
+                begin: function () {
+                    $(this).removeClass('display-none').addClass('display-block');
+                    self.notifyBackendOnAnimating();
+                },
+                complete: function () {
+                    self.mIsVisible = true;
+                    self.notifyBackendOnShown();
+                }
+            });
+        }
+        else {
+            this.mContainer.css({ opacity: 0 });
+            this.mContainer.velocity("finish", true).velocity({ opacity: 1 }, {
+                duration: Constants.SCREEN_FADE_IN_OUT_DELAY,
+                easing: 'swing',
+                begin: function () {
+                    $(this).removeClass('display-none').addClass('display-block');
+                    self.notifyBackendOnAnimating();
+                },
+                complete: function () {
+                    self.mIsVisible = true;
+                    self.notifyBackendOnShown();
+                }
+            });
+        }
+    }
+};
+
+GauntletPoolEditorScreen.prototype.hide = function (_withSlideAnimation) {
+    var self = this;
+
+    var withAnimation = true;//(_withSlideAnimation !== undefined && _withSlideAnimation !== null) ? _withSlideAnimation : true;
+    if (withAnimation === true) {
+        var offset = -(this.mContainer.parent().width() + this.mContainer.width());
+        this.mContainer.velocity("finish", true).velocity({ opacity: 0, left: offset },
+            {
+                duration: Constants.SCREEN_SLIDE_IN_OUT_DELAY,
+                easing: 'swing',
+                begin: function () {
+                    $(this).removeClass('is-center');
+                    self.notifyBackendOnAnimating();
+                },
+                complete: function () {
+                    self.mIsVisible = false;
+                    self.mListScrollContainer.empty();
+                    $(this).removeClass('display-block').addClass('display-none');
+                    self.notifyBackendOnHidden();
+                }
+            });
+    }
+    else {
+        this.mContainer.velocity("finish", true).velocity({ opacity: 0 },
+            {
+                duration: Constants.SCREEN_SLIDE_IN_OUT_DELAY,
+                easing: 'swing',
+                begin: function () {
+                    $(this).removeClass('is-center');
+                    self.notifyBackendOnAnimating();
+                },
+                complete: function () {
+                    self.mIsVisible = false;
+                    self.mListScrollContainer.empty();
+                    $(this).removeClass('display-block').addClass('display-none');
+                    self.notifyBackendOnHidden();
+                }
+            });
+    }
+};
+
+var widthTester = $('<div id="WidthTester"/>')
+	.css({'position': 'absolute', 'float': 'left', 'white-space': 'nowrap', 'visibility': 'hidden'})
+	.addClass("text-font-normal")
+	.appendTo($('body'))
+
+var getWidthOfDropdownChild = function(_text)
+{
+    widthTester.text(_text);
+	return widthTester.width();
+}
+
+var createDropDownMenu = function(_parentDiv, _classes, _childrenArray, _default, _onChangeCallback)
+{
+	// NOTE: you need to pass the _parentDiv that the dropdown gets attached to
+	// This is due do aciScrollBar
+	// The _parentDiv needs to be attached to the DOM!!!
+	// The maximum height of the element container is 20rem, but this can be changed via setting data("maxHeight") on the result
+	var result = $('<div class="dropdown"/>')
+		.addClass(_classes || "")
+		.data("activeElement", null)
+		.append($('<div class="dropdown-text text-font-normal font-color-label"/>'))
+
+	var container = $('<div class="dropdown-container"/>')
+		.append($('<div class="dropdown-container-scroll"/>'))
+		.appendTo(result)
+
+	result.addChildren = function(_children)
+	{
+		var innerContainer = this.find(".dropdown-container-scroll");
+		var outerContainer = this.find(".dropdown-container");
+		var width = 175;
+		$.each(_children, function(_idx, _element)
+		{
+			var child = $('<div class="dropdown-child text-font-normal font-color-label"/>')
+				.data("Element", _element)
+				.appendTo(innerContainer)
+
+			if (typeof _element == "object")
+			{
+				if(_element.Name === undefined)
+					console.error("Passed an object as dropdown member but it does not have a .Name member to use as label!")
+				child.text(_element.Name)
+			}
+			else child.text(_element)
+
+			child.on("click", function(_event)
+			{
+				var dropDown = $(this).closest(".dropdown");
+				dropDown.find(".dropdown-child").removeClass("is-selected");
+				$(this).addClass("is-selected");
+				dropDown.find(".dropdown-text").text($(this).text());
+				dropDown.data("activeElement", $(this).data("Element"));
+				if (dropDown.data("callback") !== undefined && dropDown.data("callback") !== null)
+				{
+					dropDown.data("callback")($(this).data("Element"));
+				}
+				return false;
+			})
+			width = Math.max(width, getWidthOfDropdownChild(_element.Name))
+		})
+		var newheight = Math.min(this.data("maxHeight") || 20, innerContainer.children().length * 3) + "rem";
+		outerContainer.css("height", newheight);
+		this.width(width);
+	}
+
+	result.setDefault = function(_default)
+	{
+		this.find(".dropdown-child").each(function()
+		{
+			if($(this).data("Element") == _default)
+			{
+				$(this).click();
+			}
+		})
+	}
+
+	result.setCallback = function(_function)
+	{
+		this.data("callback", _function);
+	}
+
+	result.removeChildren = function()
+	{
+		this.find(".dropdown-container-scroll").empty();
+	}
+
+	result.get = function()
+	{
+		return this.data("activeElement");
+	}
+
+	result.set = function(_children, _default, _callback)
+	{
+		this.attr('disabled', false);
+		this.removeChildren();
+		if (_callback !== undefined && _callback !== null)
+			this.setCallback(_callback)
+
+		if (_children !== undefined && _children !== null)
+			this.addChildren(_children)
+
+		if (_default !== undefined && _default !== null)
+			this.setDefault(_default)
+
+		if ((_children === undefined || _children.length == 0) || this.get() === undefined)
+		{
+    		this.attr('disabled', true);
+		}
+	}
+
+	result.set(_childrenArray, _default, _onChangeCallback);
+
+	// These must be last!
+	_parentDiv.append(result);
+	container.aciScrollBar({
+         delta: 1,
+         lineDelay: 0,
+         lineTimer: 0,
+         pageDelay: 0,
+         pageTimer: 0,
+         bindKeyboard: false,
+         resizable: false,
+         smoothScroll: false
+     });
+
+	return result;
+}
+
+
+GauntletPoolEditorScreen.prototype.isVisible = function () {
+    return this.mIsVisible;
+};
+
+
+GauntletPoolEditorScreen.prototype.loadFromData = function (_data) {
+    if (_data === undefined || _data === null) {
+        return;
+    }
+
+    this.mListScrollContainer.empty();
+
+    if (!("Pool" in _data) || _data.Pool == null) {
+        this.mDialogContainer.findDialogSubTitle().text('No pool accquired!');
+    }
+    else {
+        this.mDialogContainer.findDialogSubTitle().text('The pool ' + _data.Pool.Name + ' contains ' + _data.Pool.Data.length + ' units')
+    }
+
+    // MSU.printData(_data, 10, 100)
+    for (var i = 0; i < _data.Pool.Data.length; ++i) {
+        this.addListEntry(_data.Pool.Data[i]);
+    }
+};
+
+GauntletPoolEditorScreen.prototype.notifyBackendOnConnected = function () {
+    if (this.mSQHandle !== null) {
+        SQ.call(this.mSQHandle, 'onScreenConnected');
+    }
+};
+
+GauntletPoolEditorScreen.prototype.notifyBackendOnDisconnected = function () {
+    if (this.mSQHandle !== null) {
+        SQ.call(this.mSQHandle, 'onScreenDisconnected');
+    }
+};
+
+GauntletPoolEditorScreen.prototype.notifyBackendOnShown = function () {
+    if (this.mSQHandle !== null) {
+        SQ.call(this.mSQHandle, 'onScreenShown');
+    }
+};
+
+GauntletPoolEditorScreen.prototype.notifyBackendOnHidden = function () {
+    if (this.mSQHandle !== null) {
+        SQ.call(this.mSQHandle, 'onScreenHidden');
+    }
+};
+
+GauntletPoolEditorScreen.prototype.notifyBackendOnAnimating = function () {
+    if (this.mSQHandle !== null) {
+        SQ.call(this.mSQHandle, 'onScreenAnimating');
+    }
+};
+
+GauntletPoolEditorScreen.prototype.notifyBackendCloseButtonPressed = function (_buttonID) {
+    if (this.mSQHandle !== null) {
+        SQ.call(this.mSQHandle, 'onClose', _buttonID);
+    }
+};
+
+registerScreen("GauntletPoolEditorScreen", new GauntletPoolEditorScreen());

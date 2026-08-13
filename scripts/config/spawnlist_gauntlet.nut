@@ -23,6 +23,8 @@ gt.Const.World.Spawn.GauntletEarly <- [
 				Num = 3
 			}
 		],
+		DayStartpoint = 0,
+		DayEndpoint = 15,
 		Pool = [
 			{
 				Type = this.Const.World.Spawn.Troops.Footman,
@@ -230,6 +232,8 @@ gt.Const.World.Spawn.GauntletMid <- [
 				Num = 4
 			}
 		],
+		DayStartpoint = 15,
+		DayEndpoint = 35,
 		Pool = [
 			// noble
 			{
@@ -274,10 +278,6 @@ gt.Const.World.Spawn.GauntletMid <- [
 				DifficultyRating = 3,
 				Weight = 3,
 				IsSquishyMelee = true
-			},
-			{
-				Type = this.Const.World.Spawn.Troops.Knight,
-				DifficultyRating = 5
 			},
 			// gilded
 			{
@@ -519,6 +519,8 @@ gt.Const.World.Spawn.GauntletLate <- [
 				Num = 5
 			}
 		],
+		DayStartpoint = 35,
+		DayEndpoint = null,
 		Pool = [
 			// noble
 			{
@@ -571,8 +573,8 @@ gt.Const.World.Spawn.GauntletLate <- [
 			// gilded
 			{
 				Type = this.Const.World.Spawn.Troops.Conscript,
-				DifficultyRating = 2,
 				Num = 2,
+				DifficultyRating = 3,
 				Weight = 3
 			},
 			{
@@ -706,8 +708,13 @@ gt.Const.World.Spawn.GauntletLate <- [
 			// undead: zombie
 			{
 				Type = this.Const.World.Spawn.Troops.ZombieKnight,
-				DifficultyRating = 1,
-				Weight = 2
+				DifficultyRating = 2,
+				Weight = 2,
+				CoSpawn = [
+					{
+						Type = this.Const.World.Spawn.Troops.ZombieNomad
+					}
+				]
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.Ghost,
@@ -919,7 +926,7 @@ gt.Const.World.Spawn.GauntletBoss <- [
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieKnightBodyGuard,
+						Type = this.Const.World.Spawn.Troops.ZombieKnightBodyguard,
 						Num = 2
 					},
 					{
@@ -973,7 +980,7 @@ gt.Const.World.Spawn.GauntletPreset <- [
 				Num = 8
 			}
 		],
-		Pool = [ 
+		Pool = [
 			{
 				Type = this.Const.World.Spawn.Troops.Mortar,
 				DifficultyRating = 12,
