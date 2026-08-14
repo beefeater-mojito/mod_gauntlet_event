@@ -23,6 +23,8 @@ gt.Const.World.Spawn.GauntletEarly <- [
 				Num = 3
 			}
 		],
+		// gauntlet data
+		Name = "GauntletEarly",
 		DayStartpoint = 0,
 		DayEndpoint = 15,
 		Pool = [
@@ -232,6 +234,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 				Num = 4
 			}
 		],
+		Name = "GauntletMid",
 		DayStartpoint = 15,
 		DayEndpoint = 35,
 		Pool = [
@@ -519,6 +522,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 				Num = 5
 			}
 		],
+		GauntletName = "GauntletLate",
 		DayStartpoint = 35,
 		DayEndpoint = null,
 		Pool = [
@@ -805,6 +809,7 @@ gt.Const.World.Spawn.GauntletChampion <- [
 				Num = 7
 			}
 		],
+		GauntletName = "GauntletChampion",
 		Pool = [
 			{
 				Type = this.Const.World.Spawn.Troops.ZombieKnight,
@@ -879,6 +884,7 @@ gt.Const.World.Spawn.GauntletMiniBoss <- [
 				Num = 6
 			}
 		],
+		GauntletName = "GauntletMiniBoss",
 		Pool = [
 			{
 				Type = this.Const.World.Spawn.Troops.Swordmaster,
@@ -919,6 +925,7 @@ gt.Const.World.Spawn.GauntletBoss <- [
 				Num = 7
 			}
 		],
+		Name = "GauntletBoss",
 		Pool = [ // enemies here, along with co-spawn, will be spawn as Champion
 			{
 				Type = this.Const.World.Spawn.Troops.Necromancer,
@@ -980,6 +987,7 @@ gt.Const.World.Spawn.GauntletPreset <- [
 				Num = 8
 			}
 		],
+		GauntletName = "GauntletPreset",
 		Pool = [
 			{
 				Type = this.Const.World.Spawn.Troops.Mortar,

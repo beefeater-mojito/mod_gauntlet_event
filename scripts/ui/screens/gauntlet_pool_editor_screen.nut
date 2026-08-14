@@ -43,7 +43,7 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 
 		if (this.m.JSHandle != null) {
 			this.Tooltip.hide();
-			this.m.JSHandle.asyncCall("show", this.convertFallenToUIData());
+			this.m.JSHandle.asyncCall("show", this.queryData());
 		}
 	}
 
@@ -83,6 +83,14 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		}
 	}
 
+	function queryPoolNames() {
+		// TODO: implement fetching every gauntlet pool stored in files
+		local mod = ::ModGauntletEvents.Mod;
+		local arr = []
+		arr.extend(mod.PersistentData.getFiles())
+		return arr
+	}
+
 	function queryPool(_name) {
 		local ret_pool = []
 		if (_name in ::Const.World.Spawn) {
@@ -109,18 +117,18 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 	}
 
 	function queryData() {
-		local pool_name = "GauntletLate";
+		// local pool_name = "GauntletLate";
+		local pool_names = this.queryPoolNames();
 		local ret = {
-			Name = pool_name,
-			Data = this.queryPool(pool_name)
+			Pools = []
+		}
+		foreach(name in pool_names){
+			ret.Pools.append({
+				Name = name,
+				Troops = this.queryPool(name)
+			})
 		}
 		return ret
 	}
 
-	function convertFallenToUIData() {
-		local result = {
-			Pool = this.queryData()
-		};
-		return result;
-	}
 });

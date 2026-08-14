@@ -12,8 +12,10 @@ var GauntletPoolEditorScreen = function (_parent) {
     // generic containers
     this.mContainer = null;
     this.mDialogContainer = null;
+    this.mDropdownContainer = null;
     this.mListContainer = null;
     this.mListScrollContainer = null;
+
 
     // buttons
     this.mLeaveButton = null;
@@ -22,7 +24,8 @@ var GauntletPoolEditorScreen = function (_parent) {
     this.mIsVisible = false;
 
     // selected entry
-    this.mSelectedEntry = null;
+    this.mSelectedPool = null;
+    this.mData = null;
 };
 
 GauntletPoolEditorScreen.prototype = Object.create(MSUUIScreen.prototype)
@@ -43,8 +46,7 @@ GauntletPoolEditorScreen.prototype.onDisconnection = function () {
     this.mSQHandle = null; this.unregister();
 };
 GauntletPoolEditorScreen.prototype.getModule = function (_name) {
-    switch (_name)
-    {
+    switch (_name) {
         default: return null;
     }
 };
@@ -67,9 +69,6 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
     // create tabs
     var tabButtonsContainer = $('<div class="l-tab-container"/>');
     this.mDialogContainer.findDialogTabContainer().append(tabButtonsContainer);
-
-    var gauntletArr = ["GauntletEarly", "GauntletMid", "GauntletLate", "GauntletPreset"]
-    createDropDownMenu(_parentDiv, tabButtonsContainer, gauntletArr, gauntletArr[0], null)
 
     // create content
     var content = this.mDialogContainer.findDialogContentContainer();
@@ -110,6 +109,9 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
     }, '', 1);
 
     this.mIsVisible = false;
+
+    var temp = ["GauntletEarly", "GauntletMid", "GauntletLate"]
+    this.mDropdownContainer = createDropDownMenu(_parentDiv, null, temp, null)
 };
 
 GauntletPoolEditorScreen.prototype.destroyDIV = function () {
@@ -294,131 +296,116 @@ GauntletPoolEditorScreen.prototype.hide = function (_withSlideAnimation) {
 };
 
 var widthTester = $('<div id="WidthTester"/>')
-	.css({'position': 'absolute', 'float': 'left', 'white-space': 'nowrap', 'visibility': 'hidden'})
-	.addClass("text-font-normal")
-	.appendTo($('body'))
+    .css({ 'position': 'absolute', 'float': 'left', 'white-space': 'nowrap', 'visibility': 'hidden' })
+    .addClass("text-font-normal")
+    .appendTo($('body'))
 
-var getWidthOfDropdownChild = function(_text)
-{
+var getWidthOfDropdownChild = function (_text) {
     widthTester.text(_text);
-	return widthTester.width();
+    return widthTester.width();
 }
 
-var createDropDownMenu = function(_parentDiv, _classes, _childrenArray, _default, _onChangeCallback)
-{
-	// NOTE: you need to pass the _parentDiv that the dropdown gets attached to
-	// This is due do aciScrollBar
-	// The _parentDiv needs to be attached to the DOM!!!
-	// The maximum height of the element container is 20rem, but this can be changed via setting data("maxHeight") on the result
-	var result = $('<div class="dropdown"/>')
-		.addClass(_classes || "")
-		.data("activeElement", null)
-		.append($('<div class="dropdown-text text-font-normal font-color-label"/>'))
+var createDropDownMenu = function (_parentDiv, _classes, _childrenArray, _default, _onChangeCallback) {
+    // NOTE: you need to pass the _parentDiv that the dropdown gets attached to
+    // This is due do aciScrollBar
+    // The _parentDiv needs to be attached to the DOM!!!
+    // The maximum height of the element container is 20rem, but this can be changed via setting data("maxHeight") on the result
+    var result = $('<div class="dropdown"/>')
+        .addClass(_classes || "")
+        .data("activeElement", null)
+        .append($('<div class="dropdown-text text-font-normal font-color-label"/>'))
 
-	var container = $('<div class="dropdown-container"/>')
-		.append($('<div class="dropdown-container-scroll"/>'))
-		.appendTo(result)
+    var container = $('<div class="dropdown-container"/>')
+        .append($('<div class="dropdown-container-scroll"/>'))
+        .appendTo(result)
 
-	result.addChildren = function(_children)
-	{
-		var innerContainer = this.find(".dropdown-container-scroll");
-		var outerContainer = this.find(".dropdown-container");
-		var width = 175;
-		$.each(_children, function(_idx, _element)
-		{
-			var child = $('<div class="dropdown-child text-font-normal font-color-label"/>')
-				.data("Element", _element)
-				.appendTo(innerContainer)
+    result.addChildren = function (_children) {
+        var innerContainer = this.find(".dropdown-container-scroll");
+        var outerContainer = this.find(".dropdown-container");
+        var width = 175;
+        $.each(_children, function (_idx, _element) {
+            var child = $('<div class="dropdown-child text-font-normal font-color-label"/>')
+                .data("Element", _element)
+                .appendTo(innerContainer)
 
-			if (typeof _element == "object")
-			{
-				if(_element.Name === undefined)
-					console.error("Passed an object as dropdown member but it does not have a .Name member to use as label!")
-				child.text(_element.Name)
-			}
-			else child.text(_element)
+            if (typeof _element == "object") {
+                if (_element.Name === undefined)
+                    console.error("Passed an object as dropdown member but it does not have a .Name member to use as label!")
+                child.text(_element.Name)
+            }
+            else child.text(_element)
 
-			child.on("click", function(_event)
-			{
-				var dropDown = $(this).closest(".dropdown");
-				dropDown.find(".dropdown-child").removeClass("is-selected");
-				$(this).addClass("is-selected");
-				dropDown.find(".dropdown-text").text($(this).text());
-				dropDown.data("activeElement", $(this).data("Element"));
-				if (dropDown.data("callback") !== undefined && dropDown.data("callback") !== null)
-				{
-					dropDown.data("callback")($(this).data("Element"));
-				}
-				return false;
-			})
-			width = Math.max(width, getWidthOfDropdownChild(_element.Name))
-		})
-		var newheight = Math.min(this.data("maxHeight") || 20, innerContainer.children().length * 3) + "rem";
-		outerContainer.css("height", newheight);
-		this.width(width);
-	}
+            child.on("click", function (_event) {
+                var dropDown = $(this).closest(".dropdown");
+                dropDown.find(".dropdown-child").removeClass("is-selected");
+                $(this).addClass("is-selected");
+                dropDown.find(".dropdown-text").text($(this).text());
+                dropDown.data("activeElement", $(this).data("Element"));
+                if (dropDown.data("callback") !== undefined && dropDown.data("callback") !== null) {
+                    dropDown.data("callback")($(this).data("Element"));
+                }
+                return false;
+            })
+            width = Math.max(width, getWidthOfDropdownChild(_element.Name))
+        })
+        var newheight = Math.min(this.data("maxHeight") || 20, innerContainer.children().length * 3) + "rem";
+        outerContainer.css("height", newheight);
+        this.width(width);
+    }
 
-	result.setDefault = function(_default)
-	{
-		this.find(".dropdown-child").each(function()
-		{
-			if($(this).data("Element") == _default)
-			{
-				$(this).click();
-			}
-		})
-	}
+    result.setDefault = function (_default) {
+        this.find(".dropdown-child").each(function () {
+            if ($(this).data("Element") == _default) {
+                $(this).click();
+            }
+        })
+    }
 
-	result.setCallback = function(_function)
-	{
-		this.data("callback", _function);
-	}
+    result.setCallback = function (_function) {
+        this.data("callback", _function);
+    }
 
-	result.removeChildren = function()
-	{
-		this.find(".dropdown-container-scroll").empty();
-	}
+    result.removeChildren = function () {
+        this.find(".dropdown-container-scroll").empty();
+    }
 
-	result.get = function()
-	{
-		return this.data("activeElement");
-	}
+    result.get = function () {
+        return this.data("activeElement");
+    }
 
-	result.set = function(_children, _default, _callback)
-	{
-		this.attr('disabled', false);
-		this.removeChildren();
-		if (_callback !== undefined && _callback !== null)
-			this.setCallback(_callback)
+    result.set = function (_children, _default, _callback) {
+        this.attr('disabled', false);
+        this.removeChildren();
+        if (_callback !== undefined && _callback !== null)
+            this.setCallback(_callback)
 
-		if (_children !== undefined && _children !== null)
-			this.addChildren(_children)
+        if (_children !== undefined && _children !== null)
+            this.addChildren(_children)
 
-		if (_default !== undefined && _default !== null)
-			this.setDefault(_default)
+        if (_default !== undefined && _default !== null)
+            this.setDefault(_default)
 
-		if ((_children === undefined || _children.length == 0) || this.get() === undefined)
-		{
-    		this.attr('disabled', true);
-		}
-	}
+        if ((_children === undefined || _children.length == 0) || this.get() === undefined) {
+            this.attr('disabled', true);
+        }
+    }
 
-	result.set(_childrenArray, _default, _onChangeCallback);
+    result.set(_childrenArray, _default, _onChangeCallback);
 
-	// These must be last!
-	_parentDiv.append(result);
-	container.aciScrollBar({
-         delta: 1,
-         lineDelay: 0,
-         lineTimer: 0,
-         pageDelay: 0,
-         pageTimer: 0,
-         bindKeyboard: false,
-         resizable: false,
-         smoothScroll: false
-     });
+    // These must be last!
+    _parentDiv.append(result);
+    container.aciScrollBar({
+        delta: 1,
+        lineDelay: 0,
+        lineTimer: 0,
+        pageDelay: 0,
+        pageTimer: 0,
+        bindKeyboard: false,
+        resizable: false,
+        smoothScroll: false
+    });
 
-	return result;
+    return result;
 }
 
 
@@ -427,24 +414,43 @@ GauntletPoolEditorScreen.prototype.isVisible = function () {
 };
 
 
+GauntletPoolEditorScreen.prototype.onChangeEntry = function (_selectedEntry) {
+    // this.mSelectedPool = _selectedEntry
+    this.mDialogContainer.findDialogSubTitle().text('The pool ' + _selectedEntry.Name + ' contains ' + _selectedEntry.Troops.length + ' units');
+
+    this.mListScrollContainer.empty()
+
+    for (var i = 0; i < _selectedEntry.Troops.length; ++i) {
+        this.addListEntry(_selectedEntry.Troops[i]);
+    }
+
+}
+
 GauntletPoolEditorScreen.prototype.loadFromData = function (_data) {
     if (_data === undefined || _data === null) {
         return;
     }
+    this.mData = _data
 
-    this.mListScrollContainer.empty();
-
-    if (!("Pool" in _data) || _data.Pool == null) {
+    if (!("Pools" in this.mData) || this.mData.Pools == null || this.mData.Pools.length <= 0) {
         this.mDialogContainer.findDialogSubTitle().text('No pool accquired!');
     }
     else {
-        this.mDialogContainer.findDialogSubTitle().text('The pool ' + _data.Pool.Name + ' contains ' + _data.Pool.Data.length + ' units')
+        var firstPool  = this.mData.Pools[0]
+        var self = this;
+        this.mDropdownContainer.set(
+            this.mData.Pools,
+            firstPool,
+            function (_selectedEntry) {
+                self.onChangeEntry(_selectedEntry);
+            }
+        );
     }
 
     // MSU.printData(_data, 10, 100)
-    for (var i = 0; i < _data.Pool.Data.length; ++i) {
-        this.addListEntry(_data.Pool.Data[i]);
-    }
+    // for (var i = 0; i < _data.Pool.Data.length; ++i) {
+    //     this.addListEntry(_data.Pool.Data[i]);
+    // }
 };
 
 GauntletPoolEditorScreen.prototype.notifyBackendOnConnected = function () {

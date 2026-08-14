@@ -41,12 +41,16 @@ Alternatively, you can just zip the two folders `scripts` and `script_hooks` and
 # To-do
 
 * Implementing and testing a late-game pool (WIP!).
-* Create a mod option menu that allow further customization on date threshold, scaling and some toggles. (WIP!)
+* Create a mod option menu that allow further customization on date threshold, scaling and some toggles. (WIP!).
+* Create a UI for viewing and editing various gauntlet pools, and even testing them!
 * ~~Figure out how to either 1\) disable corpse resurrection on player's dead bros, or 2\) prevent gears lost for resurrected zombie bros~~. At the moment, resurrection from the player's corpses while inside gauntlet fights is disabled, and unarmed, resurrected zombies and skeletons will be re-equipped randomly.
 * ...And more!
 
 # Acknowledgement
 
-Thank you to the BB modding community for numerous code references and guidance on technical side of the game. The special event format was inspired by [Sato's Rebalanced Vanilla Origin's](https://github.com/jcsato/sato_rebalanced_vanilla_origins/tree/master) implementation for the Cultist scenario.
+Thank you to the BB modding community for numerous code references and guidance on technical side of the game. This mod project is possible thanks to:
+* [Sato's Rebalanced Vanilla Origin's](https://github.com/jcsato/sato_rebalanced_vanilla_origins/tree/master) for the special event format in their implementation for the Cultist scenario. 
+* [Combat Simulator](https://www.nexusmods.com/battlebrothers/mods/564) for various references for implementing the screen UI.
+* [TaroEld's implementation](github.com/TaroEld/js_dropdown) for the dropdown menu.
 
-And thank you to Overhype for creating such an amazing game.
+And thank you to the Overhype studio for creating such an amazing game.
