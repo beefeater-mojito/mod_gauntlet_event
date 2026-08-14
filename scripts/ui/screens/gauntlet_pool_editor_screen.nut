@@ -91,13 +91,42 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		return arr
 	}
 
+	function gatherUnitFlags(_unit) {
+		local esssential_fields = ["Type", "Num", "Weight", "DifficultyRating"]
+		local ret = []
+		foreach(key, value in _unit){
+			if(esssential_fields.find(key) != null
+			|| !(value)){
+				// ::logDebug("Key of unit: " + key)
+				continue;
+			}
+			ret.append(key);
+		}
+		return ret
+	}
+
+	function queryCoSpawn(_unit) {
+		if (!("CoSpawn" in _unit)){
+			return [];
+		}
+		local arr = []
+		foreach(co in _unit.CoSpawn){
+			local name = this.getNameFromScriptPath(co.Type.Script);
+			local num = "Num" in co ? co.Num : 1;
+			arr.append({
+				Name = name,
+				Num = num
+			})
+		}
+		return arr
+	}
+
 	function queryPool(_name) {
 		local ret_pool = []
 		if (_name in ::Const.World.Spawn) {
 			local pool = ::Const.World.Spawn[_name][0].Pool;
-			foreach(i, unit in pool) {
-				local arr = split(unit.Type.Script, "/")
-				local name = arr[arr.len() - 1];
+			foreach(unit in pool) {
+				local name = this.getNameFromScriptPath(unit.Type.Script)
 				local num = "Num" in unit ? unit.Num : 1;
 				local dr_score = "DifficultyRating" in unit ? unit.DifficultyRating : null;
 				local weight = "Weight" in unit ? unit.Weight : 1;
@@ -105,7 +134,8 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 					Name = name,
 					Num = num,
 					DifficultyRating = dr_score,
-					Weight = weight
+					Weight = weight,
+					Flags = this.gatherUnitFlags(unit)
 				})
 			}
 			return ret_pool;
@@ -116,10 +146,28 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 
 	}
 
+	function getNameFromScriptPath(_path)
+	{
+		local arr = split(_path , "/")
+		return arr[arr.len() - 1]
+	}
+
+	function queryUnitsFromSpawnlistMaster() {
+		local ret = [];
+		foreach(unitName, unitProperties in ::Const.World.Spawn.Troops){
+			local unit = clone unitProperties;
+			unit.DisplayName <- this.getNameFromScriptPath(unitProperties.Script)
+			ret.append(unit)
+		}
+		return ret
+
+	}
+
 	function queryData() {
 		// local pool_name = "GauntletLate";
 		local pool_names = this.queryPoolNames();
 		local ret = {
+			AllUnits = this.queryUnitsFromSpawnlistMaster(),
 			Pools = []
 		}
 		foreach(name in pool_names){

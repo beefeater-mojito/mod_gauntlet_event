@@ -626,7 +626,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				Type = this.Const.World.Spawn.Troops.BountyHunter,
-				DifficultyRating = 2,
+				DifficultyRating = 3,
 				Weight = 2
 			},
 			{

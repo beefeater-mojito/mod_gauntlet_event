@@ -739,12 +739,9 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		local mod = ::ModGauntletEvents.Mod;
 		local current_day = this.World.getTime().Days;
 		foreach(filename in mod.PersistentData.getFiles()){
-			if(filename.find("Gauntlet") == null){
-				continue
-			}
 			local data = mod.PersistentData.readFile(filename)
-			local startpoint = data.DayStartPoint == null ? 0 : data.DayStartPoint;
-			local endpoint = data.DayEndpoint == null ? 0 : ::RAND_MAX;
+			local startpoint = data.DayStartPoint != null ? data.DayStartPoint : 0;
+			local endpoint = data.DayEndpoint != null ? data.DayEndpoint : ::RAND_MAX;
 			if (current_day >= startpoint && current_day < endpoint){
 				return data.Pool;
 			} else {

@@ -15,7 +15,9 @@ var GauntletPoolEditorScreen = function (_parent) {
     this.mDropdownContainer = null;
     this.mListContainer = null;
     this.mListScrollContainer = null;
-
+    this.mAddUnitButton = null;
+    this.mActiveFilterBar = null;
+    this.mPopupListContainer = null;
 
     // buttons
     this.mLeaveButton = null;
@@ -80,14 +82,17 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
     this.mColumnName = $('<div class="table-header-name title title-font-big font-bold font-color-title">Name</div>');
     headers.append(this.mColumnName);
 
-    this.mColumnNum = $('<div class="table-header-time title title-font-big font-bold font-color-title">Num</div>');
+    this.mColumnNum = $('<div class="table-header-unitnum title title-font-big font-bold font-color-title">Num</div>');
     headers.append(this.mColumnNum);
 
-    this.mColumnDRScore = $('<div class="table-header-battles title title-font-big font-bold font-color-title">DR Score</div>');
+    this.mColumnDRScore = $('<div class="table-header-drscore title title-font-big font-bold font-color-title">DR Score</div>');
     headers.append(this.mColumnDRScore);
 
-    this.mColumnWeight = $('<div class="table-header-kills title title-font-big font-bold font-color-title">Weight</div>');
+    this.mColumnWeight = $('<div class="table-header-weight title title-font-big font-bold font-color-title">Weight</div>');
     headers.append(this.mColumnWeight);
+
+    this.mColumnFlags = $('<div class="table-header-flags title title-font-big font-bold font-color-title">Flags</div>');
+    headers.append(this.mColumnFlags);
 
     // left column
     var column = $('<div class="column is-left"/>');
@@ -107,6 +112,17 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
     this.mLeaveButton = layout.createTextButton("Close", function () {
         self.notifyBackendCloseButtonPressed();
     }, '', 1);
+
+    // create a second button
+    var unitsBox = $('<div class="units-box"/>')
+        .append(this.getTextDiv("Units", "box-subtitle", true))
+    footerButtonBar.append(unitsBox)
+
+    var layoutAddUnit = $('<div class="combatsim-text-button-layout"/>');
+    footerButtonBar.append(layoutAddUnit);
+    this.mAddUnitButton = layoutAddUnit.createTextButton("Add Unit", $.proxy(function (_div) {
+        this.createAddUnitScrollContainer(this.createPopup('Add Unit', 'combatsim-generic-popup', 'combatsim-generic-popup-container'), this.mListScrollContainer);
+    }, this), "combatsim-text-button", 4);
 
     this.mIsVisible = false;
 
@@ -135,22 +151,68 @@ GauntletPoolEditorScreen.prototype.destroyDIV = function () {
     this.mContainer = null;
 };
 
+GauntletPoolEditorScreen.prototype.addInputFieldToTable = function (
+    _parent,
+    _field,
+    _class,
+    _value
+) {
+    var inputLayout = $('<div class="combatsim-short-input-container"/>');
+    var input = $(
+        '<input type="text" class="title-font-normal font-color-subtitle short-input"/>'
+    );
+
+    inputLayout.addClass(_class);
+    input.val(_value);
+
+    _parent.append(inputLayout);
+    inputLayout.append(input);
+    _parent.data(_field, input);
+};
 
 GauntletPoolEditorScreen.prototype.addListEntry = function (_data) {
     var result = $('<div class="l-row"/>');
     this.mListScrollContainer.append(result);
 
-    var name = $('<div class="name text-font-normal font-color-description">' + _data.Name + '</div>');
+    var name = $(
+        '<div class="name text-font-normal font-color-description">' +
+        _data.Name +
+        '</div>'
+    );
+
     result.append(name);
 
-    var num = $('<div class="time text-font-normal font-color-description">' + _data.Num + '</div>');
-    result.append(num);
+    this.addInputFieldToTable(
+        result,
+        "num",
+        "unitnum",
+        _data.Num
+    );
 
-    var dr = $('<div class="battles text-font-normal font-color-description">' + _data.DifficultyRating + '</div>');
-    result.append(dr);
+    this.addInputFieldToTable(
+        result,
+        "dr",
+        "drscore",
+        _data.DifficultyRating
+    );
 
-    var weight = $('<div class="kills text-font-normal font-color-description">' + _data.Weight + '</div>');
-    result.append(weight);
+    this.addInputFieldToTable(
+        result,
+        "weight",
+        "weight",
+        _data.Weight
+    );
+
+    var flagStr = ""
+    for (var i = 0; i < _data.Flags.length; i++) {
+        flagStr += _data.Flags[i]
+        if (i < _data.Flags.length - 1) {
+            flagStr += ", "
+        }
+    }
+
+    var flags = $('<div class ="flags text-font-normal font-color-description">' + flagStr + '</div>')
+    result.append(flags)
 
 };
 
@@ -436,7 +498,7 @@ GauntletPoolEditorScreen.prototype.loadFromData = function (_data) {
         this.mDialogContainer.findDialogSubTitle().text('No pool accquired!');
     }
     else {
-        var firstPool  = this.mData.Pools[0]
+        var firstPool = this.mData.Pools[0]
         var self = this;
         this.mDropdownContainer.set(
             this.mData.Pools,
@@ -452,6 +514,116 @@ GauntletPoolEditorScreen.prototype.loadFromData = function (_data) {
     //     this.addListEntry(_data.Pool.Data[i]);
     // }
 };
+
+GauntletPoolEditorScreen.prototype.createPopup = function (_name, _popupClass, _popupDialogContentClass) {
+    var self = this;
+    this.popup = this.mContainer.createPopupDialog(_name, "", null, _popupClass);
+    this.setPopupDialog(this.popup);
+    var result = this.popup.addPopupDialogContent($('<div class="' + _popupDialogContentClass + '"/>'));
+    this.popup.addPopupDialogButton('OK', 'l-ok-keybind-button', $.proxy(function (_dialog) {
+        this.destroyPopupDialog();
+    }, this));
+    return result;
+}
+
+
+GauntletPoolEditorScreen.prototype.getTextDiv = function(_text, _classes, _isTitle)
+{
+    _classes = _classes || "";
+    var row = $('<div class="title-font-normal font-color-subtitle combatsim-entry-label"></div>')
+        .html(_text)
+        .addClass(_classes)
+    if (_isTitle === true)
+        row.removeClass("font-color-subtitle").addClass("font-color-brother-name")
+    return row;
+}
+
+
+GauntletPoolEditorScreen.prototype.addRow = function(_div, _classes, _divider)
+{
+    var row = $('<div class="combatsim-row"/>');
+    _div.append(row);
+    if (_classes != undefined)
+    {
+        row.addClass(_classes);
+    }
+    if(_divider === true)
+    {
+        row.addClass("combatsim-bottom-gold-line");
+    }
+    return row;
+}
+
+
+
+GauntletPoolEditorScreen.prototype.createFilterBar = function(_scrollContainer)
+{
+    var row = $('<div class="combatsim-filter-bar"/>');
+    var name = this.getTextDiv("Filter")
+        .appendTo(row);
+    var filterLayout = $('<div class="combatsim-filter-input-container"/>')
+        .appendTo(row);
+    var filterInput = $('<input type="text" class="title-font-normal font-color-brother-name"/>')
+        .appendTo(filterLayout)
+        .on("keyup", function(_event){
+            var currentInput = $(this).val();
+            var rows = _scrollContainer.find(".combatsim-row");
+            rows.each(function(_idx){
+                var label = $(this).find(".combatsim-entry-label");
+                if (label.length == 0) return;
+                var labelText = $(label[0]).html();
+                if (labelText.toLowerCase().search(currentInput.toLowerCase()) == -1)
+                {
+                    $(this).css("display", "none")
+                }
+                else
+                {
+                    $(this).css("display", "flex")
+                }
+            })
+        })
+    this.mActiveFilterBar = filterInput;
+    return row;
+}
+
+GauntletPoolEditorScreen.prototype.focusActiveFilterBar = function()
+{
+    if (this.mActiveFilterBar === undefined || this.mActiveFilterBar === null || this.mActiveFilterBar.length === 0)
+        return;
+    this.mActiveFilterBar.focus();
+    this.mActiveFilterBar.select()
+}
+
+GauntletPoolEditorScreen.prototype.createAddUnitScrollContainer = function(_dialog, _side)
+{
+    var self = this;
+    this.mPopupListContainer = _dialog.createList(2);
+    var scrollContainer = this.mPopupListContainer.findListScrollContainer();
+    _dialog.prepend(this.createFilterBar(scrollContainer));
+
+    MSU.iterateObject(this.mData.AllUnits, $.proxy(function(_key, _unit){
+        var row = this.addRow(scrollContainer, "", true);
+
+        var name = $('<div class="title-font-normal font-color-subtitle combatsim-entry-label">' + _unit.DisplayName +  '</div>');
+        row.append(name);
+
+        var addButtonContainer = $('<div class="combatsim-text-button-layout"/>');
+        var addButton = addButtonContainer.createTextButton("Add", $.proxy(function (_button) {
+            var data = {
+                "Name": _unit.DisplayName,
+                "Num": 1,
+                "Weight": 1,
+                "DifficultyRating": 1
+            }
+            this.addListEntry(data) //this.addUnitToBox(_unit, _side, _key);
+            this.focusActiveFilterBar();
+        }, self), "combatsim-text-button", 4);
+        // addButton.bindTooltip({ contentType: 'msu-generic', modId: CombatSimulator.ModID, elementId: "Screen.Units.Main.Add"});
+
+        row.append(addButtonContainer);
+    }, this))
+    this.focusActiveFilterBar();
+}
 
 GauntletPoolEditorScreen.prototype.notifyBackendOnConnected = function () {
     if (this.mSQHandle !== null) {
