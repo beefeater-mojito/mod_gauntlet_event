@@ -83,20 +83,71 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		}
 	}
 
-	function queryPoolNames() {
-		// TODO: implement fetching every gauntlet pool stored in files
-		local mod = ::ModGauntletEvents.Mod;
-		local arr = []
-		arr.extend(mod.PersistentData.getFiles())
-		return arr
+	function onSaveGauntletPool(_pool) {
+		local mod = ::ModGauntletEvents.Mod
+		local filename = ::ModGauntletEvents.Setup.getFilename()
+		local writeData = mod.PersistentData.readFile(filename)
+		if (!(_pool.Name in writeData)) {
+			writeData[_pool.Name] <- {
+				Pool = []
+			}
+		}
+		writeData[_pool.Name].Pool = this.constructPoolFromJSON(_pool.Troops)
+		mod.PersistentData.createFile(filename, writeData)
+
+		local readData = mod.PersistentData.readFile(filename)
+		assert(::MSU.deepEquals(writeData, readData))
+	}
+
+	function onRestoreDefault() {
+		::ModGauntletEvents.Setup.writeToFileWithDefaultData();
+		if (this.m.JSHandle != null) {
+			this.Tooltip.hide();
+			this.m.JSHandle.asyncCall("show", this.queryData());
+		}
+	}
+
+	function constructCoSpawnFromJSON(_JSONarr){
+		local pool = []
+		foreach(unit in _JSONarr){
+			local data = {
+				UnitKey = unit.Name,
+				Num = unit.Num
+			}
+			pool.append(data);
+		}
+		return pool;
+	}
+
+	function constructPoolFromJSON(_JSONpool) {
+		local pool = []
+		foreach(unit in _JSONpool) {
+			local data = {
+				UnitKey = unit.Name,
+				Num = unit.Num,
+				DifficultyRating = unit.DifficultyRating,
+				Weight = unit.Weight
+				CoSpawn = this.constructCoSpawnFromJSON(unit.CoSpawn)
+			}
+			foreach(flag in unit.Flags) {
+				if (!flag) {
+					continue;
+				} else {
+					data[flag] <- true
+				}
+
+			}
+			pool.append(data)
+		}
+		return pool
 	}
 
 	function gatherUnitFlags(_unit) {
-		local esssential_fields = ["Type", "Num", "Weight", "DifficultyRating"]
+		local esssential_fields = ["UnitKey", "Num", "Weight", "DifficultyRating", "CoSpawn"]
 		local ret = []
-		foreach(key, value in _unit){
-			if(esssential_fields.find(key) != null
-			|| !(value)){
+		foreach(key, value in _unit) {
+			if (esssential_fields.find(key) != null ||
+				!(value)) {
 				// ::logDebug("Key of unit: " + key)
 				continue;
 			}
@@ -106,76 +157,80 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 	}
 
 	function queryCoSpawn(_unit) {
-		if (!("CoSpawn" in _unit)){
+		if (!("CoSpawn" in _unit)) {
 			return [];
 		}
 		local arr = []
-		foreach(co in _unit.CoSpawn){
-			local name = this.getNameFromScriptPath(co.Type.Script);
+		foreach(co in _unit.CoSpawn) {
 			local num = "Num" in co ? co.Num : 1;
 			arr.append({
-				Name = name,
+				Name = co.UnitKey,
 				Num = num
 			})
 		}
 		return arr
 	}
 
-	function queryPool(_name) {
+	function queryTroops(_troops) {
 		local ret_pool = []
-		if (_name in ::Const.World.Spawn) {
-			local pool = ::Const.World.Spawn[_name][0].Pool;
-			foreach(unit in pool) {
-				local name = this.getNameFromScriptPath(unit.Type.Script)
-				local num = "Num" in unit ? unit.Num : 1;
-				local dr_score = "DifficultyRating" in unit ? unit.DifficultyRating : null;
-				local weight = "Weight" in unit ? unit.Weight : 1;
-				ret_pool.append({
-					Name = name,
-					Num = num,
-					DifficultyRating = dr_score,
-					Weight = weight,
-					Flags = this.gatherUnitFlags(unit)
-				})
-			}
-			return ret_pool;
-		} else {
-			::logError(_name + " DOES NOT EXIST IN CONST.WORLD.SPAWN!");
-			return [];
+		foreach(unit in _troops) {
+			ret_pool.append({
+				Name = unit.UnitKey,
+				Num = "Num" in unit ? unit.Num : 1,
+				DifficultyRating = "DifficultyRating" in unit ? unit.DifficultyRating : null,
+				Weight = "Weight" in unit ? unit.Weight : 1,
+				Flags = this.gatherUnitFlags(unit),
+				CoSpawn = this.queryCoSpawn(unit)
+			})
 		}
-
+		return ret_pool
 	}
 
-	function getNameFromScriptPath(_path)
-	{
-		local arr = split(_path , "/")
+	function getNameFromScriptPath(_path) {
+		local arr = split(_path, "/")
 		return arr[arr.len() - 1]
+	}
+
+	function getFormattedPool(_poolName, _poolProperties) {
+		return {
+			Name = _poolName,
+			Troops = this.queryTroops(_poolProperties.Pool)
+		}
+	}
+
+	function queryPools() {
+		local mod = ::ModGauntletEvents.Mod;
+		local filename = ::ModGauntletEvents.Setup.getFilename()
+		if (!(mod.PersistentData.hasFile(filename))) {
+			::logError("GAUNTLET DATA FILE DOES NOT EXIST")
+			return []
+		}
+		local pools = []
+		local readData = mod.PersistentData.readFile(filename);
+		foreach(poolName, poolProperties in readData) {
+			pools.append(this.getFormattedPool(poolName, poolProperties))
+		}
+		return pools
 	}
 
 	function queryUnitsFromSpawnlistMaster() {
 		local ret = [];
-		foreach(unitName, unitProperties in ::Const.World.Spawn.Troops){
+		foreach(unitName, unitProperties in ::Const.World.Spawn.Troops) {
 			local unit = clone unitProperties;
-			unit.DisplayName <- this.getNameFromScriptPath(unitProperties.Script)
+			unit.DisplayName <- unitName
 			ret.append(unit)
 		}
 		return ret
-
 	}
 
 	function queryData() {
 		// local pool_name = "GauntletLate";
-		local pool_names = this.queryPoolNames();
+
 		local ret = {
 			AllUnits = this.queryUnitsFromSpawnlistMaster(),
-			Pools = []
+			Pools = this.queryPools()
 		}
-		foreach(name in pool_names){
-			ret.Pools.append({
-				Name = name,
-				Troops = this.queryPool(name)
-			})
-		}
+
 		return ret
 	}
 

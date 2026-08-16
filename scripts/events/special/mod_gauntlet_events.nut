@@ -1,16 +1,16 @@
 local debug_init = "GAUNTLET DEBUG: ";
 
 local deepCopy;
-deepCopy = function (container) {
+deepCopy = function(container) {
 	// Container must not have circular references
 	switch (typeof container) {
 		case "table":
 			local result = clone container;
-			foreach (k, v in container) result[k] = deepCopy(v);
+			foreach(k, v in container) result[k] = deepCopy(v);
 			return result;
 		case "array":
 			local result = [];
-			foreach (v in container) {
+			foreach(v in container) {
 				result.append(deepCopy(v));
 			}
 			return result;
@@ -19,16 +19,16 @@ deepCopy = function (container) {
 	}
 }
 
-local formatValue = function (v) {
+local formatValue = function(v) {
 	return typeof v == "string" ? "\"" + v + "\"" : v;
 }
 
 local dumpCustom;
-dumpCustom = function (value, indent = "") {
+dumpCustom = function(value, indent = "") {
 	switch (typeof value) {
 		case "table":
 			this.logDebug(indent + "{");
-			foreach (k, v in value) {
+			foreach(k, v in value) {
 				if (typeof v == "table" || typeof v == "array") {
 					this.logDebug(indent + "  " + k + " =");
 					dumpCustom(v, indent + "  ");
@@ -41,7 +41,7 @@ dumpCustom = function (value, indent = "") {
 
 		case "array":
 			this.logDebug(indent + "[");
-			foreach (i, v in value) {
+			foreach(i, v in value) {
 				if (typeof v == "table" || typeof v == "array") {
 					this.logDebug(indent + "  [" + i + "] =");
 					dumpCustom(v, indent + "  ");
@@ -59,42 +59,63 @@ dumpCustom = function (value, indent = "") {
 	return "Dump done!"
 }
 
-local GauntletPool = function () {
+local GauntletPool = function() {
 	return {
 		name = "",
 		pool = [],
 		lowestDiffScore = null
 
 		function init(name, troops_array) {
-			this.name = name
-			this.pool = deepCopy(troops_array)
+			this.name = name;
+			this.pool = []
 			if (troops_array.len() == 0) {
 				return;
 			}
-			if (!("Weight" in this.pool[0])) {
-				this.pool[0].Weight <- 1;
-			}
-			if (!("DifficultyRating" in this.pool[0])) {
-				::logError("Unit at idx 0 has no DR score! Dumping unit!")
-				dumpCustom(this.pool[0])
-			}
-			this.lowestDiffScore = this.pool[0].DifficultyRating;
+			local last_unit = null;
+			foreach(troop in troops_array) {
+				local unit = this.getInitializedUnit(troop, last_unit);
 
-			for (local i = 1; i < this.pool.len(); i++) {
-				if (!("Weight" in this.pool[i])) {
-					this.pool[i].Weight <- 1;
-				}
-				if (!("DifficultyRating" in this.pool[i])) {
-					::logError("Unit at idx " + i + " has no DR score! Dumping unit!")
-					dumpCustom(this.pool[i])
-				}
-				if (this.pool[i].DifficultyRating < this.lowestDiffScore) {
-					this.lowestDiffScore = this.pool[i].DifficultyRating;
-				}
+				this.pool.append(unit);
+				last_unit = unit;
 
-				this.pool[i].Weight += this.pool[i - 1].Weight;
+				this.lowestDiffScore = this.lowestDiffScore == null
+				? unit.DifficultyRating
+				: this.Math.min(unit.DifficultyRating, this.lowestDiffScore);
 			}
+
 			::logDebug(debug_init + "Pool " + name + " is constructed! pool.len()=" + pool.len())
+		}
+
+		function getInitializedUnit(_unit, _prevUnit = null) {
+			local unit = clone _unit;
+			unit.Type <- ::Const.World.Spawn.Troops[unit.UnitKey]
+
+			if (!("Weight" in unit)) {
+				unit.Weight <- 1;
+			}
+			if (!("Num" in unit)){
+				unit.Num <- 1;
+			}
+			if (!("DifficultyRating" in unit)) {
+				::logError("Unit has no DR score! Dumping unit!")
+				dumpCustom(unit)
+				unit.DifficultyRating <- null;
+			}
+			if (_prevUnit != null) {
+				unit.Weight += _prevUnit.Weight;
+			}
+			if ("CoSpawn" in unit && unit.CoSpawn.len() > 0) {
+				unit.CoSpawn = this.getInitializedCoSpawn(unit.CoSpawn)
+			}
+			return unit
+		}
+
+		function getInitializedCoSpawn(_coSpawn) {
+			local coSpawn = clone _coSpawn;
+			foreach(co in coSpawn) {
+				co.Type <- ::Const.World.Spawn.Troops[co.UnitKey]
+			}
+			return coSpawn
 		}
 
 		function pushUnit(new_unit) {
@@ -167,7 +188,7 @@ local GauntletPool = function () {
 	}
 }
 
-local GauntletManager = function () {
+local GauntletManager = function() {
 	return {
 		m = {
 			Pool = null,
@@ -226,7 +247,7 @@ local GauntletManager = function () {
 			//return array
 			local arr = [];
 			// dumpCustom(this.m)
-			foreach (i, _unit in this.m.Pool.getUnits()) {
+			foreach(i, _unit in this.m.Pool.getUnits()) {
 				if (fun(_unit)) {
 					local unit = deepCopy(_unit);
 					unit.Weight -= i == 0 ? 0 : this.m.Pool.getUnitAtIdx(i - 1).Weight;
@@ -238,17 +259,20 @@ local GauntletManager = function () {
 
 		function createRangePool() {
 			this.m.RangePool = GauntletPool();
-			this.m.RangePool.init("range", this.createFilteredArray(@(u)"IsRange" in u));
+			this.m.RangePool.init("range", this.createFilteredArray(@(u)
+				"IsRange" in u));
 		}
 
 		function createCrowdControlPool() {
 			this.m.CrowdControlPool = GauntletPool();
-			this.m.CrowdControlPool.init("crowdcontrol", this.createFilteredArray(@(u)"IsCrowdControl" in u));
+			this.m.CrowdControlPool.init("crowdcontrol", this.createFilteredArray(@(u)
+				"IsCrowdControl" in u));
 		}
 
 		function createBossPool() {
 			this.m.BossPool = GauntletPool();
-			this.m.BossPool.init("boss", this.createFilteredArray(@(u)"IsBoss" in u))
+			this.m.BossPool.init("boss", this.createFilteredArray(@(u)
+				"IsBoss" in u))
 		}
 
 		function generateSpawnList(_difficultyScore, _currentDay, _survived, _bannerUnit = null, _minTroop = 0) {
@@ -384,14 +408,14 @@ local GauntletManager = function () {
 
 		function canAddSpecialCrowdControl(_unit) {
 			switch (_unit.Type.ID) {
-				case ::Const.EntityType.GoblinShaman:
-				case ::Const.EntityType.Necromancer:
-					return !(_unit.Type.ID in this.m.EnemyBucket)
-						|| this.m.EnemyBucket[_unit.Type.ID] <= 1;
-				case ::Const.EntityType.Hexe:
-				case ::Const.EntityType.FaultFinder:
-					return !(_unit.Type.ID in this.m.EnemyBucket)
-						|| this.m.EnemyBucket[_unit.Type.ID] <= 2;
+				case this.Const.EntityType.GoblinShaman:
+				case this.Const.EntityType.Necromancer:
+					return !(_unit.Type.ID in this.m.EnemyBucket) ||
+						this.m.EnemyBucket[_unit.Type.ID] <= 1;
+				case this.Const.EntityType.Hexe:
+				case this.Const.EntityType.FaultFinder:
+					return !(_unit.Type.ID in this.m.EnemyBucket) ||
+						this.m.EnemyBucket[_unit.Type.ID] <= 2;
 			}
 			return true
 		}
@@ -453,7 +477,7 @@ local GauntletManager = function () {
 				return;
 			}
 
-			foreach (co in _unit.CoSpawn) {
+			foreach(co in _unit.CoSpawn) {
 				local num = "Num" in co ? co.Num : 1;
 				local member = {
 					Type = co.Type,
@@ -507,47 +531,45 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			Image = "",
 			List = [],
 			Banner = [],
-			Options = [
-				{
-					Text = "To battle!",
-					function getResult(_event) {
-						local properties = this.World.State.getLocalCombatProperties(this.World.State.getPlayer().getPos());
-						properties.CombatID = "Event";
-						local music_arr = [];
-						music_arr.extend(this.Const.Music.NobleTracks)
-						music_arr.extend(this.Const.Music.BarbarianTracks)
-						music_arr.extend(this.Const.Music.BanditTracks)
-						music_arr.extend(this.Const.Music.UndeadTracks)
-						music_arr.extend(this.Const.Music.OrientalCityStateTracks)
-						music_arr.extend(this.Const.Music.OrcsTracks)
-						music_arr.extend(this.Const.Music.GoblinsTracks)
-						properties.Music = music_arr;
-						properties.IsAutoAssigningBases = false;
-						properties.Entities = [];
-						properties.IsFleeingProhibited = true;
-						properties.IsArenaMode = !(_event.m.AllowLooting);
-						properties.PlayerDeploymentType = this.Const.Tactical.DeploymentType.Line;
-						properties.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Line;
-						properties.AllyBanners = [
-							this.World.Assets.getBanner()
-						];
-						local spawnlist = _event.generateSpawnListBasedOnDay();
-						local resource = spawnlist.Cost + 100;
-						local champion_spawnlist = _event.getBossSpawnList(spawnlist)
-						local champion_spawnlist_arr = [];
-						champion_spawnlist_arr.append(champion_spawnlist)
-						this.Const.World.Common.addUnitsToCombat(properties.Entities, champion_spawnlist_arr, resource, this.Const.Faction.Enemy, 150)
-						local spawnlist_arr = [];
-						spawnlist_arr.append(spawnlist);
-						this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy, -150)
-						this.logDebug(debug_init + "properties.Entities constructed. Prepare to fight!");
-						// dumpCustom(properties);
-						_event.registerToShowAfterCombat("Survived", "Survived");
-						this.World.Contracts.startScriptedCombat(properties, false, true, true);
-						return 1; // 1 so that processInput doesn't throw a fuss
-					}
+			Options = [{
+				Text = "To battle!",
+				function getResult(_event) {
+					local properties = this.World.State.getLocalCombatProperties(this.World.State.getPlayer().getPos());
+					properties.CombatID = "Event";
+					local music_arr = [];
+					music_arr.extend(this.Const.Music.NobleTracks)
+					music_arr.extend(this.Const.Music.BarbarianTracks)
+					music_arr.extend(this.Const.Music.BanditTracks)
+					music_arr.extend(this.Const.Music.UndeadTracks)
+					music_arr.extend(this.Const.Music.OrientalCityStateTracks)
+					music_arr.extend(this.Const.Music.OrcsTracks)
+					music_arr.extend(this.Const.Music.GoblinsTracks)
+					properties.Music = music_arr;
+					properties.IsAutoAssigningBases = false;
+					properties.Entities = [];
+					properties.IsFleeingProhibited = true;
+					properties.IsArenaMode = !(_event.m.AllowLooting);
+					properties.PlayerDeploymentType = this.Const.Tactical.DeploymentType.Line;
+					properties.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Line;
+					properties.AllyBanners = [
+						this.World.Assets.getBanner()
+					];
+					local spawnlist = _event.generateSpawnListBasedOnDay();
+					local resource = spawnlist.Cost + 100;
+					local champion_spawnlist = _event.getBossSpawnList(spawnlist)
+					local champion_spawnlist_arr = [];
+					champion_spawnlist_arr.append(champion_spawnlist)
+					this.Const.World.Common.addUnitsToCombat(properties.Entities, champion_spawnlist_arr, resource, this.Const.Faction.Enemy, 150)
+					local spawnlist_arr = [];
+					spawnlist_arr.append(spawnlist);
+					this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy, -150)
+					this.logDebug(debug_init + "properties.Entities constructed. Prepare to fight!");
+					// dumpCustom(properties);
+					_event.registerToShowAfterCombat("Survived", "Survived");
+					this.World.Contracts.startScriptedCombat(properties, false, true, true);
+					return 1; // 1 so that processInput doesn't throw a fuss
 				}
-			],
+			}],
 
 			function start(_event) {
 				World.Statistics.getFlags().set("HasGauntletInit", true);
@@ -559,14 +581,12 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			Image = "",
 			List = [],
 			Banner = [],
-			Options = [
-				{
-					Text = "We survived... for now.",
-					function getResult(_event) {
-						return 0
-					}
+			Options = [{
+				Text = "We survived... for now.",
+				function getResult(_event) {
+					return 0
 				}
-			],
+			}],
 
 			function start(_event) {
 				World.Statistics.getFlags().set("GauntletLastTriggeredOnDay", this.World.getTime().Days);
@@ -735,21 +755,21 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		return this.Math.min(this.Math.ceil(C * exp(-k * current_day)), s2);
 	}
 
-	function getTroopsArrayFromFiles(){
+	function getTroopsArrayFromFiles() {
 		local mod = ::ModGauntletEvents.Mod;
 		local current_day = this.World.getTime().Days;
-		foreach(filename in mod.PersistentData.getFiles()){
+		foreach(filename in mod.PersistentData.getFiles()) {
 			local data = mod.PersistentData.readFile(filename)
 			local startpoint = data.DayStartPoint != null ? data.DayStartPoint : 0;
 			local endpoint = data.DayEndpoint != null ? data.DayEndpoint : ::RAND_MAX;
-			if (current_day >= startpoint && current_day < endpoint){
+			if (current_day >= startpoint && current_day < endpoint) {
 				return data.Pool;
 			} else {
 				continue;
 			}
 		}
-		::logError(debug_init+"CANNOT FOUND GAUNTLET FILE!")
-		::logError(debug_init+"EITHER FILE DOES NOT EXIST OR CANNOT SATISFY DAYS CONSTRAINT!")
+		this.logError(debug_init + "CANNOT FOUND GAUNTLET FILE!");
+		this.logError(debug_init + "EITHER FILE DOES NOT EXIST OR CANNOT SATISFY DAYS CONSTRAINT!");
 		return [];
 	}
 
@@ -769,7 +789,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		}
 		if (this.IsChampionAllowed()) {
 			local champion_pool = this.Const.World.Spawn.GauntletChampion[0].Pool;
-			foreach (champion in champion_pool) {
+			foreach(champion in champion_pool) {
 				champion.IsBoss <- true;
 				pool.append(champion);
 			}
@@ -781,7 +801,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 
 		if (this.IsBossAllowed()) {
 			local boss_pool = this.Const.World.Spawn.GauntletBoss[0].Pool;
-			foreach (boss in boss_pool) {
+			foreach(boss in boss_pool) {
 				boss.IsBoss <- true;
 				pool.append(boss);
 			}
@@ -790,18 +810,18 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 	}
 
 	function IsChampionAllowed() {
-		return ::ModGauntletEvents.Mod.ModSettings.getSetting("allow_champions").getValue()
-			&& this.World.getTime().Days >= this.m.EndofMidGameThreshold
+		return::ModGauntletEvents.Mod.ModSettings.getSetting("allow_champions").getValue() &&
+			this.World.getTime().Days >= this.m.EndofMidGameThreshold
 	}
 
 	function IsMiniBossAllowed() {
-		return ::ModGauntletEvents.Mod.ModSettings.getSetting("allow_minibosses").getValue()
-			&& this.World.getTime().Days >= this.m.EndofMidGameThreshold
+		return::ModGauntletEvents.Mod.ModSettings.getSetting("allow_minibosses").getValue() &&
+			this.World.getTime().Days >= this.m.EndofMidGameThreshold
 	}
 
 	function IsBossAllowed() {
-		return ::ModGauntletEvents.Mod.ModSettings.getSetting("allow_bosses").getValue()
-			&& this.World.getTime().Days >= this.m.EndofMidGameThreshold
+		return::ModGauntletEvents.Mod.ModSettings.getSetting("allow_bosses").getValue() &&
+			this.World.getTime().Days >= this.m.EndofMidGameThreshold
 	}
 
 	function generateSpawnListBasedOnDay(_days = null, _diffScore = null) {
@@ -811,22 +831,22 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		if (this.m.UsePresetSpawnList) {
 			init_difficulty_score = this.m.PresetSpawnListScore
 		}
-		::logDebug(debug_init + "Difficulty score " + init_difficulty_score + " on day " + current_day)
+		this.logDebug(debug_init + "Difficulty score " + init_difficulty_score + " on day " + current_day)
 
 		local gauntlet_survived = this.approximateGauntletSurvivedFromDay(current_day)
 
 		local pool = GauntletPool();
-		pool.init("pool", this.m.UsePresetSpawnList
-			? this.getTroopsArrayPreset()
-			: this.getTroopsArrayBasedOnDay())
+		pool.init("pool", this.m.UsePresetSpawnList ?
+			this.getTroopsArrayPreset() :
+			this.getTroopsArrayBasedOnDay())
 
 		local pool_manager = GauntletManager();
 		pool_manager.init(pool)
 
-		local banner_unit = (current_day >= this.m.EndofEarlyGameThreshold
-			|| gauntlet_survived > 0)
-			? this.Const.World.Spawn.Troops.StandardBearer
-			: this.Const.World.Spawn.Troops.MilitiaCaptain;
+		local banner_unit = (current_day >= this.m.EndofEarlyGameThreshold ||
+				gauntlet_survived > 0) ?
+			this.Const.World.Spawn.Troops.StandardBearer :
+			this.Const.World.Spawn.Troops.MilitiaCaptain;
 
 		local fieldable_bros = this.Math.min(this.World.getPlayerRoster().getAll().len(), this.World.Assets.m.BrothersMaxInCombat + 1);
 		local min_troop_num = this.Math.min(fieldable_bros, current_day);
@@ -848,7 +868,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			Body = "figure_noble_01",
 			Troops = []
 		};
-		foreach (i, troop in _spawnlist.Troops) {
+		foreach(i, troop in _spawnlist.Troops) {
 			if ("IsBoss" in troop && troop.IsBoss) {
 				boss_spawnlist.Troops.append(troop)
 				_spawnlist.Troops.remove(i)

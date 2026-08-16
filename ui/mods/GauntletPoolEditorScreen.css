@@ -179,6 +179,22 @@
     position: absolute;
 }
 
+.l-row-group {
+    width: 100%;
+}
+
+.l-row-group .co-spawn-row {
+    height: 2.5rem;
+}
+
+.l-row-group .co-spawn-row .name {
+    left: 2rem;
+}
+
+.l-row-group .co-spawn-row .unitnum {
+    left: 31rem;
+}
+
 /* ============================================================
    Table input fields
    ============================================================ */
@@ -474,4 +490,160 @@
 .dropdown-child:hover,
 .dropdown-child.is-selected {
     background-image: url("coui://gfx/ui/skin/custom_background_698_40_selected.png");
+}
+
+/* ============================================================
+   Unsaved changes popup
+   ============================================================ */
+
+.gauntlet-unsaved-popup {
+    width: 50rem;
+    height: 26rem;
+
+    background-image: url("coui://gfx/mods/msu/skin/generic_background_large_border.png");
+    background-size: 50rem 26rem;
+    background-repeat: no-repeat;
+
+    display: flex;
+    flex-direction: column;
+}
+
+/* Popup content */
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-content {
+    width: 100%;
+    height: 13rem;
+
+    padding: 2rem 4rem 1rem 4rem;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+/* Warning text */
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-message {
+    width: 100%;
+    line-height: 2.8rem;
+    text-align: center;
+}
+
+/* Popup button area */
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-buttons {
+    width: 100%;
+    height: 7rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Individual button layouts */
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-button {
+    width: 12rem;
+    height: 4.3rem;
+
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+
+    flex: 0 0 auto;
+}
+
+/* Actual text button */
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-button .combatsim-text-button {
+    width: 100%;
+    height: 4.3rem;
+    line-height: 3.6rem;
+}
+
+/* Unsaved-changes popup */
+
+.gauntlet-unsaved-popup {
+    position: relative;
+}
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-message {
+    width: 80%;
+    margin: 0 auto;
+    text-align: center;
+    line-height: 2.5rem;
+}
+
+
+/*
+ * createPopupDialogButton creates its own button layout.
+ * Override the generic popup positioning here so the three
+ * buttons participate in the same horizontal layout.
+ */
+.gauntlet-unsaved-popup .footer {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.gauntlet-unsaved-popup .footer > * {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    float: none !important;
+    flex: 0 0 auto;
+}
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-button {
+    position: relative !important;
+    width: 17.5rem;
+    height: 4.3rem;
+    flex: 0 0 17.5rem;
+}
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-button .combatsim-text-button,
+.gauntlet-unsaved-popup .gauntlet-unsaved-button button {
+    position: relative !important;
+}
+
+.gauntlet-row-actions {
+    width: 10rem;
+    height: 4.3rem;
+    position: static;
+    margin-left: 80%;
+    /* margin: auto; */
+    
+    display: flex;
+    align-items: right;
+    justify-content: right;
+}
+
+.gauntlet-row-action {
+    flex: 0 0 auto;
+}
+
+.action-button-layout {
+    width: 3rem;
+    height: 4.3rem;
+}
+
+.gauntlet-row-actions .action-button {
+    display: block;
+    flex: 0 0 auto;
 }
