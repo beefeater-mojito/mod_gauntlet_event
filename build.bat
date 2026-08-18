@@ -11,7 +11,7 @@ cd /d "%MODKITDIR%"
 rem Remove previous archives
 del "%MODNAME%-*.zip" 2>nul
 
-tar.exe -acf "%MODNAME%-%VERSION%.zip" scripts script_hooks
+tar.exe -acf "%MODNAME%-%VERSION%.zip" scripts script_hooks ui gfx
 
 rem Replace old archive in game folder
 del "%GAME_DATA_DIR%\%MODNAME%-*.zip" 2>nul

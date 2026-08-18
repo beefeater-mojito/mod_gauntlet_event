@@ -23,193 +23,197 @@ gt.Const.World.Spawn.GauntletEarly <- [
 				Num = 3
 			}
 		],
+		// gauntlet data
+		Name = "GauntletEarly",
+		DayStartpoint = 0,
+		DayEndpoint = 15,
 		Pool = [
 			{
-				Type = this.Const.World.Spawn.Troops.Footman,
+				UnitKey = "Footman",
 				DifficultyRating = 2,
 				Weight = 3
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Billman,
+				UnitKey = "Billman",
 				DifficultyRating = 2,
 				Weight = 3,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Arbalester,
+				UnitKey = "Arbalester",
 				DifficultyRating = 3,
 				IsRange = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ArmoredWardog
+						UnitKey = "ArmoredWardog"
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.ManAtArms,
+				UnitKey = "ManAtArms",
 				DifficultyRating = 3
 			},
 			// gilded
 			{
-				Type = this.Const.World.Spawn.Troops.Conscript,
+				UnitKey = "Conscript",
 				DifficultyRating = 2,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.ConscriptPolearm,
+				UnitKey = "ConscriptPolearm",
 				DifficultyRating = 3,
 				Weight = 2,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.CaravanGuard
+						UnitKey = "CaravanGuard"
 					}
 				]
 			},
 			// brigand
 			{
-				Type = this.Const.World.Spawn.Troops.BanditRaider,
+				UnitKey = "BanditRaider",
 				DifficultyRating = 1,
 				IsSquishyMelee = true,
 				Weight = 4
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BanditMarksman,
+				UnitKey = "BanditMarksman",
 				DifficultyRating = 2,
 				IsRange = true,
 				Weight = 2,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.Wardog
+						UnitKey = "Wardog"
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BanditLeader,
+				UnitKey = "BanditLeader",
 				DifficultyRating = 3,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ArmoredWardog
+						UnitKey = "ArmoredWardog"
 					}
 				]
 			},
 			// nomad
 			{
-				Type = this.Const.World.Spawn.Troops.NomadOutlaw,
+				UnitKey = "NomadOutlaw",
 				DifficultyRating = 1,
 				Weight = 3
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.NomadArcher,
+				UnitKey = "NomadArcher",
 				DifficultyRating = 1,
 				IsRange = true,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.NomadLeader,
+				UnitKey = "NomadLeader",
 				DifficultyRating = 3
 			},
 			// barb
 			{
-				Type = this.Const.World.Spawn.Troops.BarbarianMarauder,
+				UnitKey = "BarbarianMarauder",
 				Num = 2,
 				DifficultyRating = 3,
 				Weight = 3
 			},
 			// orc
 			{
-				Type = this.Const.World.Spawn.Troops.OrcYoung,
+				UnitKey = "OrcYoung",
 				DifficultyRating = 1,
 				IsSquishyMelee = true,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.OrcBerserker,
+				UnitKey = "OrcBerserker",
 				DifficultyRating = 3,
 				IsSquishyMelee = true,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.OrcWarriorLOW,
+				UnitKey = "OrcWarriorLOW",
 				DifficultyRating = 4
 			},
 			// gobbo
 			{
-				Type = this.Const.World.Spawn.Troops.GoblinSkirmisher,
+				UnitKey = "GoblinSkirmisher",
 				DifficultyRating = 1,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.GoblinAmbusher,
+				UnitKey = "GoblinAmbusher",
 				DifficultyRating = 2,
 				IsRange = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.GoblinWolfrider,
+				UnitKey = "GoblinWolfrider",
 				DifficultyRating = 2,
 				IsSquishyMelee = true
 			},
 			// beast
 			{
-				Type = this.Const.World.Spawn.Troops.Ghoul,
+				UnitKey = "Ghoul",
 				DifficultyRating = 1,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Serpent,
+				UnitKey = "Serpent",
 				DifficultyRating = 1,
 				IsSquishyMelee = true
 			},
 			// undead
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieKnight,
+				UnitKey = "ZombieKnight",
 				DifficultyRating = 3,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.Warhound
+						UnitKey = "Warhound"
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Ghost,
+				UnitKey = "Ghost",
 				DifficultyRating = 7,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieNomad,
+						UnitKey = "ZombieNomad",
 						Num = 2
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieYeomanBodyguard,
+						UnitKey = "ZombieYeomanBodyguard",
 						Num = 2
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.ArmoredWardog,
+						UnitKey = "ArmoredWardog",
 						Num = 2
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Necromancer,
+				UnitKey = "Necromancer",
 				DifficultyRating = 11,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieYeomanBodyguard,
+						UnitKey = "ZombieYeomanBodyguard",
 						Num = 2
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieNomad,
+						UnitKey = "ZombieNomad",
 						Num = 2
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonMedium,
+				UnitKey = "SkeletonMedium",
 				DifficultyRating = 3,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonMediumPolearm,
+				UnitKey = "SkeletonMediumPolearm",
 				DifficultyRating = 3,
 				Weight = 2
 			}
@@ -230,276 +234,275 @@ gt.Const.World.Spawn.GauntletMid <- [
 				Num = 4
 			}
 		],
+		Name = "GauntletMid",
+		DayStartpoint = 15,
+		DayEndpoint = 35,
 		Pool = [
 			// noble
 			{
-				Type = this.Const.World.Spawn.Troops.Footman,
+				UnitKey = "Footman",
 				Num = 2,
 				DifficultyRating = 3,
 				Weight = 4
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Billman,
+				UnitKey = "Billman",
 				DifficultyRating = 1,
 				Weight = 4,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Arbalester,
+				UnitKey = "Arbalester",
 				DifficultyRating = 2,
 				IsRange = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ArmoredWardog
+						UnitKey = "ArmoredWardog"
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.ManAtArms,
+				UnitKey = "ManAtArms",
 				DifficultyRating = 2,
 				Weight = 3
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Sergeant,
+				UnitKey = "Sergeant",
 				DifficultyRating = 3,
 				Weight = 2,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ArmoredWardog
+						UnitKey = "ArmoredWardog"
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Greatsword,
+				UnitKey = "Greatsword",
 				DifficultyRating = 3,
 				Weight = 3,
 				IsSquishyMelee = true
-			},
-			{
-				Type = this.Const.World.Spawn.Troops.Knight,
-				DifficultyRating = 5
 			},
 			// gilded
 			{
-				Type = this.Const.World.Spawn.Troops.Conscript,
+				UnitKey = "Conscript",
 				DifficultyRating = 2,
 				Weight = 4
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.ConscriptPolearm,
+				UnitKey = "ConscriptPolearm",
 				DifficultyRating = 2,
 				Weight = 4
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Gunner,
+				UnitKey = "Gunner",
 				DifficultyRating = 3,
 				Weight = 3,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Officer,
+				UnitKey = "Officer",
 				DifficultyRating = 4
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Assassin,
+				UnitKey = "Assassin",
 				DifficultyRating = 4
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Mortar,
+				UnitKey = "Mortar",
 				DifficultyRating = 12,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.Engineer,
+						UnitKey = "Engineer",
 						Num = 2
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.Officer,
+						UnitKey = "Officer",
 						Num = 1
 					}
 				]
 			},
 			// brigand
 			{
-				Type = this.Const.World.Spawn.Troops.BanditMarauder,
+				UnitKey = "BanditMarauder",
 				DifficultyRating = 3,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BountyHunter,
+				UnitKey = "BountyHunter",
 				DifficultyRating = 3,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BountyHunterRanged,
+				UnitKey = "BountyHunterRanged",
 				DifficultyRating = 3,
 				IsRange = true
 			},
 			// nomad + glads
 			{
-				Type = this.Const.World.Spawn.Troops.NomadLeader,
+				UnitKey = "NomadLeader",
 				DifficultyRating = 3
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Gladiator,
+				UnitKey = "Gladiator",
 				DifficultyRating = 6
 			},
 			// barb
 			{
-				Type = this.Const.World.Spawn.Troops.BarbarianMarauder,
+				UnitKey = "BarbarianMarauder",
 				DifficultyRating = 1,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BarbarianChampion,
+				UnitKey = "BarbarianChampion",
 				DifficultyRating = 4,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BarbarianUnhold,
+				UnitKey = "BarbarianUnhold",
 				DifficultyRating = 7,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.BarbarianBeastmaster
+						UnitKey = "BarbarianBeastmaster"
 					}
 				]
 			},
 			// orc
 			{
-				Type = this.Const.World.Spawn.Troops.OrcBerserker,
+				UnitKey = "OrcBerserker",
 				DifficultyRating = 2,
 				Weight = 3,
 				IsSquishyMelee = true,
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.OrcWarrior,
+				UnitKey = "OrcWarrior",
 				DifficultyRating = 4,
 				Weight = 3
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.OrcWarlord,
+				UnitKey = "OrcWarlord",
 				DifficultyRating = 8
 			},
 			// gobbo
 			{
-				Type = this.Const.World.Spawn.Troops.GoblinAmbusher,
+				UnitKey = "GoblinAmbusher",
 				DifficultyRating = 2,
 				IsRange = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.GoblinWolfrider,
+				UnitKey = "GoblinWolfrider",
 				DifficultyRating = 1,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.GoblinOverseer,
+				UnitKey = "GoblinOverseer",
 				DifficultyRating = 4,
 				IsRange = true
 			},
 			// beast
 			{
-				Type = this.Const.World.Spawn.Troops.GhoulHIGH,
+				UnitKey = "GhoulHIGH",
 				DifficultyRating = 2,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Unhold,
+				UnitKey = "Unhold",
 				DifficultyRating = 6,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.UnholdFrost,
+				UnitKey = "UnholdFrost",
 				DifficultyRating = 8,
 				Weight = 2
 			},
 			// undead: zombie
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieKnight,
+				UnitKey = "ZombieKnight",
 				DifficultyRating = 2,
 				Weight = 3,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.Warhound
+						UnitKey = "Warhound"
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Ghost,
+				UnitKey = "Ghost",
 				DifficultyRating = 7,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieKnight,
+						UnitKey = "ZombieKnight",
 						Num = 1
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieNomad,
+						UnitKey = "ZombieNomad",
 						Num = 2
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Necromancer,
+				UnitKey = "Necromancer",
 				DifficultyRating = 15,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieKnightBodyguard
+						UnitKey = "ZombieKnightBodyguard"
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieYeomanBodyguard
+						UnitKey = "ZombieYeomanBodyguard"
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieKnight
+						UnitKey = "ZombieKnight"
 					}
 				]
 			},
 			// undead: skellies
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonMedium,
+				UnitKey = "SkeletonMedium",
 				DifficultyRating = 2,
 				Weight = 4
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonMediumPolearm,
+				UnitKey = "SkeletonMediumPolearm",
 				DifficultyRating = 2,
 				Weight = 4,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.VampireLOW,
+				UnitKey = "VampireLOW",
 				DifficultyRating = 6,
 				IsSquishyMelee = true
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.SkeletonLight
+						UnitKey = "SkeletonLight"
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonHeavy,
+				UnitKey = "SkeletonHeavy",
 				DifficultyRating = 4,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonHeavyPolearm,
+				UnitKey = "SkeletonHeavyPolearm",
 				DifficultyRating = 4,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonPriest,
+				UnitKey = "SkeletonPriest",
 				DifficultyRating = 13,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.SkeletonHeavyBodyguard,
+						UnitKey = "SkeletonHeavyBodyguard",
 						Num = 1
 					}
 				]
 			},
 			// undead: golem
 			{
-				Type = this.Const.World.Spawn.Troops.LesserFleshGolem,
+				UnitKey = "LesserFleshGolem",
 				DifficultyRating = 4
 			}
 		]
@@ -519,266 +522,274 @@ gt.Const.World.Spawn.GauntletLate <- [
 				Num = 5
 			}
 		],
+		GauntletName = "GauntletLate",
+		DayStartpoint = 35,
+		DayEndpoint = null,
 		Pool = [
 			// noble
 			{
-				Type = this.Const.World.Spawn.Troops.Footman,
+				UnitKey = "Footman",
 				DifficultyRating = 3,
 				Num = 2,
 				Weight = 3
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Billman,
+				UnitKey = "Billman",
 				DifficultyRating = 1,
 				Weight = 2,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Arbalester,
+				UnitKey = "Arbalester",
 				DifficultyRating = 2,
 				IsRange = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ArmoredWardog
+						UnitKey = "ArmoredWardog"
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.ManAtArms,
+				UnitKey = "ManAtArms",
 				DifficultyRating = 2,
 				Weight = 3
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Sergeant,
+				UnitKey = "Sergeant",
 				DifficultyRating = 2,
 				Weight = 2,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ArmoredWardog
+						UnitKey = "ArmoredWardog"
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Greatsword,
+				UnitKey = "Greatsword",
 				DifficultyRating = 2,
 				Weight = 2,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Knight,
+				UnitKey = "Knight",
 				DifficultyRating = 5
 			},
 			// gilded
 			{
-				Type = this.Const.World.Spawn.Troops.Conscript,
-				DifficultyRating = 3,
+				UnitKey = "Conscript",
 				Num = 2,
+				DifficultyRating = 3,
 				Weight = 3
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.ConscriptPolearm,
+				UnitKey = "ConscriptPolearm",
 				DifficultyRating = 2,
 				Weight = 3,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Gunner,
+				UnitKey = "Gunner",
 				DifficultyRating = 3,
 				Weight = 2,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Officer,
+				UnitKey = "Officer",
 				DifficultyRating = 4,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Assassin,
+				UnitKey = "Assassin",
 				DifficultyRating = 4,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Mortar,
+				UnitKey = "Mortar",
 				DifficultyRating = 11,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.Engineer,
+						UnitKey = "Engineer",
 						Num = 2
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.Officer,
+						UnitKey = "Officer",
 						Num = 1
 					}
 				]
 			},
 			// brigand + merc
 			{
-				Type = this.Const.World.Spawn.Troops.BanditMarauder,
+				UnitKey = "BanditMarauder",
 				DifficultyRating = 3,
 				Weight = 3
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BountyHunter,
-				DifficultyRating = 2,
+				UnitKey = "BountyHunter",
+				DifficultyRating = 3,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BountyHunterRanged,
+				UnitKey = "BountyHunterRanged",
 				DifficultyRating = 3,
 				IsRange = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.HedgeKnight,
+				UnitKey = "HedgeKnight",
 				DifficultyRating = 6
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Oathbringer,
+				UnitKey = "Oathbringer",
 				DifficultyRating = 7
 			},
 			// nomad + glads
 			{
-				Type = this.Const.World.Spawn.Troops.Executioner,
+				UnitKey = "Executioner",
 				DifficultyRating = 8
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Gladiator,
+				UnitKey = "Gladiator",
 				DifficultyRating = 6
 			},
 			// barb
 			{
-				Type = this.Const.World.Spawn.Troops.BarbarianChampion,
+				UnitKey = "BarbarianChampion",
 				DifficultyRating = 4,
 				Weight = 3
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BarbarianUnhold,
+				UnitKey = "BarbarianUnhold",
 				DifficultyRating = 6,
 				Weight = 2,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.BarbarianBeastmaster
+						UnitKey = "BarbarianBeastmaster"
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BarbarianUnholdFrost,
+				UnitKey = "BarbarianUnholdFrost",
 				DifficultyRating = 9,
 				Weight = 2,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.BarbarianBeastmaster
+						UnitKey = "BarbarianBeastmaster"
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BarbarianChosen,
+				UnitKey = "BarbarianChosen",
 				DifficultyRating = 6
 			},
 			// orc
 			{
-				Type = this.Const.World.Spawn.Troops.OrcBerserker,
+				UnitKey = "OrcBerserker",
 				DifficultyRating = 2,
 				Weight = 2,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.OrcWarrior,
+				UnitKey = "OrcWarrior",
 				DifficultyRating = 4,
 				Weight = 3
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.OrcWarlord,
+				UnitKey = "OrcWarlord",
 				DifficultyRating = 6
 			},
 			// gobbo
 			{
-				Type = this.Const.World.Spawn.Troops.GoblinOverseer,
+				UnitKey = "GoblinOverseer",
 				DifficultyRating = 4,
 				IsRange = true
 			},
 			// beast
 			{
-				Type = this.Const.World.Spawn.Troops.UnholdFrost,
+				UnitKey = "UnholdFrost",
 				DifficultyRating = 7,
 				Weight = 2
 			},
 			// undead: zombie
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieKnight,
-				DifficultyRating = 1,
-				Weight = 2
+				UnitKey = "ZombieKnight",
+				DifficultyRating = 2,
+				Weight = 2,
+				CoSpawn = [
+					{
+						UnitKey = "ZombieNomad"
+					}
+				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Ghost,
+				UnitKey = "Ghost",
 				DifficultyRating = 6,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieKnight,
+						UnitKey = "ZombieKnight",
 						Num = 4
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Necromancer,
+				UnitKey = "Necromancer",
 				DifficultyRating = 17,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieKnightBodyguard,
+						UnitKey = "ZombieKnightBodyguard",
 						Num = 2
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieKnight,
+						UnitKey = "ZombieKnight",
 						Num = 2
 					}
 				]
 			},
 			// undead: skellies
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonMedium,
+				UnitKey = "SkeletonMedium",
 				Num = 2,
 				DifficultyRating = 3,
 				Weight = 3
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonMediumPolearm,
+				UnitKey = "SkeletonMediumPolearm",
 				Num = 2,
 				DifficultyRating = 3,
 				Weight = 3,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Vampire,
+				UnitKey = "Vampire",
 				DifficultyRating = 5,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonHeavy,
+				UnitKey = "SkeletonHeavy",
 				DifficultyRating = 3,
 				Weight = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonHeavyPolearm,
+				UnitKey = "SkeletonHeavyPolearm",
 				DifficultyRating = 3,
 				Weight = 2,
 				IsSquishyMelee = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonPriest,
+				UnitKey = "SkeletonPriest",
 				DifficultyRating = 13,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.SkeletonHeavyBodyguard,
+						UnitKey = "SkeletonHeavyBodyguard",
 						Num = 2
 					}
 				]
 			},
 			//undead: golem
 			{
-				Type = this.Const.World.Spawn.Troops.GreaterFleshGolem,
+				UnitKey = "GreaterFleshGolem",
 				DifficultyRating = 8
 			}
 		]
@@ -795,64 +806,66 @@ gt.Const.World.Spawn.GauntletChampion <- [
 		Troops = [
 			{
 				Type = this.Const.World.Spawn.Troops.Wardog,
-				Num = 7
+				Num = 6
 			}
 		],
+		GauntletName = "GauntletChampion",
+		ForceFlags = ["IsBoss"],
 		Pool = [
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieKnight,
+				UnitKey = "ZombieKnight",
 				DifficultyRating = 4
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BanditLeader,
+				UnitKey = "BanditLeader",
 				DifficultyRating = 5
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.NomadLeader,
+				UnitKey = "NomadLeader",
 				DifficultyRating = 6
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonHeavy,
+				UnitKey = "SkeletonHeavy",
 				DifficultyRating = 6
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.OrcWarrior,
+				UnitKey = "OrcWarrior",
 				DifficultyRating = 7
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BarbarianChampion,
+				UnitKey = "BarbarianChampion",
 				DifficultyRating = 7
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Officer,
+				UnitKey = "Officer",
 				DifficultyRating = 8
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.BarbarianChosen,
+				UnitKey = "BarbarianChosen",
 				DifficultyRating = 8
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.OrcWarlord,
+				UnitKey = "OrcWarlord",
 				DifficultyRating = 8
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Knight,
+				UnitKey = "Knight",
 				DifficultyRating = 9
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.HedgeKnight,
+				UnitKey = "HedgeKnight",
 				DifficultyRating = 10
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Gladiator,
+				UnitKey = "Gladiator",
 				DifficultyRating = 10
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Oathbringer,
+				UnitKey = "Oathbringer",
 				DifficultyRating = 11
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Executioner,
+				UnitKey = "Executioner",
 				DifficultyRating = 12
 			},
 		]
@@ -869,30 +882,31 @@ gt.Const.World.Spawn.GauntletMiniBoss <- [
 		Troops = [
 			{
 				Type = this.Const.World.Spawn.Troops.Wardog,
-				Num = 6
+				Num = 7
 			}
 		],
+		GauntletName = "GauntletMiniBoss",
 		Pool = [
 			{
-				Type = this.Const.World.Spawn.Troops.Swordmaster,
+				UnitKey = "Swordmaster",
 				DifficultyRating = 25
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.MasterArcher,
+				UnitKey = "MasterArcher",
 				DifficultyRating = 30,
 				IsRange = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.DesertDevil,
+				UnitKey = "DesertDevil",
 				DifficultyRating = 25,
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.DesertStalker,
+				UnitKey = "DesertStalker",
 				DifficultyRating = 30,
 				IsRange = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Lindwurm,
+				UnitKey = "Lindwurm",
 				DifficultyRating = 20
 			}
 		]
@@ -909,51 +923,53 @@ gt.Const.World.Spawn.GauntletBoss <- [
 		Troops = [
 			{
 				Type = this.Const.World.Spawn.Troops.Wardog,
-				Num = 7
+				Num = 8
 			}
 		],
+		Name = "GauntletBoss",
+		ForceFlags = ["IsBoss"],
 		Pool = [ // enemies here, along with co-spawn, will be spawn as Champion
 			{
-				Type = this.Const.World.Spawn.Troops.Necromancer,
+				UnitKey = "Necromancer",
 				DifficultyRating = 35,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieKnightBodyguard,
+						UnitKey = "ZombieKnightBodyguard",
 						Num = 2
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.ZombieKnight
+						UnitKey = "ZombieKnight"
 						Num = 1
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.Swordmaster,
+				UnitKey = "Swordmaster",
 				DifficultyRating = 50
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.DesertDevil,
+				UnitKey = "DesertDevil",
 				DifficultyRating = 50
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieBoss,
+				UnitKey = "ZombieBoss",
 				DifficultyRating = 45,
 				IsCrowdControl = true
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.GrandDiviner,
+				UnitKey = "GrandDiviner",
 				DifficultyRating = 35,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.FaultFinder,
+						UnitKey = "FaultFinder",
 						Num = 2
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonBoss,
+				UnitKey = "SkeletonBoss",
 				DifficultyRating = 16
 			}
 		]
@@ -970,39 +986,40 @@ gt.Const.World.Spawn.GauntletPreset <- [
 		Troops = [
 			{
 				Type = this.Const.World.Spawn.Troops.Wardog,
-				Num = 8
+				Num = 9
 			}
 		],
+		GauntletName = "GauntletPreset",
 		Pool = [
 			{
-				Type = this.Const.World.Spawn.Troops.Mortar,
+				UnitKey = "Mortar",
 				DifficultyRating = 12,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
-						Type = this.Const.World.Spawn.Troops.Engineer,
+						UnitKey = "Engineer",
 						Num = 2
 					},
 					{
-						Type = this.Const.World.Spawn.Troops.Officer,
+						UnitKey = "Officer",
 						Num = 1
 					}
 				]
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieYeoman,
+				UnitKey = "ZombieYeoman",
 				DifficultyRating = 1
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.ZombieKnight,
+				UnitKey = "ZombieKnight",
 				DifficultyRating = 2
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonLight,
+				UnitKey = "SkeletonLight",
 				DifficultyRating = 1
 			},
 			{
-				Type = this.Const.World.Spawn.Troops.SkeletonHeavy,
+				UnitKey = "SkeletonHeavy",
 				DifficultyRating = 3
 			}
 		]

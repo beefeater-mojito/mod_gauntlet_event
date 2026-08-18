@@ -18,9 +18,9 @@ local debug_init = "GAUNTLET HOOK DEBUG: ";
 		onInit();
 
 		if (!(World.Statistics.getFlags().get("GauntletEnabled"))) {
-			local mundaneEvents = IO.enumerateFiles("scripts/events/special");
+			local mundaneEvents = this.IO.enumerateFiles("scripts/events/special");
 			foreach (i, event in mundaneEvents) {
-				local instantiatedEvent = new(event);
+				local instantiatedEvent = this.new(event);
 				World.Events.m.Events.push(instantiatedEvent);
 			};
 		}
@@ -150,7 +150,7 @@ local getShieldListBasedOnType = function (_type){
 	return shields
 }
 
-local giveUndeadRandomEquipments = function () {
+local equipUnarmedGears = function () {
 	if (this.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand) == null) {
 		::logDebug(debug_init + "EQUIPPING THE UNARMED NEW EQUIPMENTs")
 		local weapons = getWeaponsListBasedOnType(this.getType(), this.getItems().getItemAtSlot(::Const.ItemSlot.Offhand) == null)
@@ -176,7 +176,7 @@ local giveUndeadRandomEquipments = function () {
 		__original(_info);
 		if (World.Statistics.getFlags().get("HasGauntletInit")) {
 			::logDebug(debug_init + "CHECKING RESURRECTED ZOMBIES!")
-			giveUndeadRandomEquipments()
+			equipUnarmedGears()
 		}
 	}
 })
@@ -186,7 +186,7 @@ local giveUndeadRandomEquipments = function () {
 		__original(_info);
 		if (World.Statistics.getFlags().get("HasGauntletInit")) {
 			::logDebug(debug_init + "CHECKING RESURRECTED SKELLIES!")
-			giveUndeadRandomEquipments()
+			equipUnarmedGears()
 		}
 	}
 })

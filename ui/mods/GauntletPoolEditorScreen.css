@@ -1,0 +1,753 @@
+/* gauntlet_pool_editor.css */
+
+/* ============================================================
+   Main screen
+   ============================================================ */
+
+.gauntlet-editor-screen {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    overflow: hidden;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 102.4rem;
+    height: 76.8rem;
+    position: absolute;
+    margin: auto;
+    z-index: 2;
+}
+
+.gauntlet-editor-screen>.gauntlet-dropdown-menu-layout {
+    top: 0;
+    left: 0;
+    position: absolute;
+    margin-top: 11%;
+    margin-left: 10%;
+    z-index: 1;
+}
+
+/* ============================================================
+   Tabs
+   ============================================================ */
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .l-tab-container {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 88.0rem;
+    height: 3.0rem;
+    position: absolute;
+    margin: auto;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .l-tab-asset {
+    top: 0;
+    bottom: 0;
+    width: 13.0rem;
+    height: 3.0rem;
+    position: absolute;
+}
+
+/* ============================================================
+   Table header
+   ============================================================ */
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .table-header {
+    width: 100%;
+    height: 2.5rem;
+    padding: 0 1.0rem;
+    position: relative;
+    float: left;
+
+    border-image: url("coui://gfx/ui/skin/line_gold.png") 0% 0% 100% 0%;
+    border-image-outset: 0 0 0.5rem 0;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .table-header .table-header-name {
+    top: 0;
+    left: 1.0rem;
+    position: absolute;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .table-header .table-header-unitnum {
+    top: 0;
+    left: 30.0rem;
+    position: absolute;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .table-header .table-header-drscore {
+    top: 0;
+    left: 40.0rem;
+    position: absolute;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .table-header .table-header-weight {
+    top: 0;
+    left: 53.0rem;
+    position: absolute;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .table-header .table-header-flags {
+    top: 0;
+    left: 70.0rem;
+    position: absolute;
+}
+
+.flags-icon-container {
+    top: 3rem;
+    left: 63.0rem;
+    position: absolute;
+    width: 22rem;
+    height: 3.2rem;
+    
+    display: flex;
+    justify-content: space-between;
+    
+    flex-direction: row;
+    z-index: 6;
+}
+
+
+.flags-icon-layout {
+    width: 4rem;
+    height: 3.2rem;
+    z-index: inherit;
+}
+
+
+.flags-icon {
+    display: block;
+    flex: 0 0 auto;
+    z-index: inherit;
+    
+}
+
+/* ============================================================
+   Main content
+   ============================================================ */
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content>.column {
+    width: 100%;
+    height: 100%;
+    padding-top: 3.3rem;
+    padding-bottom: 0.9rem;
+    padding-left: 1.0rem;
+    padding-right: 1.0rem;
+    position: relative;
+    float: left;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content>.column.is-left {
+    padding-left: 1.0rem;
+    padding-right: 1.6rem;
+    padding-bottom: 3.5rem;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content>.column.is-right {
+    padding-left: 0.5rem;
+    padding-right: 1.0rem;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .l-list-container {
+    width: 100%;
+    height: 100%;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .l-list-container .scroll-container {
+    margin-top: 1rem;
+    margin-bottom: 0.4rem;
+}
+
+/* ============================================================
+   Unit table rows
+   ============================================================ */
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .scroll-container .l-row {
+    width: 100%;
+    height: 3.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .scroll-container .l-row:last-child {
+    margin-bottom: 0;
+}
+
+/*
+ * Keep every table column absolutely positioned.
+ * This matches the header positions above.
+ */
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .scroll-container .l-row .name {
+    top: 0;
+    left: 0.5rem;
+    position: absolute;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .scroll-container .l-row .unitnum {
+    top: 0;
+    left: 31.0rem;
+    position: absolute;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .scroll-container .l-row .drscore {
+    top: 0;
+    left: 42.0rem;
+    position: absolute;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .scroll-container .l-row .weight {
+    top: 0;
+    left: 54.0rem;
+    position: absolute;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .scroll-container .l-row .flags {
+    top: 0;
+    left: 63.0rem;
+    position: absolute;
+}
+
+.l-row-group {
+    width: 100%;
+}
+
+.l-row-group .co-spawn-row {
+    height: 2.5rem;
+}
+
+.l-row-group .co-spawn-row .name {
+    left: 2rem;
+}
+
+.l-row-group .co-spawn-row .unitnum {
+    left: 31rem;
+}
+
+/* ============================================================
+   Table input fields
+   ============================================================ */
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .scroll-container .l-row .gauntlet-short-input-container {
+    width: 5rem;
+    height: 3rem;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .scroll-container .l-row .gauntlet-short-input-container input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ============================================================
+   Legacy row structures
+   ============================================================ */
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .l-row .column {
+    height: 100%;
+    position: absolute;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .l-row .column.is-left {
+    top: 0;
+    left: 0;
+    width: 9.0rem;
+    z-index: 2;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .l-row .column.is-left>img {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    margin: auto;
+    display: block;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .l-row .column.is-right {
+    top: 0;
+    left: 9.0rem;
+    right: 0;
+    z-index: 1;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .l-row .row {
+    left: 0;
+    right: 1.0rem;
+    position: absolute;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .l-row .row.is-top {
+    top: 1.0rem;
+    height: 3.8rem;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .l-row .row.is-top>img {
+    left: 0;
+    bottom: 0.2rem;
+    width: 2.6rem;
+    height: 2.6rem;
+    position: absolute;
+    display: block;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .l-row .row.is-top .name {
+    left: 0;
+    right: 6.0rem;
+    bottom: 0.2rem;
+    height: 2.6rem;
+    position: absolute;
+    overflow: hidden;
+    line-height: 3.0rem;
+}
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .content .l-row .row.is-bottom {
+    top: 5.5rem;
+    bottom: 0;
+}
+
+/* ============================================================
+   Main footer
+   ============================================================ */
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .footer .l-button-bar {
+    width: auto;
+    height: 4.3rem;
+    min-width: 45rem;
+    position: relative;
+    margin: auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Add Unit */
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .footer .l-button-bar .gauntlet-text-button-layout {
+    width: 17.5rem;
+    height: 4.3rem;
+    position: relative;
+    margin-right: 1rem;
+
+    line-height: 3.0rem;
+
+    flex: 0 0 auto;
+    order: 1;
+}
+
+/* Units label */
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .footer .l-button-bar .units-box {
+    height: 4.3rem;
+    position: relative;
+    margin-right: 1rem;
+
+    flex: 0 0 auto;
+    order: 2;
+}
+
+/* Close */
+
+.gauntlet-editor-screen>.l-gauntlet-dialog-container .footer .l-button-bar .l-leave-button {
+    width: 17.5rem;
+    height: 4.3rem;
+    position: relative;
+    margin-right: 1rem;
+
+    line-height: 3.0rem;
+
+    flex: 0 0 auto;
+    order: 3;
+}
+
+/* ============================================================
+   Add Unit / combat-sim controls
+   ============================================================ */
+
+.gauntlet-row {
+    width: 100%;
+    min-height: 4.0rem;
+    margin-top: 1rem;
+    padding-left: 2rem;
+
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.gauntlet-entry-label {
+    width: 30rem;
+    flex: 0 0 30rem;
+    text-align: center;
+}
+
+.gauntlet-short-input-container {
+    width: 5rem;
+    height: 3rem;
+}
+
+.gauntlet-filter-bar {
+    width: 100%;
+    min-height: 4.0rem;
+    margin-top: 1rem;
+    padding-left: 2rem;
+
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.gauntlet-filter-input-container {
+    /* flex: 1; */
+    /* margin-left: 5%; */
+    width: auto;
+    max-width: 90%;
+    height: 3.2rem;
+}
+
+.gauntlet-short-input-container input,
+.gauntlet-filter-input-container input {
+    background-size: auto !important;
+    background-repeat: round !important;
+}
+
+.gauntlet-text-button-layout {
+    width: 23rem;
+    height: 4.3rem;
+}
+
+.gauntlet-text-button {
+    width: 100%;
+    height: 4.3rem;
+    line-height: 3.6rem;
+}
+
+.popup-text-button-layout {
+    width: 12rem;
+    height: 4.3rem;
+    align-items: center;
+}
+
+.popup-text-button {
+    width: 100%;
+    height: 4.3rem;
+    line-height: 3.6rem;
+}
+
+
+/* ============================================================
+   Add Unit popup
+   ============================================================ */
+
+.gauntlet-generic-popup {
+    width: 60.0rem;
+    height: 60.0rem;
+
+    background-image: url("coui://gfx/mods/msu/skin/generic_background_large_border.png");
+    background-size: 60.0rem 60.0rem;
+    background-repeat: no-repeat;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.gauntlet-generic-popup .header {
+    max-height: 5rem;
+}
+
+.gauntlet-generic-popup .sub-header {
+    max-height: 5rem;
+}
+
+.gauntlet-generic-popup .content {
+    max-height: 45rem;
+}
+
+.gauntlet-generic-popup .footer {
+    max-height: 5rem;
+}
+
+.gauntlet-generic-popup-container {
+    max-height: 45rem;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.gauntlet-generic-popup-container .list {
+    margin-top: 2rem;
+}
+
+/* ============================================================
+   Dropdown
+   ============================================================ */
+
+.dropdown {
+    width: 17.5rem;
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown>.dropdown-text {
+    width: 100%;
+    height: 3rem;
+
+    background-image: url("coui://gfx/ui/skin/custom_background_698_40_selected.png");
+    background-size: 100% 100%;
+
+    text-align: center;
+    text-shadow: 1px 1px 1px #000;
+}
+
+.dropdown[disabled]>.dropdown-text {
+    background-image: url("coui://gfx/ui/skin/custom_background_698_40_disabled.png");
+}
+
+.dropdown>.dropdown-container {
+    display: none;
+    overflow: auto;
+    width: 100%;
+    position: absolute !important;
+}
+
+.dropdown>.dropdown-container>.dropdown-container-scroll {
+    width: 100%;
+    position: absolute !important;
+
+    box-shadow: 0 0 16px black;
+}
+
+.dropdown:hover:not([disabled])>.dropdown-container {
+    display: block;
+}
+
+.dropdown-child {
+    height: auto;
+
+    text-align: center;
+
+    background-image: url("coui://gfx/ui/skin/custom_background_698_40.png");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+
+    box-shadow: 0 0 16px black;
+}
+
+.dropdown-child:hover,
+.dropdown-child.is-selected {
+    background-image: url("coui://gfx/ui/skin/custom_background_698_40_selected.png");
+}
+
+/* ============================================================
+   Unsaved changes popup
+   ============================================================ */
+
+.gauntlet-unsaved-popup {
+    width: 50rem;
+    height: 26rem;
+
+    background-image: url("coui://gfx/mods/msu/skin/generic_background_large_border.png");
+    background-size: 50rem 26rem;
+    background-repeat: no-repeat;
+
+    display: flex;
+    flex-direction: column;
+}
+
+/* Popup content */
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-content {
+    width: 100%;
+    height: 13rem;
+
+    /* padding: 2rem 4rem 1rem 4rem; */
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+/* Warning text */
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-message {
+    width: 100%;
+    line-height: 2.8rem;
+    text-align: center;
+}
+
+/* Popup button area */
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-buttons {
+    width: 100%;
+    height: 7rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Individual button layouts */
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-button {
+    width: 12rem;
+    height: 4.3rem;
+
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+
+    flex: 0 0 auto;
+}
+
+/* Actual text button */
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-button .gauntlet-text-button {
+    width: 100%;
+    height: 4.3rem;
+    line-height: 3.6rem;
+}
+
+/* Unsaved-changes popup */
+
+.gauntlet-unsaved-popup {
+    position: relative;
+}
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-message {
+    width: 80%;
+    margin: 0 auto;
+    text-align: center;
+    line-height: 2.5rem;
+}
+
+
+/*
+ * createPopupDialogButton creates its own button layout.
+ * Override the generic popup positioning here so the three
+ * buttons participate in the same horizontal layout.
+ */
+.gauntlet-unsaved-popup .footer {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.gauntlet-unsaved-popup .footer>* {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    float: none !important;
+    flex: 0 0 auto;
+}
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-button {
+    position: relative !important;
+    width: 17.5rem;
+    height: 4.3rem;
+    flex: 0 0 17.5rem;
+}
+
+.gauntlet-unsaved-popup .gauntlet-unsaved-button .gauntlet-text-button,
+.gauntlet-unsaved-popup .gauntlet-unsaved-button button {
+    position: relative !important;
+}
+
+.gauntlet-row-actions {
+    width: 10rem;
+    height: 4.3rem;
+    position: static;
+    margin-left: 90%;
+    /* margin: auto; */
+
+    display: flex;
+    align-items: right;
+    justify-content: right;
+}
+
+.gauntlet-row-action {
+    flex: 0 0 auto;
+}
+
+.action-button-layout {
+    width: 3rem;
+    height: 4.3rem;
+}
+
+.gauntlet-row-actions .action-button {
+    display: block;
+    flex: 0 0 auto;
+}
+
+.gauntlet-checkbox-container {
+    top: 0;
+    left: 62.0rem;
+    position: absolute;
+    width: 21rem;
+    height: 4.3rem;
+
+    display: flex;
+    
+    justify-content: space-between;
+    align-items: baseline;
+    flex-direction: row;
+    z-index: 5;
+}
+
+.gauntlet-checkbox-layout {
+    /* margin:auto; */
+    width: 3rem;
+    height: 3rem;
+    
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    z-index: inherit;
+}
+
+.gauntlet-checkbox-layout>label {
+    font-size: 1.0rem;
+    color: #d7b174;
+    font-weight: normal;
+    font-style: normal;
+    font-family: 'FreeUniversal-Regular';
+    
+}
+
+.gauntlet-checkbox
+{
+    
+    align-self: baseline;
+}
+
+
+.gauntlet-checkbox-layout[disabled]>label {
+    color: #a7a7a7 !important;
+}
