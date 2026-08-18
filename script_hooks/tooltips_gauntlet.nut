@@ -3,15 +3,15 @@ this.tooltips_gauntlet <- {
         Units = {
             Name = ::MSU.Class.BasicTooltip("Name", "In-game name for unit."),
             Num = ::MSU.Class.BasicTooltip("Amount", "Amount of this unit."),
-            DifficultyRating = ::MSU.Class.BasicTooltip("Difficulty Rating", "Measure how hard this is. Used as points for building the composition of a fight."),
-            Weight = ::MSU.Class.BasicTooltip("Weight", "Measure how common a unit would appear in a composition."),
-            Flags = ::MSU.Class.BasicTooltip("Flags", "Flags for extra properties of units. Hover over each icon for more details.")
+            DifficultyRating = ::MSU.Class.BasicTooltip("Difficulty Rating", "Measure how hard to fight this unit is. Used as points for building the composition of a fight."),
+            Weight = ::MSU.Class.BasicTooltip("Weight", "Measure how common a unit would appear in a composition. An array of every unit with a weight of 1 is a uniform distribution."),
+            Flags = ::MSU.Class.BasicTooltip("Flags", "Flags for extra properties of units. These properties are considered to limit the unit's number in a fight, like too many range or squishy units. Hover over each icon for more details.")
         },
         Flags = {
-            Range = ::MSU.Class.BasicTooltip("Range", "Unit is able to use range weapons."),
+            Range = ::MSU.Class.BasicTooltip("Range", "Unit is considered to be range unit."),
             SquishyMelee = ::MSU.Class.BasicTooltip("Squishy Melee", "Unit often fights in close range, yet doesn't have much survivability."),
-            CrowdControl = ::MSU.Class.BasicTooltip("Crowd Control", "Unit can cast debuffs in AOE, or able to call in/resurrect other troops."),
-            Boss = ::MSU.Class.BasicTooltip("Champions", "Unit will spawn as champions if variants exist. Is set as default in GauntletChampion and GauntletBoss.")
+            CrowdControl = ::MSU.Class.BasicTooltip("Crowd Control", "Unit can cast debuffs in AOE, or able to call in or resurrect other troops."),
+            Boss = ::MSU.Class.BasicTooltip("Champions", "Unit will always spawn as champions if variants exist. Is set as default in GauntletChampion and GauntletBoss.")
         },
         UnitRowButton = {
             DeleteRow = ::MSU.Class.BasicTooltip("Delete this Row", "Delete this unit row."),

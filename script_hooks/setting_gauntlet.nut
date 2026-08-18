@@ -2,6 +2,7 @@
 	GauntletEnabled = true,
 	BaseGauntletInterval = "10",
 	AlwaysAllowLooting = false,
+	AllowSuppliesAfterBattle = true,
 	AllowChampions = false,
 	AllowMiniBosses = false,
 	AllowBosses = false,
@@ -100,12 +101,21 @@ alwaysAllowLooting.addAfterChangeCallback(function(_oldValue) {
 	::logInfo("After change \'factorDifficulty\': Changed old value: " + _oldValue + " to new value: " + this.getValue());::ModGauntletEvents.Settings.AlwaysAllowLooting = this.getValue();
 });
 
+local allowSuppliesAfterBattle = page.addBooleanSetting("allow_supplies_after_battle", ::ModGauntletEvents.Settings.AllowSuppliesAfterBattle, "Allow Supplies After Battles");
+allowSuppliesAfterBattle.setDescription("Allow giving some supplies after the gauntlet event's fight concludes.")
+allowSuppliesAfterBattle.addAfterChangeCallback(function(_oldValue) {
+	if (this.getValue() == _oldValue) {
+		return;
+	};
+	::logInfo("After change \'Allow Supplies After Battles\': Changed old value: " + _oldValue + " to new value: " + this.getValue());::ModGauntletEvents.Settings.AllowSuppliesAfterBattle = this.getValue();
+});
+
 local allowChampion = page.addBooleanSetting("allow_champions", ::ModGauntletEvents.Settings.AllowChampions, "Allow Champions spawn");
 allowChampion.setDescription("Allow champions to be spawn in LATEGAME gauntlet events. Range champions are not included. This setting isn't affected by global or bonus champion chance.")
 allowChampion.addAfterChangeCallback(function(_oldValue) {
 	if (this.getValue() == _oldValue) {
 		return;
-	}
+	};
 
 	::logInfo("After change \'Allow Champions spawn\': Changed old value: " + _oldValue + " to new value: " + this.getValue());::ModGauntletEvents.Settings.AllowChampions = this.getValue();
 });
@@ -115,7 +125,7 @@ allowMiniBoss.setDescription("Allow non-champion/non-boss but highly disruptive 
 allowMiniBoss.addAfterChangeCallback(function(_oldValue) {
 	if (this.getValue() == _oldValue) {
 		return;
-	}
+	};
 
 	::logInfo("After change \'Allow Mini-Bosses spawn\': Changed old value: " + _oldValue + " to new value: " + this.getValue());::ModGauntletEvents.Settings.AllowMiniBosses = this.getValue();
 });
@@ -125,7 +135,7 @@ allowBoss.setDescription("Allow legendary bosses and dangerous champions to be s
 allowBoss.addAfterChangeCallback(function(_oldValue) {
 	if (this.getValue() == _oldValue) {
 		return;
-	}
+	};
 
 	::logInfo("After change \'Allow Bosses spawn\': Changed old value: " + _oldValue + " to new value: " + this.getValue());::ModGauntletEvents.Settings.AllowBosses = this.getValue();
 });
@@ -242,13 +252,3 @@ presetSpawnlistScore.addAfterChangeCallback(function(_oldValue) {
 
 	::logInfo("After change \'Preset Spawnlist's Difficulty Score\': Changed old value: " + _oldValue + " to new value: " + this.getValue());::ModGauntletEvents.Settings.PresetSpawnlistScore = ret.Value;
 });
-
-local allowSuppliesAfterBattle = page.addBooleanSetting("allow_supplies_after_battle", ::ModGauntletEvents.Settings.AllowSuppliesAfterBattle, "Allow Supplies After Battles");
-	allowSuppliesAfterBattle.setDescription("Allow giving some supplies after the gauntlet event's fight concludes.")
-	allowSuppliesAfterBattle.addAfterChangeCallback(function (_oldValue) {
-		if (this.getValue() == _oldValue) {
-			return;
-		}
-		::logInfo("After change \'Allow Supplies After Battles\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
-		::ModGauntletEvents.Settings.AllowSuppliesAfterBattle = this.getValue();
-	});
