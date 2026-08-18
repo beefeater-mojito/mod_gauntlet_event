@@ -43,14 +43,26 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 
 		if (this.m.JSHandle != null) {
 			this.Tooltip.hide();
-			this.m.JSHandle.asyncCall("show", this.queryData());
+			local data = null
+			try {
+				data = this.queryData();
+			} catch (exception){
+				::logError("FAIL TO READ GAUNTLET DATA FILE!")
+				::logError(exception)
+				this.m.JSHandle.asyncCall("showFailedToFetchData")
+				// throw exception;
+				return;
+			}
+			this.m.JSHandle.asyncCall("show", data);
 		}
 	}
 
-	function hide(_withSlideAnimation = false) {
-		if (this.m.JSHandle != null) {
-			this.Tooltip.hide();
-			this.m.JSHandle.asyncCall("hide", _withSlideAnimation);
+	function hide(_withSlideAnimation = true) {
+		if (this.m.JSHandle != null && this.isVisible()) {
+			local activeState = ::MSU.Utils.getActiveState();
+			this.m.JSHandle.asyncCall("hide", _withSlideAnimation)
+			activeState.m.MenuStack.pop();
+			return false
 		}
 	}
 
@@ -135,7 +147,6 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 				} else {
 					data[flag] <- true
 				}
-
 			}
 			pool.append(data)
 		}
@@ -146,8 +157,8 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		local esssential_fields = ["UnitKey", "Num", "Weight", "DifficultyRating", "CoSpawn"]
 		local ret = []
 		foreach(key, value in _unit) {
-			if (esssential_fields.find(key) != null ||
-				!(value)) {
+			if (esssential_fields.find(key) != null
+			||	!(value)) {
 				// ::logDebug("Key of unit: " + key)
 				continue;
 			}
@@ -171,15 +182,18 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		return arr
 	}
 
-	function queryTroops(_troops) {
+	function queryTroops(_troops, _forceFlags = []) {
 		local ret_pool = []
 		foreach(unit in _troops) {
+			local unitFlags = this.gatherUnitFlags(unit);
+			unitFlags.extend(_forceFlags)
+
 			ret_pool.append({
 				Name = unit.UnitKey,
 				Num = "Num" in unit ? unit.Num : 1,
 				DifficultyRating = "DifficultyRating" in unit ? unit.DifficultyRating : null,
 				Weight = "Weight" in unit ? unit.Weight : 1,
-				Flags = this.gatherUnitFlags(unit),
+				Flags = unitFlags,
 				CoSpawn = this.queryCoSpawn(unit)
 			})
 		}
@@ -192,10 +206,16 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 	}
 
 	function getFormattedPool(_poolName, _poolProperties) {
-		return {
+		local forceFlags =
+			"ForceFlags" in _poolProperties
+			? _poolProperties.ForceFlags
+			: [];
+		local pool = {
 			Name = _poolName,
-			Troops = this.queryTroops(_poolProperties.Pool)
+			ForceFlags = forceFlags,
+			Troops = this.queryTroops(_poolProperties.Pool, forceFlags)
 		}
+		return pool
 	}
 
 	function queryPools() {

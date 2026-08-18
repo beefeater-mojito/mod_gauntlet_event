@@ -774,37 +774,58 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 	}
 
 	function getTroopsArrayPreset() {
-		return this.Const.World.Spawn.GauntletPreset[0].Pool
+		return this.getTroopsArrayFromGauntletPool("GauntletPreset")
+	}
+
+	function getTroopsArrayFromGauntletPool(_gauntletName) {
+		if(!(_gauntletName in ::Const.World.Spawn)){
+			::logError(debug_init+ _gauntletName+" DOES NOT EXIST!")
+			return []
+		}
+		local gauntletPool = this.Const.World.Spawn[_gauntletName][0];
+		local troops = clone gauntletPool.Pool;
+
+		if("ForceFlags" in gauntletPool && gauntletPool.ForceFlags.len() > 0){
+			foreach(unit in troops){
+				foreach(flag in gauntletPool.ForceFlags){
+					unit[flag] <- true;
+				}
+			}
+		}
+		return troops
 	}
 
 	function getTroopsArrayBasedOnDay() {
 		local current_days = this.World.getTime().Days;
 		local pool = [];
 		if (current_days < this.m.EndofEarlyGameThreshold) {
-			pool.extend(this.Const.World.Spawn.GauntletEarly[0].Pool);
+			pool.extend(
+				this.getTroopsArrayFromGauntletPool("GauntletEarly")
+			);
 		} else if (current_days < this.m.EndofMidGameThreshold) {
-			pool.extend(this.Const.World.Spawn.GauntletMid[0].Pool)
+			pool.extend(
+				this.getTroopsArrayFromGauntletPool("GauntletMid")
+			)
 		} else {
-			pool.extend(this.Const.World.Spawn.GauntletLate[0].Pool);
+			pool.extend(
+				this.getTroopsArrayFromGauntletPool("GauntletLate")
+			);
 		}
+
 		if (this.IsChampionAllowed()) {
-			local champion_pool = this.Const.World.Spawn.GauntletChampion[0].Pool;
-			foreach(champion in champion_pool) {
-				champion.IsBoss <- true;
-				pool.append(champion);
-			}
+			pool.extend(
+				this.getTroopsArrayFromGauntletPool("GauntletChampion")
+			);
 		}
-
 		if (this.IsMiniBossAllowed()) {
-			pool.extend(this.Const.World.Spawn.GauntletMiniBoss[0].Pool)
+			pool.extend(
+				this.getTroopsArrayFromGauntletPool("GauntletMiniBoss")
+			);
 		}
-
 		if (this.IsBossAllowed()) {
-			local boss_pool = this.Const.World.Spawn.GauntletBoss[0].Pool;
-			foreach(boss in boss_pool) {
-				boss.IsBoss <- true;
-				pool.append(boss);
-			}
+			pool.extend(
+				this.getTroopsArrayFromGauntletPool("GauntletBoss")
+			);
 		}
 		return pool;
 	}

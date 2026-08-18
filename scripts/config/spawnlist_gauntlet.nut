@@ -810,6 +810,7 @@ gt.Const.World.Spawn.GauntletChampion <- [
 			}
 		],
 		GauntletName = "GauntletChampion",
+		ForceFlags = ["IsBoss"],
 		Pool = [
 			{
 				UnitKey = "ZombieKnight",
@@ -926,6 +927,7 @@ gt.Const.World.Spawn.GauntletBoss <- [
 			}
 		],
 		Name = "GauntletBoss",
+		ForceFlags = ["IsBoss"],
 		Pool = [ // enemies here, along with co-spawn, will be spawn as Champion
 			{
 				UnitKey = "Necromancer",
