@@ -11,13 +11,12 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
   * Enemies pools are hand-crafted and weighted to provide some degree of variety, while limiting too many annoying or squishy enemies.
   * Champions and bosses can spawn in late game pool (requiring some toggles in the Mod Settings).
 * Looting after events is toggleable from economy difficulty (and from a mod option menu)\*\*. However, players are guaranteed to receive some supplies after the fight.
-* Feature **an editor** for gauntlet pools!
+* Feature ***an editor*** for gauntlet pools!
   * Each unit's number, difficulty rating, weight and properties can now be user's input.
   * Unit can be added, deleted and even co-spawn with others.
   * Persistent data and saving features for customized gauntlet pool.
 * Customizable thresholds, flags and scalings (WIP).
    
-
 
 \*While the special events (examples are new ambitions and desertions) are checked frequently, there are a few edge cases where events might be prevented from firing, such as wandering near a hostile party.
 
@@ -56,7 +55,7 @@ Follow the tooltips for more informations.
 * Implementing and testing a late-game pool (WIP!).
 * Create a mod option menu that allow further customization on date threshold, scaling and some toggles. (WIP!).
 * ~~Create a UI for viewing and editing various gauntlet pools, and even testing them!~~
-  * Add option to kickstart a fight with an inputed Difficulty Score.
+  * Add option to kick-start a fight with a Difficulty Score input.
   * Add gauntlet pool creation. 
 * ~~Figure out how to either 1\) disable corpse resurrection on player's dead bros, or 2\) prevent gears lost for resurrected zombie bros~~. At the moment, resurrection from the player's corpses while inside gauntlet fights is disabled, and unarmed, resurrected zombies and skeletons will be re-equipped randomly.
 * ...And more!
