@@ -515,6 +515,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		MaxExpertDifficultyScoreOnDay = 120,
 
 		AllowLooting = 1,
+		AllowSuppliesAfterCombat = true,
 		DifficultyScoreModifier = 1,
 		GauntletSurvived = 0,
 		SuppliesNum = 0,
@@ -595,6 +596,10 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 				World.Statistics.getFlags().set("GauntletSurvivedFlag", _event.m.GauntletSurvived + 1);
 				World.Statistics.getFlags().set("HasGauntletInit", false);
 
+				local allow_supplies = ::ModGauntletEvents.Mod.ModSettings.getSetting("allow_supplies_after_battle").getValue()
+				if (!allow_supplies) {
+					return;
+				}
 				local ecoDiffMod = (this.World.Assets.getEconomicDifficulty() + 1) * 0.1
 				local armorPartAmount = this.Math.ceil(_event.m.SuppliesNum * (1.25 - ecoDiffMod))
 				local medicineAmount = this.Math.ceil(_event.m.SuppliesNum * (0.75 - ecoDiffMod))
