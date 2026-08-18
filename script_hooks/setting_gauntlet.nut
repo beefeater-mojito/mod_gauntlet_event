@@ -242,3 +242,13 @@ presetSpawnlistScore.addAfterChangeCallback(function(_oldValue) {
 
 	::logInfo("After change \'Preset Spawnlist's Difficulty Score\': Changed old value: " + _oldValue + " to new value: " + this.getValue());::ModGauntletEvents.Settings.PresetSpawnlistScore = ret.Value;
 });
+
+local allowSuppliesAfterBattle = page.addBooleanSetting("allow_supplies_after_battle", ::ModGauntletEvents.Settings.AllowSuppliesAfterBattle, "Allow Supplies After Battles");
+	allowSuppliesAfterBattle.setDescription("Allow giving some supplies after the gauntlet event's fight concludes.")
+	allowSuppliesAfterBattle.addAfterChangeCallback(function (_oldValue) {
+		if (this.getValue() == _oldValue) {
+			return;
+		}
+		::logInfo("After change \'Allow Supplies After Battles\': Changed old value: " + _oldValue + " to new value: " + this.getValue());
+		::ModGauntletEvents.Settings.AllowSuppliesAfterBattle = this.getValue();
+	});
