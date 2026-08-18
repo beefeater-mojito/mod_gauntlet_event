@@ -43,7 +43,7 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 
 		if (this.m.JSHandle != null) {
 			this.Tooltip.hide();
-			local data = null
+			local data = null;
 			try {
 				data = this.queryData();
 			} catch (exception){
