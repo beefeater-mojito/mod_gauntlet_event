@@ -1,6 +1,33 @@
 "use strict";
 var ModGauntletEvents = {
-    ModID: "mod_gauntlet_events"
+    ModID: "mod_gauntlet_events",
+    AvailableFlags: {
+        IsRange: {
+            Icon: Asset.ICON_RANGE_SKILL,
+            Tooltip: "Range"
+        },
+        IsSquishyMelee: {
+            Icon: Asset.ICON_DAMAGE_RECEIVED,
+            Tooltip: "SquishyMelee"
+        },
+        IsCrowdControl: {
+            Icon: Asset.ICON_CENTER,
+            Tooltip: "CrowdControl"
+        },
+        IsBoss: {
+            Icon: Asset.ICON_CHANCE_TO_HIT_HEAD,
+            Tooltip: "Boss"
+        }
+    },
+    GauntletPoolOrder: [
+        "GauntletEarly",
+        "GauntletMid",
+        "GauntletLate",
+        "GauntletChampion",
+        "GauntletMiniBoss",
+        "GauntletBoss",
+        "GauntletPreset"
+    ]
 }
 
 var GauntletPoolEditorScreen = function (_parent) {
@@ -42,6 +69,7 @@ var GauntletPoolEditorScreen = function (_parent) {
     this.mUnitsBox = null;
     this.mAddUnitButtonLayout = null;
     this.mSaveButtonLayout = null;
+    this.mRestoreThisPoolLayout = null;
     this.mRestoreDefaultButtonLayout = null;
 
     this.mColumnName = null;
@@ -51,7 +79,7 @@ var GauntletPoolEditorScreen = function (_parent) {
     this.mColumnFlags = null;
 
     this.mPopup = null;
-    this.mIconRow = null
+    this.mIconRow = null;
 };
 
 GauntletPoolEditorScreen.prototype = Object.create(MSUUIScreen.prototype)
@@ -104,7 +132,7 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
 
     var dropdownLayout = $('<div class="gauntlet-dropdown-menu-layout"/>');
     this.mContainer.append(dropdownLayout);
-    
+
     var temp = [
         "GauntletEarly",
         "GauntletMid",
@@ -126,29 +154,32 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
     this.mColumnName = $(
         '<div class="table-header-name title title-font-big font-bold font-color-title">Name</div>'
     );
+    this.mColumnName.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.Units.Name" })
     this.mHeaders.append(this.mColumnName);
 
     this.mColumnNum = $(
         '<div class="table-header-unitnum title title-font-big font-bold font-color-title">Num</div>'
     );
+    this.mColumnNum.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.Units.Num" })
     this.mHeaders.append(this.mColumnNum);
 
     this.mColumnDRScore = $(
         '<div class="table-header-drscore title title-font-big font-bold font-color-title">DR Score</div>'
     );
+    this.mColumnDRScore.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.Units.DifficultyRating" })
     this.mHeaders.append(this.mColumnDRScore);
 
     this.mColumnWeight = $(
         '<div class="table-header-weight title title-font-big font-bold font-color-title">Weight</div>'
     );
+    this.mColumnWeight.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.Units.Weight" })
     this.mHeaders.append(this.mColumnWeight);
 
     this.mColumnFlags = $(
         '<div class="table-header-flags title title-font-big font-bold font-color-title">Flags</div>'
     );
+    this.mColumnFlags.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.Units.Flags" });
     this.mHeaders.append(this.mColumnFlags);
-
-    
 
     this.mLeftColumn = $('<div class="column is-left"/>');
     content.append(this.mLeftColumn);
@@ -168,7 +199,6 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
      * Footer
      */
     this.mFooterButtonBar = $('<div class="l-button-bar"/>');
-
     this.mDialogContainer
         .findDialogFooterContainer()
         .append(this.mFooterButtonBar);
@@ -178,7 +208,6 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
      */
     this.mLeaveButtonLayout = $('<div class="l-leave-button"/>');
     this.mFooterButtonBar.append(this.mLeaveButtonLayout);
-
     this.mLeaveButton = this.mLeaveButtonLayout.createTextButton(
         "Close",
         function () {
@@ -187,12 +216,11 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
         '',
         1
     );
-
+    this.mLeaveButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.Close" })
+    // Add unit
     this.mAddUnitButtonLayout =
         $('<div class="gauntlet-text-button-layout"/>');
-
     this.mFooterButtonBar.append(this.mAddUnitButtonLayout);
-
     this.mAddUnitButton =
         this.mAddUnitButtonLayout.createTextButton(
             "Add Unit",
@@ -211,12 +239,11 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
             '',
             1
         );
-
+    this.mAddUnitButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.AddUnit" })
+    // Save
     this.mSaveButtonLayout =
         $('<div class="gauntlet-text-button-layout"/>');
-
     this.mFooterButtonBar.append(this.mSaveButtonLayout);
-
     this.mSaveButton =
         this.mSaveButtonLayout.createTextButton(
             "Save",
@@ -226,212 +253,79 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
             '',
             1
         );
-
+    this.mSaveButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.SavePool" })
+    // Restore this
+    this.mRestoreThisPoolButtonLayout =
+        $('<div class="gauntlet-text-button-layout"/>');
+    this.mFooterButtonBar.append(this.mRestoreThisPoolButtonLayout);
+    this.mRestoreThisPoolButton =
+        this.mRestoreThisPoolButtonLayout.createTextButton(
+            "Restore Default",
+            function () {
+                self.discardCurrentPoolChanges();
+            },
+            '',
+            1
+        );
+    this.mRestoreThisPoolButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.RestoreThis" });
+    // Restore default
     this.mRestoreDefaultButtonLayout =
         $('<div class="gauntlet-text-button-layout"/>');
-
     this.mFooterButtonBar.append(this.mRestoreDefaultButtonLayout);
-
     this.mRestoreDefaultButton =
         this.mRestoreDefaultButtonLayout.createTextButton(
-            "Restore Default",
+            "Restore ALL",
             function () {
                 self.restoreDefaultAll();
             },
             '',
             1
         );
+    this.mRestoreDefaultButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.RestoreAll" })
 
     this.mIsVisible = false;
 };
+
+GauntletPoolEditorScreen.prototype.compareOrder = function (_poolA, _poolB) {
+    var orders = ModGauntletEvents.GauntletPoolOrder;
+    var x = orders.indexOf(_poolA.Name)
+    if (x === -1) {
+        x = orders.length
+    }
+    var y = orders.indexOf(_poolB.Name)
+    if (y === -1) {
+        y = orders.length
+    }
+    return x - y;
+}
 
 GauntletPoolEditorScreen.prototype.addFlagsIconRow = function (_parentDiv) {
     var iconRow = $(
         '<div class ="flags-icon-container"/>'
     );
     _parentDiv.append(iconRow)
-    
+
     var iconAssetList = [
         Asset.ICON_RANGE_SKILL,
         Asset.ICON_DAMAGE_RECEIVED,
         Asset.ICON_CENTER,
         Asset.ICON_CHANCE_TO_HIT_HEAD
     ]
-    for (var i = 0; i < iconAssetList.length; i++){
+    for (var key in ModGauntletEvents.AvailableFlags) {
+        var flag = ModGauntletEvents.AvailableFlags[key];
         var iconLayout = $('<div class="flags-icon-layout"/>');
-        iconRow.append(iconLayout)
+        iconRow.append(iconLayout);
 
+        var iconPath = Path.GFX + flag.Icon;
         var icon = $('<img class="flags-icon"/>')
-            .attr("src", Path.GFX + iconAssetList[i])
+            .attr("src", iconPath)
             .appendTo(iconLayout);
+
+        var iconTooltip = "GauntletEditorScreen.Flags." + flag.Tooltip;
+        icon.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: iconTooltip })
     }
     return iconRow
 }
-
-GauntletPoolEditorScreen.prototype.destroyDIV = function () {
-    /*
-     * Close any popup before destroying the screen underneath it.
-     */
-    if (this.mPopup !== null) {
-        this.destroyPopupDialog();
-        this.mPopup = null;
-    }
-
-    /*
-     * Remove dropdown and its scrollbar.
-     */
-    if (this.mDropdownContainer !== null) {
-        this.mDropdownContainer.removeChildren();
-        this.mDropdownContainer.remove();
-        this.mDropdownContainer = null;
-    }
-
-    /*
-     * Destroy list before removing its parent.
-     */
-    if (this.mListScrollContainer !== null) {
-        this.mListScrollContainer.empty();
-        this.mListScrollContainer = null;
-    }
-
-    if (this.mListContainer !== null) {
-        this.mListContainer.destroyList();
-        this.mListContainer.remove();
-        this.mListContainer = null;
-    }
-
-    if (this.mListContainerLayout !== null) {
-        this.mListContainerLayout.remove();
-        this.mListContainerLayout = null;
-    }
-
-    /*
-     * Buttons.
-     */
-    if (this.mLeaveButton !== null) {
-        this.mLeaveButton.remove();
-        this.mLeaveButton = null;
-    }
-
-    if (this.mAddUnitButton !== null) {
-        this.mAddUnitButton.remove();
-        this.mAddUnitButton = null;
-    }
-
-    if (this.mSaveButton !== null) {
-        this.mSaveButton.remove();
-        this.mSaveButton = null;
-    }
-
-    if (this.mRestoreDefaultButton !== null) {
-        this.mRestoreDefaultButton.remove();
-        this.mRestoreDefaultButton = null;
-    }
-
-    /*
-     * Button layouts.
-     */
-    if (this.mLeaveButtonLayout !== null) {
-        this.mLeaveButtonLayout.remove();
-        this.mLeaveButtonLayout = null;
-    }
-
-    if (this.mAddUnitButtonLayout !== null) {
-        this.mAddUnitButtonLayout.remove();
-        this.mAddUnitButtonLayout = null;
-    }
-
-    if (this.mSaveButtonLayout !== null) {
-        this.mSaveButtonLayout.remove();
-        this.mSaveButtonLayout = null;
-    }
-
-    if (this.mRestoreDefaultButtonLayout !== null) {
-        this.mRestoreDefaultButtonLayout.remove();
-        this.mRestoreDefaultButtonLayout = null;
-    }
-
-    if (this.mUnitsBox !== null) {
-        this.mUnitsBox.remove();
-        this.mUnitsBox = null;
-    }
-
-    if (this.mFooterButtonBar !== null) {
-        this.mFooterButtonBar.remove();
-        this.mFooterButtonBar = null;
-    }
-
-    /*
-     * Header elements.
-     */
-    if (this.mColumnName !== null) {
-        this.mColumnName.remove();
-        this.mColumnName = null;
-    }
-
-    if (this.mColumnNum !== null) {
-        this.mColumnNum.remove();
-        this.mColumnNum = null;
-    }
-
-    if (this.mColumnDRScore !== null) {
-        this.mColumnDRScore.remove();
-        this.mColumnDRScore = null;
-    }
-
-    if (this.mColumnWeight !== null) {
-        this.mColumnWeight.remove();
-        this.mColumnWeight = null;
-    }
-
-    if (this.mColumnFlags !== null) {
-        this.mColumnFlags.remove();
-        this.mColumnFlags = null;
-    }
-
-    if (this.mHeaders !== null) {
-        this.mHeaders.remove();
-        this.mHeaders = null;
-    }
-
-    if (this.mTabButtonsContainer !== null) {
-        this.mTabButtonsContainer.remove();
-        this.mTabButtonsContainer = null;
-    }
-
-    if (this.mIconRow !== null) {
-        this.mIconRow.remove();
-        this.mIconRow = null;
-    }
-    /*
-     * Remove the dialog.
-     */
-    if (this.mDialogContainer !== null) {
-        this.mDialogContainer.empty();
-        this.mDialogContainer.remove();
-        this.mDialogContainer = null;
-    }
-
-    if (this.mDialogLayout !== null) {
-        this.mDialogLayout.remove();
-        this.mDialogLayout = null;
-    }
-
-    /*
-     * Finally remove the screen root.
-     */
-    if (this.mContainer !== null) {
-        this.mContainer.empty();
-        this.mContainer.remove();
-        this.mContainer = null;
-    }
-
-    this.mIsVisible = false;
-    this.mSelectedPool = null;
-    this.mData = null;
-    this.mIsDirty = false;
-};
-
 
 GauntletPoolEditorScreen.prototype.markDirty = function () {
     this.mIsDirty = true;
@@ -509,9 +403,7 @@ GauntletPoolEditorScreen.prototype.addFlagCheckboxes = function (
 
     var checkboxMap = {};
 
-    for (var i = 0; i < availableFlags.length; ++i) {
-        var flag = availableFlags[i];
-
+    for (var flag in ModGauntletEvents.AvailableFlags) {
         var checkboxContainer = $(
             '<div class="gauntlet-checkbox-layout"/>'
         );
@@ -594,10 +486,8 @@ GauntletPoolEditorScreen.prototype.getFlagsFromRow = function (_row) {
         "IsBoss"
     ];
 
-    for (var i = 0; i < availableFlags.length; ++i) {
-        var flag = availableFlags[i];
+    for (var flag in ModGauntletEvents.AvailableFlags) {
         var checkbox = checkboxMap[flag];
-
         if (checkbox !== undefined &&
             checkbox !== null &&
             checkbox.prop("checked") === true) {
@@ -696,6 +586,7 @@ GauntletPoolEditorScreen.prototype.addCoSpawnEntry = function (
     this.createRowActionButton(
         actions,
         Asset.BUTTON_DISMISS_CHARACTER,
+        "GauntletEditorScreen.UnitRowButton.DeleteRow",
         function () {
             self.markDirty();
             result.remove();
@@ -703,20 +594,6 @@ GauntletPoolEditorScreen.prototype.addCoSpawnEntry = function (
     );
 
     return result;
-};
-
-GauntletPoolEditorScreen.prototype.bindTooltips = function () {
-    this.mColumnName.bindTooltip({ contentType: 'ui-element', elementId: TooltipIdentifier.WorldScreen.gauntlet.ColumnName });
-    this.mColumnDRScore.bindTooltip({ contentType: 'ui-element', elementId: TooltipIdentifier.WorldScreen.gauntlet.ColumnTime });
-    this.mColumnNum.bindTooltip({ contentType: 'ui-element', elementId: TooltipIdentifier.WorldScreen.gauntlet.ColumnBattles });
-    this.mColumnWeight.bindTooltip({ contentType: 'ui-element', elementId: TooltipIdentifier.WorldScreen.gauntlet.ColumnKills });
-};
-
-GauntletPoolEditorScreen.prototype.unbindTooltips = function () {
-    this.mColumnName.unbindTooltip();
-    this.mColumnDRScore.unbindTooltip();
-    this.mColumnNum.unbindTooltip();
-    this.mColumnWeight.unbindTooltip();
 };
 
 GauntletPoolEditorScreen.prototype.collectCurrentPoolData = function () {
@@ -835,7 +712,7 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
 
     var footerButtonBar = this.mPopup
         .findPopupDialogFooterContainer();
-    
+
     var saveButtonLayout = $('<div class="popup-text-button-layout"/>');
     footerButtonBar.append(saveButtonLayout)
 
@@ -879,7 +756,7 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
         4
     )
     discardButtonLayout.append(discardButton)
-    
+
     var cancelButtonLayout = $('<div class="popup-text-button-layout"/>');
     footerButtonBar.append(cancelButtonLayout)
 
@@ -952,6 +829,7 @@ GauntletPoolEditorScreen.prototype.switchToPool = function (_selectedEntry) {
 GauntletPoolEditorScreen.prototype.createRowActionButton = function (
     _parent,
     _asset,
+    _tooltip,
     _callback
 ) {
     var layout = $('<div class="action-button-layout gauntlet-row-action"/>');
@@ -960,6 +838,10 @@ GauntletPoolEditorScreen.prototype.createRowActionButton = function (
     var button = $('<img class="action-button"/>')
         .attr("src", Path.GFX + _asset)
         .appendTo(layout);
+
+    if (_tooltip != null) {
+        button.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: _tooltip })
+    }
 
     button.on("click", _callback);
 
@@ -978,6 +860,7 @@ GauntletPoolEditorScreen.prototype.createRowActions = function (
     this.createRowActionButton(
         actions,
         Asset.BUTTON_DISMISS_CHARACTER,
+        "GauntletEditorScreen.UnitRowButton.DeleteRow",
         function () {
             self.markDirty();
 
@@ -993,6 +876,7 @@ GauntletPoolEditorScreen.prototype.createRowActions = function (
         this.createRowActionButton(
             actions,
             Asset.BUTTON_TOGGLE_TREES_ENABLED,
+            "GauntletEditorScreen.UnitRowButton.AddCospawn",
             function () {
                 var popupContent = self.createPopup(
                     'Add Unit',
@@ -1013,20 +897,13 @@ GauntletPoolEditorScreen.prototype.createRowActions = function (
 
 GauntletPoolEditorScreen.prototype.create = function (_parentDiv) {
     this.createDIV(_parentDiv);
-    this.bindTooltips();
 };
-
-GauntletPoolEditorScreen.prototype.destroy = function () {
-    this.unbindTooltips();
-    this.destroyDIV();
-};
-
 
 GauntletPoolEditorScreen.prototype.register = function (_parentDiv) {
     console.log('GauntletPoolEditorScreen::REGISTER');
 
     if (this.mContainer !== null) {
-        console.error('ERROR: Failed to register Relations Screen. Reason: Already initialized.');
+        console.error('ERROR: Failed to register Relations GauntletEditorScreen. Reason: Already initialized.');
         return;
     }
 
@@ -1039,7 +916,7 @@ GauntletPoolEditorScreen.prototype.unregister = function () {
     console.log('GauntletPoolEditorScreen::UNREGISTER');
 
     if (this.mContainer === null) {
-        console.error('ERROR: Failed to unregister Relations Screen. Reason: Not initialized.');
+        console.error('ERROR: Failed to unregister Relations GauntletEditorScreen. Reason: Not initialized.');
         return;
     }
 
@@ -1335,6 +1212,7 @@ GauntletPoolEditorScreen.prototype.loadFromData = function (_data) {
         this.markClean();
         return;
     }
+    this.mData.Pools.sort(this.compareOrder)
     var firstPool = this.mData.Pools[0]
     var self = this;
     this.mDropdownContainer.set(
@@ -1460,7 +1338,7 @@ GauntletPoolEditorScreen.prototype.createAddUnitScrollContainer = function (_dia
             this.markDirty();
             this.focusActiveFilterBar();
         }, self), "gauntlet-text-button", 4);
-        // addButton.bindTooltip({ contentType: 'msu-generic', modId: gauntletulator.ModID, elementId: "Screen.Units.Main.Add"});
+        // addButton.bindTooltip({ contentType: 'msu-generic', modId: gauntletulator.ModID, elementId: "GauntletEditorScreen.Units.Main.Add"});
 
         row.append(addButtonContainer);
     }, this))
@@ -1492,7 +1370,7 @@ GauntletPoolEditorScreen.prototype.createRestoreDefaultPopup = function () {
 
     var message = $(
         '<div class="title-font-normal font-color-subtitle gauntlet-unsaved-message">' +
-        'You are about to restore data to their default value. Confirm?' +
+        'You are about to restore the data OF EVERY POOL to their default value. Confirm?' +
         '</div>'
     );
 

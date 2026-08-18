@@ -14,7 +14,7 @@
 
 	::include("script_hooks/setup_gauntlet");
 	::ModGauntletEvents.Setup <- this.new("script_hooks/setup_gauntlet");
-	::MSU.Log.printData(::ModGauntletEvents.Setup, 10, false);
+
 
 	// UI screen
 	::Hooks.registerJS("ui/mods/GauntletPoolEditorScreen.js");
@@ -30,4 +30,9 @@
 	::include("script_hooks/setting_gauntlet.nut")
 	::include("script_hooks/hook_gauntlet.nut");
 	::include("script_hooks/file_gauntlet.nut");
+
+	::include("script_hooks/tooltips_gauntlet");
+	// ::MSU.Log.printData(::ModGauntletEvents.Mod.Tooltips, 10, false);
+	::ModGauntletEvents.Mod.Tooltips.setTooltips(this.new("script_hooks/tooltips_gauntlet"))
+
 });

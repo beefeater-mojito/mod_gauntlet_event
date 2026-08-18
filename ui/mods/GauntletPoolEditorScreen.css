@@ -29,7 +29,7 @@
     top: 0;
     left: 0;
     position: absolute;
-    margin-top: 10%;
+    margin-top: 11%;
     margin-left: 10%;
     z-index: 1;
 }
@@ -163,7 +163,7 @@
 }
 
 .gauntlet-editor-screen>.l-gauntlet-dialog-container .content .l-list-container .scroll-container {
-    margin-top: 1.4rem;
+    margin-top: 1rem;
     margin-bottom: 0.4rem;
 }
 
