@@ -766,7 +766,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		local mod = ::ModGauntletEvents.Mod;
 		local filename = ::ModGauntletEvents.Setup.getFilename();
 		if(!(mod.PersistentData.hasFile(filename))){
-			::ModGauntletEvents.Setup.writeToFileWithDefaultData();
+			::ModGauntletEvents.Setup.defaultOverwriteAll();
 		}
 		local readData = null;
 		try {

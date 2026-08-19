@@ -15,12 +15,17 @@ this.tooltips_gauntlet <- {
         },
         UnitRowButton = {
             DeleteRow = ::MSU.Class.BasicTooltip("Delete this Row", "Delete this unit row."),
-            AddCospawn = ::MSU.Class.BasicTooltip("Add Co-Spawn", "Add units that will spawn along with the main unit. Does not take up a composition's total DR or Num.")
+            AddCospawn = ::MSU.Class.BasicTooltip("Add Co-Spawn", "Add units that will spawn along with the main unit. Does not take up a composition's total DR or Num."),
+            ViewHelp = ::MSU.Class.BasicTooltip("View help", "View extra infos about the gauntlet mechanic.")
+        },
+        TopbarButton = {
+            RevertChange = ::MSU.Class.BasicTooltip("Revert Changes", "Revert changes made to this pool, and load the its latest version.")
+            RestoreThis = ::MSU.Class.BasicTooltip("Restore THIS to Default", "Restore this pool's data to its default value.")
         },
         FootbarButton = {
             AddUnit = ::MSU.Class.BasicTooltip("Add a Unit", "Add a unit into the pool, from the game's available units."),
             SavePool = ::MSU.Class.BasicTooltip("Save this Pool", "Save this pool into the mod's data file."),
-            RestoreThis = ::MSU.Class.BasicTooltip("Restore THIS to Default", "Restore this pool to its initial loaded state."),
+            RestoreThis = ::MSU.Class.BasicTooltip("Restore THIS to Default", "Restore this pool's data to its default value."),
             RestoreAll = ::MSU.Class.BasicTooltip("Restore ALL to Default", "Restore EVERY POOL's data to the default value. If unsure, please make a backup of the mod's datafile before proceeding!"),
             Close = ::MSU.Class.BasicTooltip("Close the Editor", "Close this editor windows.")
         }

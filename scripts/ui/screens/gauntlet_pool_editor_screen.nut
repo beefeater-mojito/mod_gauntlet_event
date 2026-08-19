@@ -1,9 +1,6 @@
 this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 	m = {
 		ID = "GauntletPoolEditorScreen",
-		// OnConnectedListener = null,
-		// OnDisconnectedListener = null,
-		// OnClosePressedListener = null
 	},
 
 	function toggle() {
@@ -66,32 +63,11 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		}
 	}
 
-	function onClose() {
+	function onClose(_withSlideAnimation = true) {
 		if (this.m.OnClosePressedListener != null) {
 			this.m.OnClosePressedListener();
 		} else {
-			this.hide()
-		}
-	}
-
-	function onScreenShown() {
-		this.m.Visible = true;
-		this.m.Animating = false;
-	}
-
-	function onScreenHidden() {
-		this.m.Visible = false;
-		this.m.Animating = false;
-	}
-
-	function onScreenAnimating() {
-		this.m.Animating = true;
-	}
-
-
-	function onScreenDisconnected() {
-		if (this.m.OnDisconnectedListener != null) {
-			this.m.OnDisconnectedListener();
+			this.hide();
 		}
 	}
 
@@ -111,8 +87,16 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		assert(::MSU.deepEquals(writeData, readData))
 	}
 
-	function onRestoreDefault() {
-		::ModGauntletEvents.Setup.writeToFileWithDefaultData();
+	function onRestoreDefault(_name){
+		::ModGauntletEvents.Setup.defaultOverwritePool(_name)
+		if (this.m.JSHandle != null) {
+			this.Tooltip.hide();
+			this.m.JSHandle.asyncCall("show", this.queryData(_name));
+		}
+	}
+
+	function onRestoreDefaultAll() {
+		::ModGauntletEvents.Setup.defaultOverwriteAll();
 		if (this.m.JSHandle != null) {
 			this.Tooltip.hide();
 			this.m.JSHandle.asyncCall("show", this.queryData());
@@ -243,12 +227,13 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		return ret
 	}
 
-	function queryData() {
+	function queryData(_prevPool = null) {
 		// local pool_name = "GauntletLate";
 
 		local ret = {
 			AllUnits = this.queryUnitsFromSpawnlistMaster(),
-			Pools = this.queryPools()
+			Pools = this.queryPools(),
+			PreviousPoolPicked = _prevPool
 		}
 
 		return ret

@@ -243,12 +243,12 @@ presetSpawnlistScore.setDescription("Difficulty score for the preset spawnlist. 
 presetSpawnlistScore.addAfterChangeCallback(function(_oldValue) {
 	if (this.getValue() == _oldValue) {
 		return;
-	}
+	};
 	local ret = tools.processIntegerInput(this.getValue(), _oldValue);
 
 	if (!ret.Result) {
 		this.set(_oldValue);
-	}
+	};
 
 	::logInfo("After change \'Preset Spawnlist's Difficulty Score\': Changed old value: " + _oldValue + " to new value: " + this.getValue());::ModGauntletEvents.Settings.PresetSpawnlistScore = ret.Value;
 });

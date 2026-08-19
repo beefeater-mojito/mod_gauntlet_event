@@ -69,7 +69,7 @@ var GauntletPoolEditorScreen = function (_parent) {
     this.mUnitsBox = null;
     this.mAddUnitButtonLayout = null;
     this.mSaveButtonLayout = null;
-    this.mRestoreThisPoolLayout = null;
+    this.mRestoreThisPoolButtonLayout = null;
     this.mRestoreDefaultButtonLayout = null;
 
     this.mColumnName = null;
@@ -181,6 +181,43 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
     this.mColumnFlags.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.Units.Flags" });
     this.mHeaders.append(this.mColumnFlags);
 
+    this.mColumnButtons = $(
+        '<div class="table-header-buttons gauntlet-topbar-buttons"/>'
+    )
+    this.mHeaders.append(this.mColumnButtons)
+    this.createRowActionButton( // revert changes
+        this.mColumnButtons,
+        Asset.ICON_CONTRACT_SCROLL,
+        "GauntletEditorScreen.TopbarButton.RevertChange",
+        function () {
+            self.discardCurrentPoolChanges();
+        },
+        "topbar-button-layout",
+        "topbar-button"
+
+    )
+    this.createRowActionButton( // restore default this
+        this.mColumnButtons,
+        Asset.ICON_CAMERALOCK,
+        "GauntletEditorScreen.TopbarButton.RestoreThis",
+        function () {
+            self.restoreDefaultThis();
+        },
+        "topbar-button-layout",
+        "topbar-button"
+    )
+    this.createRowActionButton( // restore default this
+        this.mColumnButtons,
+        Asset.ICON_UNKNOWN_TRAITS,
+        "GauntletEditorScreen.TopbarButton.ViewHelp",
+        function () {
+            self.createHelpPopup();
+        },
+        "topbar-button-layout",
+        "topbar-button"
+    )
+
+    /* Dialog */
     this.mLeftColumn = $('<div class="column is-left"/>');
     content.append(this.mLeftColumn);
 
@@ -255,19 +292,19 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
         );
     this.mSaveButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.SavePool" })
     // Restore this
-    this.mRestoreThisPoolButtonLayout =
-        $('<div class="gauntlet-text-button-layout"/>');
-    this.mFooterButtonBar.append(this.mRestoreThisPoolButtonLayout);
-    this.mRestoreThisPoolButton =
-        this.mRestoreThisPoolButtonLayout.createTextButton(
-            "Restore Default",
-            function () {
-                self.discardCurrentPoolChanges();
-            },
-            '',
-            1
-        );
-    this.mRestoreThisPoolButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.RestoreThis" });
+    // this.mRestoreThisPoolButtonLayout =
+    //     $('<div class="gauntlet-text-button-layout"/>');
+    // this.mFooterButtonBar.append(this.mRestoreThisPoolButtonLayout);
+    // this.mRestoreThisPoolButton =
+    //     this.mRestoreThisPoolButtonLayout.createTextButton(
+    //         "Restore Default",
+    //         function () {
+    //             self.restoreDefaultThis();
+    //         },
+    //         '',
+    //         1
+    //     );
+    // this.mRestoreThisPoolButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.RestoreThis" });
     // Restore default
     this.mRestoreDefaultButtonLayout =
         $('<div class="gauntlet-text-button-layout"/>');
@@ -285,6 +322,57 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
 
     this.mIsVisible = false;
 };
+
+GauntletPoolEditorScreen.prototype.createHelpPopup = function () {
+    var self = this;
+    if (this.mPopup !== null) {
+        console.error("A popup is already open.");
+        return;
+    }
+
+    this.mPopup = this.mContainer.createPopupDialog(
+        "Help",
+        "",
+        null,
+        "gauntlet-generic-popup"
+    );
+
+    this.setPopupDialog(this.mPopup);
+
+    var content = this.mPopup.addPopupDialogContent(
+        $('<div class="gauntlet-generic-popup-container"/>')
+    );
+    var popupListContainer = content.createList(2);
+    var scrollContainer = popupListContainer.findListScrollContainer();
+
+
+    var helpText = [
+        'How is the composition of the gauntlet generated?\n',
+        'First, the game calculate the total difficulty rating (DR) score, based on the current day when the gauntlet takes place.\n',
+        'Next, it construct the base pool from either GauntletEarly, GauntletMid or GauntletLate. The gauntlet is chosen based on both the current days and the mod setting for day threshold (for example, GauntletEarly is chosen if current day is lower than the midgame threshold). Then it adds other unit from GauntletChampion, GauntletMiniBoss or GauntletBoss if allowed in the mod settings.\n',
+        'Then it filters out units with the Boss, Range or Crowd Control flags into their own separate pools. Unit with multiple flags might be included in multiple pools. The gauntlet then start to construct the composition, starting from Boss -> Range -> Crowd Control -> the rest.\n',
+        'Within a pool, it tallies up all units\' weight, and randomly draws units. The weight is treated as biases, with higher biases mean more likelihood of being picked (assuming the unit is valid to pick). The drawn unit is then determined if valid to be added to the composition. A unit is valid if adding it would:\n',
+        '\t + Not exceed the upper amount of range, crowd control or boss units. This value is random but has an upper limit based on number of gauntlets survived, and has a seperate limit for both certain individual and every unit sharing flags. (Example: at most one necromancer in a fight)\n\n',
+        '\t + Not make the total DR of squishy units exceed the squishy limit. This score is added every time a valid range, squishy melee or crowd control is added to the composition. The limit is half of the initial total DR score.\n',
+        '\t + Not exceed the boss\'s limit. This limit is also half of the initial total DR score.\n' +
+        '\t + Guarantee at least a minimum of unit added to the composition. This minimum is based on the current days and party sizes.\n',
+        'Adding a valid unit spend scores equal to its DR score. Invalid units are removed from the pool, and when a pool is empty, it then moves to the next one. A base pool (early, mid, late) should have at least one unit with DR 1 without any special flags to ensure no left-over points and the minimum number of unit constraint can be satisfiable.\n',
+        'After all of the initial DR score is spent or every pool is empty, it then reorganizes unit and return the final composition for the fight.\n'
+    ];
+    var message = $(
+        '<div class="text-font-normal font-color-description gauntlet-help-message"/>' 
+    );
+    message.html(helpText.join("<br><br>"));
+    scrollContainer.append(message);
+
+    this.mPopup.addPopupDialogOkButton(
+        function () {
+            self.destroyPopupDialog();
+            self.mPopup = null;
+        },
+        false
+    )
+}
 
 GauntletPoolEditorScreen.prototype.compareOrder = function (_poolA, _poolB) {
     var orders = ModGauntletEvents.GauntletPoolOrder;
@@ -683,35 +771,15 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
     _onDiscard
 ) {
     var self = this;
-
-    if (this.mPopup !== null) {
-        console.error("A popup is already open.");
-        return;
-    }
-
-    this.mPopup = this.mContainer.createPopupDialog(
+    this.createUnsavedWarningPopup(
         "Unsaved Changes",
-        "",
-        null,
-        "gauntlet-generic-popup gauntlet-unsaved-popup"
-    );
+        'You have unsaved changes to this pool. What would you like to do?'
+    )
 
-    this.setPopupDialog(this.mPopup);
-
-    var content = this.mPopup.addPopupDialogContent(
-        $('<div class="gauntlet-generic-popup-container gauntlet-unsaved-content"/>')
-    );
-
-    var message = $(
-        '<div class="title-font-normal font-color-subtitle gauntlet-unsaved-message">' +
-        'You have unsaved changes to this pool. What would you like to do?' +
-        '</div>'
-    );
-
-    content.append(message);
 
     var footerButtonBar = this.mPopup
         .findPopupDialogFooterContainer();
+    footerButtonBar.children().first().remove(); // remove default l-button-row
 
     var saveButtonLayout = $('<div class="popup-text-button-layout"/>');
     footerButtonBar.append(saveButtonLayout)
@@ -732,8 +800,8 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
                 _onSave();
             }
         },
-        "gauntlet-text-button",
-        4
+        '',
+        1
     )
     saveButtonLayout.append(saveButton)
 
@@ -752,8 +820,8 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
                 _onDiscard();
             }
         },
-        "gauntlet-text-button",
-        4
+        '',
+        1
     )
     discardButtonLayout.append(discardButton)
 
@@ -766,8 +834,8 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
             self.destroyPopupDialog();
             self.mPopup = null;
         },
-        "gauntlet-text-button",
-        4
+        '',
+        1
     )
     cancelButtonLayout.append(cancelButton)
 
@@ -830,13 +898,22 @@ GauntletPoolEditorScreen.prototype.createRowActionButton = function (
     _parent,
     _asset,
     _tooltip,
-    _callback
+    _callback,
+    _layout_class,
+    _button_class
 ) {
-    var layout = $('<div class="action-button-layout gauntlet-row-action"/>');
+    var layout = $('<div class="action-button-layout"/>');
+    if (_layout_class !== null && _layout_class !== undefined) {
+        layout = $('<div class='+ _layout_class +'/>')
+    }
     _parent.append(layout);
 
-    var button = $('<img class="action-button"/>')
-        .attr("src", Path.GFX + _asset)
+    var button = $('<img class="action-button"/>');
+    if (_button_class !== null && _button_class !== undefined) {
+        button = $('<img class=\"'+ _button_class +'\"/>');
+    }
+    
+    button.attr("src", Path.GFX + _asset)
         .appendTo(layout);
 
     if (_tooltip != null) {
@@ -972,7 +1049,7 @@ GauntletPoolEditorScreen.prototype.doStartAnimation = function () {
 
 GauntletPoolEditorScreen.prototype.show = function (_data) {
     this.loadFromData(_data);
-    this.doStartAnimation()
+    this.doStartAnimation();
 };
 
 GauntletPoolEditorScreen.prototype.showFailedToFetchData = function (_data) {
@@ -985,7 +1062,7 @@ GauntletPoolEditorScreen.prototype.showFailedToFetchData = function (_data) {
     )
     this.setPopupDialog(this.mPopup)
     var content = this.mPopup.addPopupDialogContent(
-        $('<div class="gauntlet-generic-popup-container gauntlet-unsaved-content"/>')
+        $('<div class="gauntlet-generic-popup-container"/>')
     );
 
     var message = $(
@@ -997,7 +1074,7 @@ GauntletPoolEditorScreen.prototype.showFailedToFetchData = function (_data) {
     content.append(message);
     this.mPopup.addPopupDialogOkButton(
         function () {
-            self.notifyBackendOnRestoreDefault();
+            self.notifyBackendOnRestoreDefaultAll();
 
             self.destroyPopupDialog();
             self.mPopup = null;
@@ -1017,9 +1094,8 @@ GauntletPoolEditorScreen.prototype.showFailedToFetchData = function (_data) {
     );
 }
 
-GauntletPoolEditorScreen.prototype.hide = function (_withSlideAnimation) {
+GauntletPoolEditorScreen.prototype.doEndAnimation = function (_withSlideAnimation) {
     var self = this;
-
     var withAnimation = true;//(_withSlideAnimation !== undefined && _withSlideAnimation !== null) ? _withSlideAnimation : true;
     if (withAnimation === true) {
         var offset = -(this.mContainer.parent().width() + this.mContainer.width());
@@ -1056,6 +1132,11 @@ GauntletPoolEditorScreen.prototype.hide = function (_withSlideAnimation) {
                 }
             });
     }
+}
+
+GauntletPoolEditorScreen.prototype.hide = function (_withSlideAnimation) {
+    this.discardCurrentPoolChanges();
+    this.doEndAnimation();
 };
 
 var widthTester = $('<div id="WidthTester"/>')
@@ -1212,12 +1293,26 @@ GauntletPoolEditorScreen.prototype.loadFromData = function (_data) {
         this.markClean();
         return;
     }
-    this.mData.Pools.sort(this.compareOrder)
-    var firstPool = this.mData.Pools[0]
+    this.mData.Pools.sort(this.compareOrder);
+    // Set default pool
+    var defaultPool = this.mData.Pools[0];
+    if ("PreviousPoolPicked" in this.mData && this.mData.PreviousPoolPicked !== null) {
+        var previousPool = null;
+        for (var poolIdx in this.mData.Pools) { // old js only supports for... in?
+            var pool = this.mData.Pools[poolIdx]
+            if (pool.Name === this.mData.PreviousPoolPicked) {
+                previousPool = pool;
+                break;
+            }
+        }
+        if (previousPool !== null) {
+            defaultPool = previousPool;
+        }
+    }
     var self = this;
     this.mDropdownContainer.set(
         this.mData.Pools,
-        firstPool,
+        defaultPool,
         function (_selectedEntry) {
             self.onChangeEntry(_selectedEntry);
         }
@@ -1345,18 +1440,18 @@ GauntletPoolEditorScreen.prototype.createAddUnitScrollContainer = function (_dia
     this.focusActiveFilterBar();
 }
 
-
-
-GauntletPoolEditorScreen.prototype.createRestoreDefaultPopup = function () {
+GauntletPoolEditorScreen.prototype.createUnsavedWarningPopup = function (
+    _title,
+    _message
+) {
     var self = this;
-
     if (this.mPopup !== null) {
         console.error("A popup is already open.");
         return;
     }
 
     this.mPopup = this.mContainer.createPopupDialog(
-        "Restoring to default data",
+        _title,
         "",
         null,
         "gauntlet-generic-popup gauntlet-unsaved-popup"
@@ -1365,20 +1460,30 @@ GauntletPoolEditorScreen.prototype.createRestoreDefaultPopup = function () {
     this.setPopupDialog(this.mPopup);
 
     var content = this.mPopup.addPopupDialogContent(
-        $('<div class="gauntlet-generic-popup-container gauntlet-unsaved-content"/>')
+        $('<div class="gauntlet-generic-popup-container"/>')
     );
 
     var message = $(
         '<div class="title-font-normal font-color-subtitle gauntlet-unsaved-message">' +
-        'You are about to restore the data OF EVERY POOL to their default value. Confirm?' +
+        _message +
         '</div>'
     );
-
     content.append(message);
+
+    return this.mPopup
+}
+
+GauntletPoolEditorScreen.prototype.createRestoreDefaultThisPopup = function () {
+    var self = this;
+    this.createUnsavedWarningPopup(
+        "Restoring to default data",
+        'You are about to restore the data of this pool to its default value. Confirm?'
+    )
 
     this.mPopup.addPopupDialogOkButton(
         function () {
-            self.notifyBackendOnRestoreDefault();
+            var poolName = self.mSelectedPool.Name
+            self.notifyBackendOnRestoreDefaultThis(poolName);
 
             self.destroyPopupDialog();
             self.mPopup = null;
@@ -1395,8 +1500,38 @@ GauntletPoolEditorScreen.prototype.createRestoreDefaultPopup = function () {
     );
 }
 
+GauntletPoolEditorScreen.prototype.createRestoreDefaultAllPopup = function () {
+    var self = this;
+    this.createUnsavedWarningPopup(
+        "Restoring to default data",
+        'You are about to restore the data of **EVERY POOL** to their default value. Confirm?'
+    )
+
+    this.mPopup.addPopupDialogOkButton(
+        function () {
+            self.notifyBackendOnRestoreDefaultAll();
+
+            self.destroyPopupDialog();
+            self.mPopup = null;
+        },
+        false
+    );
+
+    this.mPopup.addPopupDialogCancelButton(
+        function () {
+            self.destroyPopupDialog();
+            self.mPopup = null;
+        },
+        false
+    );
+}
+
+GauntletPoolEditorScreen.prototype.restoreDefaultThis = function () {
+    this.createRestoreDefaultThisPopup()
+}
+
 GauntletPoolEditorScreen.prototype.restoreDefaultAll = function () {
-    this.createRestoreDefaultPopup();
+    this.createRestoreDefaultAllPopup();
 }
 
 GauntletPoolEditorScreen.prototype.notifyBackendOnConnected = function () {
@@ -1429,9 +1564,15 @@ GauntletPoolEditorScreen.prototype.notifyBackendOnAnimating = function () {
     }
 };
 
-GauntletPoolEditorScreen.prototype.notifyBackendOnRestoreDefault = function () {
+GauntletPoolEditorScreen.prototype.notifyBackendOnRestoreDefaultThis = function (_poolName) {
     if (this.mSQHandle !== null) {
-        SQ.call(this.mSQHandle, 'onRestoreDefault');
+        SQ.call(this.mSQHandle, 'onRestoreDefault', _poolName);
+    }
+}
+
+GauntletPoolEditorScreen.prototype.notifyBackendOnRestoreDefaultAll = function () {
+    if (this.mSQHandle !== null) {
+        SQ.call(this.mSQHandle, 'onRestoreDefaultAll');
     }
 }
 
