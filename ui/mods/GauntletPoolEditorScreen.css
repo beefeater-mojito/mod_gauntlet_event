@@ -109,25 +109,21 @@
 }
 
 .gauntlet-topbar-buttons {
-    width: auto;
-    height: 4.3rem;
-    position: static;
+    width: 12rem;
+    height: 4rem;
     margin-left: 84%;
-    /* margin: auto; */
 
     display: flex;
-    align-items: right;
-    justify-content: right;
+    align-items: center;
+    justify-content: center;
 }
 
 .topbar-button-layout {
-    width: 3rem;
-    height: 2rem;
-}
-
-.gauntlet-topbar-buttons .c {
-    display: block;
-    flex: 0 0 auto;
+    bottom: 0.7rem;
+    width: 4rem;
+    height: 3.6rem;
+    position: absolute;
+    margin: auto 0;
 }
 
 .flags-icon-container {
@@ -136,10 +132,10 @@
     position: absolute;
     width: 22rem;
     height: 3.2rem;
-    
+
     display: flex;
     justify-content: space-between;
-    
+
     flex-direction: row;
     z-index: 6;
 }
@@ -156,7 +152,7 @@
     display: block;
     flex: 0 0 auto;
     z-index: inherit;
-    
+
 }
 
 /* ============================================================
@@ -420,7 +416,7 @@
 }
 
 .gauntlet-short-input-container {
-    width: 5rem;
+    width: 6rem;
     height: 3rem;
 }
 
@@ -479,7 +475,7 @@
 
 
 /* ============================================================
-   Add Unit popup
+   General popup
    ============================================================ */
 
 .gauntlet-generic-popup {
@@ -512,15 +508,21 @@
 }
 
 .gauntlet-generic-popup-container {
-    max-height: 45rem;
+    max-height: 50rem;
 
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+
+    padding-left: 1.2rem;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
 }
+
 
 .gauntlet-generic-popup-container .list {
     margin-top: 2rem;
+    margin-bottom: 2rem;
 }
 
 /* ============================================================
@@ -756,7 +758,7 @@
     height: 4.3rem;
 
     display: flex;
-    
+
     justify-content: space-between;
     align-items: baseline;
     flex-direction: row;
@@ -767,7 +769,7 @@
     /* margin:auto; */
     width: 3rem;
     height: 3rem;
-    
+
     display: flex;
     justify-content: center;
     align-items: baseline;
@@ -780,16 +782,44 @@
     font-weight: normal;
     font-style: normal;
     font-family: 'FreeUniversal-Regular';
-    
+
 }
 
-.gauntlet-checkbox
-{
-    
+.gauntlet-checkbox {
+
     align-self: baseline;
 }
 
-
 .gauntlet-checkbox-layout[disabled]>label {
     color: #a7a7a7 !important;
+}
+
+/* ============================================================
+   Combat start popup
+   ============================================================ */
+
+.gauntlet-combat-start-popup {
+    width: 50rem !important;
+    height: 38rem !important;
+
+    background-image: url("coui://gfx/mods/msu/skin/generic_background_large_border.png");
+    background-size: 50rem 38rem;
+    background-repeat: no-repeat;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.gauntlet-popup-input-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.gauntlet-popup-checkbox-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 1rem;
 }

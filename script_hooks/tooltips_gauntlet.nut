@@ -16,11 +16,17 @@ this.tooltips_gauntlet <- {
         UnitRowButton = {
             DeleteRow = ::MSU.Class.BasicTooltip("Delete this Row", "Delete this unit row."),
             AddCospawn = ::MSU.Class.BasicTooltip("Add Co-Spawn", "Add units that will spawn along with the main unit. Does not take up a composition's total DR or Num."),
-            ViewHelp = ::MSU.Class.BasicTooltip("View help", "View extra infos about the gauntlet mechanic.")
+        },
+        CombatPopup = {
+            DifficultyScore = ::MSU.Class.BasicTooltip("Difficulty Score", "Used to generate the composition.")
+            Days = ::MSU.Class.BasicTooltip("Days Combat Taken Place", "Used to determine the base pool. Consult to the threshold setting in the Mod Setting menu.")
+            AllowLooting = ::MSU.Class.BasicTooltip("Allow Enemies Gear Drops", "Allow enemies to drop gears in the gauntlet fight.")
+            GiveSupplies = ::MSU.Class.BasicTooltip("Give Supplies", "Give players supplies that would be handed out after the fight ends.")
         },
         TopbarButton = {
-            RevertChange = ::MSU.Class.BasicTooltip("Revert Changes", "Revert changes made to this pool, and load the its latest version.")
-            RestoreThis = ::MSU.Class.BasicTooltip("Restore THIS to Default", "Restore this pool's data to its default value.")
+            RevertChange = ::MSU.Class.BasicTooltip("Revert Changes", "Revert changes made to this pool, and load the its latest version."),
+            RestoreThis = ::MSU.Class.BasicTooltip("Restore THIS to Default", "Restore this pool's data to its default value."),
+            ViewHelp = ::MSU.Class.BasicTooltip("View help", "View extra infos about the gauntlet mechanic.")
         },
         FootbarButton = {
             AddUnit = ::MSU.Class.BasicTooltip("Add a Unit", "Add a unit into the pool, from the game's available units."),

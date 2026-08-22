@@ -40,7 +40,7 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
 
 The Gauntlet Pool Editor is a UI screen that allow player's customization for the current gauntlet pool used in the mod.
 
-To open the pool, press the keybind button \(default is `Ctrl-Shift-P`\) WHILE INSIDE the overworld screen.
+To open the pool, press the keybind button \(default is `Ctrl-Shift-P`\) WHILE INSIDE the overworld screen. You can change the keybind in the keybind tab of the gauntlet's Mod Setting menu.
 
 Follow the tooltips for more informations.
 
@@ -52,10 +52,10 @@ Follow the tooltips for more informations.
 
 # To-do
 
-* Implementing and testing a late-game pool (WIP!).
+* More testing to the late-game pool (WIP!).
 * Create a mod option menu that allow further customization on date threshold, scaling and some toggles. (WIP!).
 * ~~Create a UI for viewing and editing various gauntlet pools, and even testing them!~~
-  * Add option to kick-start a fight with a Difficulty Score input.
+  * ~~Add option to kick-start a fight with a Difficulty Score input~~.
   * Add gauntlet pool creation. 
 * ~~Figure out how to either 1\) disable corpse resurrection on player's dead bros, or 2\) prevent gears lost for resurrected zombie bros~~. At the moment, resurrection from the player's corpses while inside gauntlet fights is disabled, and unarmed, resurrected zombies and skeletons will be re-equipped randomly.
 * ...And more!

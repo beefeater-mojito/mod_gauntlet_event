@@ -27,7 +27,7 @@ local debug_init = "GAUNTLET HOOK DEBUG: ";
 		World.Statistics.getFlags().set("GauntletEnabled", true);
 
 		World.Events.addSpecialEvent("event.mod_gauntlet_events");
-		::logDebug("Gauntlet event added!")
+		::logDebug("Gauntlet event added!");
 
 	})
 })
@@ -64,6 +64,7 @@ local getWeaponsListBasedOnType = function (_type, canEquipTwoHander = false) {
 		case ::Const.EntityType.Zombie:
 		case ::Const.EntityType.ZombieYeoman:
 		case ::Const.EntityType.SkeletonLight:
+		case ::Const.EntityType.SkeletonMedium:
 			weapons = [
 				"weapons/falchion",
 				"weapons/hand_axe",

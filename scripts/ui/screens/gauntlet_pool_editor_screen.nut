@@ -3,6 +3,7 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		ID = "GauntletPoolEditorScreen",
 	},
 
+	// basic functionality
 	function toggle() {
 		if (this.m.Animating) {
 			return false
@@ -63,6 +64,7 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		}
 	}
 
+	// jshandle
 	function onClose(_withSlideAnimation = true) {
 		if (this.m.OnClosePressedListener != null) {
 			this.m.OnClosePressedListener();
@@ -103,6 +105,12 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		}
 	}
 
+	function onStartCombat(_combatSetting) {
+		this.hide();
+		::ModGauntletEvents.Setup.startGauntletCombat(_combatSetting);
+	}
+
+	// data query
 	function constructCoSpawnFromJSON(_JSONarr){
 		local pool = []
 		foreach(unit in _JSONarr){
@@ -227,13 +235,26 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		return ret
 	}
 
-	function queryData(_prevPool = null) {
-		// local pool_name = "GauntletLate";
+	function querytInitialCombatSetting() {
+		local current_day = ::World.getTime().Days;
+		local difficulty = this.World.Assets.getCombatDifficulty();
+		local difficultyScore = ::ModGauntletEvents.Setup.calculateDifficultyScoreBasedOnDay(current_day, difficulty);
+		local ret = {
+			Days = current_day,
+			SetDifficulty = difficulty,
+			DifficultyScore = difficultyScore,
+			AllowLooting = false,
+			GiveSupplies = true
+		}
+		return ret
+	}
 
+	function queryData(_prevPool = null) {
 		local ret = {
 			AllUnits = this.queryUnitsFromSpawnlistMaster(),
 			Pools = this.queryPools(),
-			PreviousPoolPicked = _prevPool
+			PreviousPoolPicked = _prevPool,
+			InitialCombatSetting = this.querytInitialCombatSetting()
 		}
 
 		return ret

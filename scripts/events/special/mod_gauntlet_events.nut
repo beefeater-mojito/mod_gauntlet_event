@@ -1,4 +1,4 @@
-local debug_init = "GAUNTLET DEBUG: ";
+local debug_init = ::ModGauntletEvents.Setup.getDebugInit();
 
 local deepCopy;
 deepCopy = function(container) {
@@ -487,7 +487,7 @@ local GauntletManager = function() {
 				if ("IsBoss" in _unit && _unit.IsBoss) {
 					member.IsBoss <- true;
 				};
-				dumpCustom(member)
+				// dumpCustom(member)
 				if (_isRangeFlag) {
 					this.m.RangeTroops.append(member)
 				} else if (_isCrowdControlFlag) {
@@ -507,6 +507,7 @@ local GauntletManager = function() {
 mod_gauntlet_events <- inherit("scripts/events/event", {
 	m = {
 		// msu setting variable
+		IsPrepared = false,
 		BaseGauntletInterval = 10,
 		EndofEarlyGameThreshold = 15,
 		EndofMidGameThreshold = 35,
@@ -537,39 +538,8 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			Options = [{
 				Text = "To battle!",
 				function getResult(_event) {
-					local properties = this.World.State.getLocalCombatProperties(this.World.State.getPlayer().getPos());
-					properties.CombatID = "Event";
-					local music_arr = [];
-					music_arr.extend(this.Const.Music.NobleTracks)
-					music_arr.extend(this.Const.Music.BarbarianTracks)
-					music_arr.extend(this.Const.Music.BanditTracks)
-					music_arr.extend(this.Const.Music.UndeadTracks)
-					music_arr.extend(this.Const.Music.OrientalCityStateTracks)
-					music_arr.extend(this.Const.Music.OrcsTracks)
-					music_arr.extend(this.Const.Music.GoblinsTracks)
-					properties.Music = music_arr;
-					properties.IsAutoAssigningBases = false;
-					properties.Entities = [];
-					properties.IsFleeingProhibited = true;
-					properties.IsArenaMode = !(_event.m.AllowLooting);
-					properties.PlayerDeploymentType = this.Const.Tactical.DeploymentType.Line;
-					properties.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Line;
-					properties.AllyBanners = [
-						this.World.Assets.getBanner()
-					];
-					local spawnlist = _event.generateSpawnListBasedOnDay();
-					local resource = spawnlist.Cost + 100;
-					local champion_spawnlist = _event.getBossSpawnList(spawnlist)
-					local champion_spawnlist_arr = [];
-					champion_spawnlist_arr.append(champion_spawnlist)
-					this.Const.World.Common.addUnitsToCombat(properties.Entities, champion_spawnlist_arr, resource, this.Const.Faction.Enemy, 150)
-					local spawnlist_arr = [];
-					spawnlist_arr.append(spawnlist);
-					this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy, -150)
-					this.logDebug(debug_init + "properties.Entities constructed. Prepare to fight!");
-					// dumpCustom(properties);
 					_event.registerToShowAfterCombat("Survived", "Survived");
-					this.World.Contracts.startScriptedCombat(properties, false, true, true);
+					::ModGauntletEvents.Setup.preparePropertiesAndStartCombat(_event);
 					return 1; // 1 so that processInput doesn't throw a fuss
 				}
 			}],
@@ -596,14 +566,14 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 				World.Statistics.getFlags().set("GauntletSurvivedFlag", _event.m.GauntletSurvived + 1);
 				World.Statistics.getFlags().set("HasGauntletInit", false);
 
-				local allow_supplies = ::ModGauntletEvents.Mod.ModSettings.getSetting("allow_supplies_after_battle").getValue()
+				local allow_supplies = _event.m.AllowSuppliesAfterCombat;
 				if (!allow_supplies) {
 					return;
 				}
-				local ecoDiffMod = (this.World.Assets.getEconomicDifficulty() + 1) * 0.1
-				local armorPartAmount = this.Math.ceil(_event.m.SuppliesNum * (1.25 - ecoDiffMod))
-				local medicineAmount = this.Math.ceil(_event.m.SuppliesNum * (0.75 - ecoDiffMod))
-				local ammoAmount = this.Math.ceil(_event.m.SuppliesNum * (1.75 - ecoDiffMod))
+				local supplies = _event.getSupplyFromSuppliesNum();
+				local armorPartAmount = supplies.ArmorPart;
+				local medicineAmount = supplies.Medicine;
+				local ammoAmount = supplies.Ammo;
 
 				this.World.Assets.addArmorParts(armorPartAmount);
 				this.World.Assets.addMedicine(medicineAmount);
@@ -637,33 +607,27 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 
 	function onPrepare() {
 		// ::logDebug(debug_init + "getCombatDifficulty()=" + this.World.Assets.getCombatDifficulty())
-		this.m.BaseGauntletInterval = ::ModGauntletEvents.Mod.ModSettings.getSetting("base_gauntlet_interval").getValue().tointeger();
-		this.m.MinDifficultyScore = ::ModGauntletEvents.Mod.ModSettings.getSetting("min_difficulty_score").getValue().tointeger();
-		this.m.MaxDifficultyScore = ::ModGauntletEvents.Mod.ModSettings.getSetting("max_difficulty_score").getValue().tointeger();
-		this.m.MaxExpertDifficultyScoreOnDay = ::ModGauntletEvents.Mod.ModSettings.getSetting("max_score_on_day").getValue().tointeger();
-		this.m.EndofEarlyGameThreshold = ::ModGauntletEvents.Mod.ModSettings.getSetting("early_end_on_day").getValue().tointeger();
-		this.m.EndofMidGameThreshold = ::ModGauntletEvents.Mod.ModSettings.getSetting("mid_end_on_day").getValue().tointeger();
-		this.m.SafeDaysUntilFirstGauntlet = ::ModGauntletEvents.Mod.ModSettings.getSetting("safe_day_until_1st_gauntlet").getValue().tointeger();
-		this.m.UsePresetSpawnList = ::ModGauntletEvents.Mod.ModSettings.getSetting("use_preset_spawnlist").getValue();
-		this.m.PresetSpawnListScore = ::ModGauntletEvents.Mod.ModSettings.getSetting("preset_spawnlist_score").getValue().tointeger();
+		local setup = ::ModGauntletEvents.Setup;
+		this.m.BaseGauntletInterval = setup.getModSettingValue("base_gauntlet_interval");
+		this.m.MinDifficultyScore = setup.getModSettingValue("min_difficulty_score");
+		this.m.MaxDifficultyScore = setup.getModSettingValue("max_difficulty_score");
+		this.m.MaxExpertDifficultyScoreOnDay = setup.getModSettingValue("max_score_on_day");
+		this.m.EndofEarlyGameThreshold = setup.getModSettingValue("early_end_on_day");
+		this.m.EndofMidGameThreshold = setup.getModSettingValue("mid_end_on_day");
+		this.m.SafeDaysUntilFirstGauntlet = setup.getModSettingValue("safe_day_until_1st_gauntlet");
+		this.m.PresetSpawnListScore = setup.getModSettingValue("preset_spawnlist_score");
 
-		switch (this.World.Assets.getCombatDifficulty()) {
-			case 0:
-				this.m.DifficultyScoreModifier = 1.2;
-				break;
-			case 1:
-				this.m.DifficultyScoreModifier = 1.35;
-				break;
-			case 2:
-				this.m.DifficultyScoreModifier = 1.5;
-				break;
-		}
+		this.m.AllowSuppliesAfterCombat = setup.getModSettingValue("allow_supplies_after_battle", "bool");
+		this.m.UsePresetSpawnList = setup.getModSettingValue("use_preset_spawnlist", "bool");
+
+		this.m.DifficultyScoreModifier = setup.getDifficultyModifierBasedOnCombatDifficulty();
+
 		if (!(World.Statistics.getFlags().get("GauntletSurvivedFlag"))) {
 			World.Statistics.getFlags().set("GauntletSurvivedFlag", 0);
 		}
 		this.m.GauntletSurvived = World.Statistics.getFlags().getAsInt("GauntletSurvivedFlag")
 		// ::logDebug(debug_init + "getEconomicDifficulty()=" + this.World.Assets.getEconomicDifficulty())
-		if (::ModGauntletEvents.Mod.ModSettings.getSetting("always_allow_looting").getValue()) {
+		if (setup.getModSettingValue("always_allow_looting", "bool")) {
 			this.m.AllowLooting = true
 		} else {
 			switch (this.World.Assets.getEconomicDifficulty()) {
@@ -682,16 +646,15 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		}
 
 		this.m.SuppliesNum = this.getDifficultyScore();
+		this.m.IsPrepared = true;
 	}
-
-	function onPrepareVariables(_vars) {}
 
 	function onClear() {
 		// this.m.Score = -20;
 	}
 
 	function isValid() {
-		if (!(::ModGauntletEvents.Mod.ModSettings.getSetting("enable_gauntlet").getValue())) {
+		if (!(::ModGauntletEvents.Setup.getModSettingValue("enable_gauntlet", "bool"))) {
 			return false
 		}
 
@@ -701,8 +664,8 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		}
 		local last_triggered_on_day = this.World.Statistics.getFlags().getAsInt("GauntletLastTriggeredOnDay");
 
-		local safe_days = ::ModGauntletEvents.Mod.ModSettings.getSetting("safe_day_until_1st_gauntlet").getValue().tointeger();
-		local interval = ::ModGauntletEvents.Mod.ModSettings.getSetting("base_gauntlet_interval").getValue().tointeger();
+		local safe_days = ::ModGauntletEvents.Setup.getModSettingValue("safe_day_until_1st_gauntlet");
+		local interval = ::ModGauntletEvents.Setup.getModSettingValue("base_gauntlet_interval");
 
 		if (current_day < safe_days) {
 			return false;
@@ -718,7 +681,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 	}
 
 	function getDifficultyScore() {
-		local score = calculateTotalDifficultyScore();
+		local score = calculateDifficultyScoreBasedOnDay();
 		if (score < this.m.MinDifficultyScore) {
 			return this.m.MinDifficultyScore;
 		}
@@ -728,8 +691,11 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		return score;
 	}
 
-	function calculateTotalDifficultyScore() {
-		local current_day = this.World.getTime().Days
+	function calculateDifficultyScoreBasedOnDay(_days = null, _difficultyModifier = null) {
+		local current_day = _days == null ? this.World.getTime().Days : _days;
+		if (_difficultyModifier != null){
+			this.m.DifficultyScoreModifier = _difficultyModifier;
+		}
 		if (current_day < this.m.EndofEarlyGameThreshold) {
 			return this.Math.ceil(current_day * this.m.DifficultyScoreModifier);
 		}
@@ -813,6 +779,15 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		return troops
 	}
 
+	function getSupplyFromSuppliesNum(){
+		local ecoDiffMod = (this.World.Assets.getEconomicDifficulty() + 1) * 0.1;
+		return {
+			ArmorPart =  this.Math.ceil(this.m.SuppliesNum * (1.25 - ecoDiffMod)),
+			Medicine =  this.Math.ceil(this.m.SuppliesNum * (0.75 - ecoDiffMod)),
+			Ammo =  this.Math.ceil(this.m.SuppliesNum * (1.75 - ecoDiffMod))
+		}
+	}
+
 	function getTroopsArrayBasedOnDay() {
 		local current_days = this.World.getTime().Days;
 		local pool = [];
@@ -849,26 +824,29 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 	}
 
 	function IsChampionAllowed() {
-		return::ModGauntletEvents.Mod.ModSettings.getSetting("allow_champions").getValue() &&
+		return::ModGauntletEvents.Setup.getModSettingValue("allow_champions", "bool") &&
 			this.World.getTime().Days >= this.m.EndofMidGameThreshold
 	}
 
 	function IsMiniBossAllowed() {
-		return::ModGauntletEvents.Mod.ModSettings.getSetting("allow_minibosses").getValue() &&
+		return::ModGauntletEvents.Setup.getModSettingValue("allow_minibosses", "bool") &&
 			this.World.getTime().Days >= this.m.EndofMidGameThreshold
 	}
 
 	function IsBossAllowed() {
-		return::ModGauntletEvents.Mod.ModSettings.getSetting("allow_bosses").getValue() &&
+		return::ModGauntletEvents.Setup.getModSettingValue("allow_bosses", "bool") &&
 			this.World.getTime().Days >= this.m.EndofMidGameThreshold
 	}
 
 	function generateSpawnListBasedOnDay(_days = null, _diffScore = null) {
 		local current_day = _days != null ? _days : this.World.getTime().Days;
-
-		local init_difficulty_score = _diffScore != null ? _diffScore : this.getDifficultyScore();
-		if (this.m.UsePresetSpawnList) {
-			init_difficulty_score = this.m.PresetSpawnListScore
+		local init_difficulty_score = null;
+		if (_diffScore != null){
+			init_difficulty_score = _diffScore;
+		} else if (this.m.UsePresetSpawnList){
+			init_difficulty_score = this.m.PresetSpawnListScore;
+		} else {
+			init_difficulty_score = this.getDifficultyScore();
 		}
 		this.logDebug(debug_init + "Difficulty score " + init_difficulty_score + " on day " + current_day)
 

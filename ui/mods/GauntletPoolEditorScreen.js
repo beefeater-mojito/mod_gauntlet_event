@@ -69,7 +69,7 @@ var GauntletPoolEditorScreen = function (_parent) {
     this.mUnitsBox = null;
     this.mAddUnitButtonLayout = null;
     this.mSaveButtonLayout = null;
-    this.mRestoreThisPoolButtonLayout = null;
+    this.mStartCombatButtonLayout = null;
     this.mRestoreDefaultButtonLayout = null;
 
     this.mColumnName = null;
@@ -182,39 +182,39 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
     this.mHeaders.append(this.mColumnFlags);
 
     this.mColumnButtons = $(
-        '<div class="table-header-buttons gauntlet-topbar-buttons"/>'
+        '<div class="gauntlet-topbar-buttons"/>'
     )
     this.mHeaders.append(this.mColumnButtons)
-    this.createRowActionButton( // revert changes
+
+    this.createOverlayImageButton(
         this.mColumnButtons,
         Asset.ICON_CONTRACT_SCROLL,
-        "GauntletEditorScreen.TopbarButton.RevertChange",
         function () {
             self.discardCurrentPoolChanges();
         },
         "topbar-button-layout",
-        "topbar-button"
-
+        6,
+        "GauntletEditorScreen.TopbarButton.RevertChange"
     )
-    this.createRowActionButton( // restore default this
+    this.createOverlayImageButton(
         this.mColumnButtons,
         Asset.ICON_CAMERALOCK,
-        "GauntletEditorScreen.TopbarButton.RestoreThis",
         function () {
             self.restoreDefaultThis();
         },
         "topbar-button-layout",
-        "topbar-button"
+        6,
+        "GauntletEditorScreen.TopbarButton.RestoreThis"
     )
-    this.createRowActionButton( // restore default this
+    this.createOverlayImageButton(
         this.mColumnButtons,
         Asset.ICON_UNKNOWN_TRAITS,
-        "GauntletEditorScreen.TopbarButton.ViewHelp",
         function () {
             self.createHelpPopup();
         },
         "topbar-button-layout",
-        "topbar-button"
+        6,
+        "GauntletEditorScreen.TopbarButton.ViewHelp"
     )
 
     /* Dialog */
@@ -291,20 +291,32 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
             1
         );
     this.mSaveButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.SavePool" })
-    // Restore this
-    // this.mRestoreThisPoolButtonLayout =
-    //     $('<div class="gauntlet-text-button-layout"/>');
-    // this.mFooterButtonBar.append(this.mRestoreThisPoolButtonLayout);
-    // this.mRestoreThisPoolButton =
-    //     this.mRestoreThisPoolButtonLayout.createTextButton(
-    //         "Restore Default",
-    //         function () {
-    //             self.restoreDefaultThis();
-    //         },
-    //         '',
-    //         1
-    //     );
-    // this.mRestoreThisPoolButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.RestoreThis" });
+    // Start combat
+    this.mStartCombatButtonLayout =
+        $('<div class="gauntlet-text-button-layout"/>');
+    this.mFooterButtonBar.append(this.mStartCombatButtonLayout);
+    this.mStartCombatButton =
+        this.mStartCombatButtonLayout.createTextButton(
+            "Start Combat",
+            function () {
+                if (!self.isDirty()) {
+                    self.createStartCombatPopup();
+                    return;
+                }
+
+                self.createUnsavedChangesPopup(
+                    function () {
+                        self.createStartCombatPopup();
+                    },
+                    function () {
+                        self.createStartCombatPopup();
+                    }
+                );
+            },
+            '',
+            1
+        );
+    this.mStartCombatButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.RestoreThis" });
     // Restore default
     this.mRestoreDefaultButtonLayout =
         $('<div class="gauntlet-text-button-layout"/>');
@@ -354,13 +366,13 @@ GauntletPoolEditorScreen.prototype.createHelpPopup = function () {
         'Within a pool, it tallies up all units\' weight, and randomly draws units. The weight is treated as biases, with higher biases mean more likelihood of being picked (assuming the unit is valid to pick). The drawn unit is then determined if valid to be added to the composition. A unit is valid if adding it would:\n',
         '\t + Not exceed the upper amount of range, crowd control or boss units. This value is random but has an upper limit based on number of gauntlets survived, and has a seperate limit for both certain individual and every unit sharing flags. (Example: at most one necromancer in a fight)\n\n',
         '\t + Not make the total DR of squishy units exceed the squishy limit. This score is added every time a valid range, squishy melee or crowd control is added to the composition. The limit is half of the initial total DR score.\n',
-        '\t + Not exceed the boss\'s limit. This limit is also half of the initial total DR score.\n' +
+        '\t + Not exceed the boss\'s DR limit. This limit is also half of the initial total DR score.\n',
         '\t + Guarantee at least a minimum of unit added to the composition. This minimum is based on the current days and party sizes.\n',
         'Adding a valid unit spend scores equal to its DR score. Invalid units are removed from the pool, and when a pool is empty, it then moves to the next one. A base pool (early, mid, late) should have at least one unit with DR 1 without any special flags to ensure no left-over points and the minimum number of unit constraint can be satisfiable.\n',
         'After all of the initial DR score is spent or every pool is empty, it then reorganizes unit and return the final composition for the fight.\n'
     ];
     var message = $(
-        '<div class="text-font-normal font-color-description gauntlet-help-message"/>' 
+        '<div class="text-font-normal font-color-description gauntlet-help-message"/>'
     );
     message.html(helpText.join("<br><br>"));
     scrollContainer.append(message);
@@ -435,7 +447,8 @@ GauntletPoolEditorScreen.prototype.addInputFieldToTable = function (
     _parent,
     _field,
     _class,
-    _value
+    _value,
+    _callback
 ) {
     var self = this;
 
@@ -447,15 +460,73 @@ GauntletPoolEditorScreen.prototype.addInputFieldToTable = function (
     inputLayout.addClass(_class);
     input.val(_value);
 
-    input.on("input", function () {
-        self.onTableInputChanged();
-    });
-
+    if (_callback !== "undefined" && _callback !== "null") {
+        input.on("input", _callback);
+    }
 
     _parent.append(inputLayout);
     inputLayout.append(input);
     _parent.data(_field, input);
+    return inputLayout;
 };
+
+GauntletPoolEditorScreen.prototype.addCheckbox = function (
+    _parent,
+    _class,
+    _title,
+    _id,
+    _isChecked,
+    _isLocked
+) {
+    var containerClass = (_class !== null && _class !== undefined) ?
+        _class : $('<div class="gauntlet-checkbox-container"/>');
+
+    var checkboxContainer = $(
+        '<div class="' + containerClass + '"/>'
+    );
+    _parent.append(checkboxContainer);
+
+    var checkboxTitle = $('<div class="title text-font-normal font-color-title">' + _title + '</div>')
+    checkboxContainer.append(checkboxTitle)
+
+    var checkbox = $(
+        '<input class="gauntlet-checkbox" ' + ' type="checkbox" id="' +
+        _id +
+        '"/>'
+    ).appendTo(checkboxContainer);
+
+    checkbox.iCheck({
+        checkboxClass: 'icheckbox_flat-orange',
+        radioClass: 'iradio_flat-orange',
+        increaseArea: '30%'
+    });
+
+    var label = $(
+        '<label class="bool-checkbox-label" for="' + _id + '"/>'
+    );
+
+    checkboxContainer.append(label);
+
+    if (_isChecked === true) {
+        checkbox.iCheck('check');
+    } else {
+        checkbox.iCheck('uncheck');
+    }
+
+    label.on("click", function () {
+        var checkboxForLabel = $("#" + $(this).attr("for"));
+
+        if (!checkboxForLabel.attr("disabled")) {
+            checkboxForLabel.iCheck("toggle");
+        }
+    });
+
+    if (_isLocked === true) {
+        checkbox.iCheck("disable");
+    }
+
+    return checkbox
+}
 
 GauntletPoolEditorScreen.prototype.addFlagCheckboxes = function (
     _parent,
@@ -605,25 +676,32 @@ GauntletPoolEditorScreen.prototype.addListEntry = function (_data) {
 
     result.append(name);
 
+    result.rowButtonCallback = function () {
+        self.onTableInputChanged();
+    }
+
     this.addInputFieldToTable(
         result,
         "num",
         "unitnum",
-        _data.Num
+        _data.Num,
+        result.rowButtonCallback
     );
 
     this.addInputFieldToTable(
         result,
         "dr",
         "drscore",
-        _data.DifficultyRating
+        _data.DifficultyRating,
+        result.rowButtonCallback
     );
 
     this.addInputFieldToTable(
         result,
         "weight",
         "weight",
-        _data.Weight
+        _data.Weight,
+        result.rowButtonCallback
     );
 
     this.addFlagCheckboxes(
@@ -823,7 +901,7 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
         '',
         1
     )
-    discardButtonLayout.append(discardButton)
+    // discardButtonLayout.append(discardButton)
 
     var cancelButtonLayout = $('<div class="popup-text-button-layout"/>');
     footerButtonBar.append(cancelButtonLayout)
@@ -837,7 +915,7 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
         '',
         1
     )
-    cancelButtonLayout.append(cancelButton)
+    // cancelButtonLayout.append(cancelButton)
 
 };
 
@@ -904,15 +982,15 @@ GauntletPoolEditorScreen.prototype.createRowActionButton = function (
 ) {
     var layout = $('<div class="action-button-layout"/>');
     if (_layout_class !== null && _layout_class !== undefined) {
-        layout = $('<div class='+ _layout_class +'/>')
+        layout = $('<div class=' + _layout_class + '/>')
     }
     _parent.append(layout);
 
     var button = $('<img class="action-button"/>');
     if (_button_class !== null && _button_class !== undefined) {
-        button = $('<img class=\"'+ _button_class +'\"/>');
+        button = $('<img class=\"' + _button_class + '\"/>');
     }
-    
+
     button.attr("src", Path.GFX + _asset)
         .appendTo(layout);
 
@@ -924,6 +1002,26 @@ GauntletPoolEditorScreen.prototype.createRowActionButton = function (
 
     return button;
 };
+
+GauntletPoolEditorScreen.prototype.createOverlayImageButton = function (
+    _container,
+    _icon,
+    _callback,
+    _class,
+    _size,
+    _tooltip
+) {
+    var buttonLayoutClass = ("l-image-button " + _class).trim()
+    var button = _container.createImageButton(Path.GFX + _icon, _callback, buttonLayoutClass, _size);
+    if (_tooltip !== null && _tooltip !== undefined) {
+        button.bindTooltip({
+            contentType: 'msu-generic',
+            modId: ModGauntletEvents.ModID,
+            elementId: _tooltip
+        })
+    }
+    return button
+}
 
 GauntletPoolEditorScreen.prototype.createRowActions = function (
     _row,
@@ -1052,7 +1150,7 @@ GauntletPoolEditorScreen.prototype.show = function (_data) {
     this.doStartAnimation();
 };
 
-GauntletPoolEditorScreen.prototype.showFailedToFetchData = function (_data) {
+GauntletPoolEditorScreen.prototype.showFailedToFetchData = function () {
     this.doStartAnimation();
     this.mPopup = this.createPopup(
         "Failed to load data from files",
@@ -1265,6 +1363,7 @@ GauntletPoolEditorScreen.prototype.onChangeEntry = function (_selectedEntry) {
         return;
     }
 
+    // this.confirmDiscardBefore(this.switchToPool)
     if (!this.isDirty()) {
         this.switchToPool(_selectedEntry);
         return;
@@ -1473,6 +1572,127 @@ GauntletPoolEditorScreen.prototype.createUnsavedWarningPopup = function (
     return this.mPopup
 }
 
+GauntletPoolEditorScreen.prototype.startCombat = function () {
+    // collect combat setting
+    var content = this.mPopup.find(".gauntlet-generic-popup-container")
+
+    var days = content.data("days");
+    var diffScore = content.data("diffScore");
+    var checkBoxMap = content.data("combatSettingCheckboxes");
+    var allowLootingCheckbox = checkBoxMap["gauntlet-checkbox-allowlooting"];
+    var giveSuppliesCheckbox = checkBoxMap["gauntlet-checkbox-allowsupplies"];
+
+    var combatSetting = {
+        Days: Number(days.val()),
+        DifficultyScore: Number(diffScore.val()),
+        AllowLooting: allowLootingCheckbox.prop("checked") === true,
+        GiveSupplies: giveSuppliesCheckbox.prop("checked") === true,
+    }
+    MSU.printData(combatSetting, 1, 255)
+    this.notifyBackendOnStartCombat(combatSetting)
+}
+
+GauntletPoolEditorScreen.prototype.createStartCombatPopup = function () {
+    var self = this;
+    var combatSetting = this.mData.InitialCombatSetting;
+    if (this.mPopup !== null) {
+        console.error("A popup is already open.");
+        return;
+    }
+    this.mPopup = this.mContainer.createPopupDialog(
+        "Initializing Gauntlet Combat",
+        "",
+        null,
+        "gauntlet-combat-start-popup"
+    );
+
+    this.setPopupDialog(this.mPopup);
+
+    this.mPopup.find("sub-title").remove()
+
+    var content = this.mPopup.addPopupDialogContent(
+        $('<div class="gauntlet-generic-popup-container"/>')
+    );
+    // difficulty score
+    var diffScoreContainer = $('<div class="gauntlet-popup-input-container">')
+        .appendTo(content);
+    diffScoreContainer.append(
+        '<div class="title text-font-normal font-color-title">'
+        + "Difficulty Score" +
+        '<div/>'
+    )
+    var diffScoreId = "diffScore";
+    this.addInputFieldToTable(
+        diffScoreContainer,
+        diffScoreId,
+        '',
+        combatSetting.DifficultyScore
+    ).bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.CombatPopup.DifficultyScore" })
+    content.data(diffScoreId, diffScoreContainer.data(diffScoreId)) // real clunky, i know
+    // days
+    var daysContainer = $('<div class="gauntlet-popup-input-container">')
+        .appendTo(content);
+    daysContainer.append(
+        '<div class="title text-font-normal font-color-title">'
+        + "Days combat taken place" +
+        '<div/>'
+    )
+    var daysId = "days"
+    this.addInputFieldToTable(
+        daysContainer,
+        daysId,
+        '',
+        combatSetting.Days
+    ).bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.CombatPopup.Days" })
+    content.data(daysId, daysContainer.data(daysId))
+    // TODO: booleans allowlooting allowsupplies checkboxes
+    var checkboxMap = {};
+    // allow looting
+    var allowLootingId = "gauntlet-checkbox-allowlooting"
+    var allowLootingCheckbox = this.addCheckbox(
+        content,
+        "gauntlet-popup-checkbox-container",
+        "Allow enemies gears drop",
+        allowLootingId,
+        combatSetting.AllowLooting,
+        false
+    )
+    allowLootingCheckbox.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.CombatPopup.AllowLooting" });
+    checkboxMap[allowLootingId] = allowLootingCheckbox;
+    // allow supplies
+    var giveSuppliesId = "gauntlet-checkbox-allowsupplies";
+    var giveSuppliesCheckbox = this.addCheckbox(
+        content,
+        "gauntlet-popup-checkbox-container",
+        "Give supplies compensation",
+        giveSuppliesId,
+        combatSetting.GiveSupplies,
+        false
+    )
+    giveSuppliesCheckbox.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.CombatPopup.GiveSupplies" })
+    checkboxMap[giveSuppliesId] = giveSuppliesCheckbox;
+
+    content.data("combatSettingCheckboxes", checkboxMap)
+
+    this.mPopup.addPopupDialogOkButton(
+        function () {
+            self.startCombat();
+
+            self.destroyPopupDialog();
+            self.mPopup = null;
+        },
+        false
+    )
+
+    this.mPopup.addPopupDialogCancelButton(
+        function () {
+            self.destroyPopupDialog();
+            self.mPopup = null;
+        },
+        false
+    );
+}
+
 GauntletPoolEditorScreen.prototype.createRestoreDefaultThisPopup = function () {
     var self = this;
     this.createUnsavedWarningPopup(
@@ -1603,5 +1823,10 @@ GauntletPoolEditorScreen.prototype.notifyBackendCloseButtonPressed = function (
     );
 };
 
+GauntletPoolEditorScreen.prototype.notifyBackendOnStartCombat = function (_combatSetting) {
+    if (this.mSQHandle !== null) {
+        SQ.call(this.mSQHandle, 'onStartCombat', _combatSetting);
+    }
+}
 
 registerScreen("GauntletPoolEditorScreen", new GauntletPoolEditorScreen());

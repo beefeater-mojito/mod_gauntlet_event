@@ -1,7 +1,7 @@
 ::ModGauntletEvents <- {
 	ID = "mod_gauntlet_events",
 	Name = "The Gauntlet",
-	Version = "1.2.1",
+	Version = "1.2.2",
 }
 // Instantiate the Modern Hooks object, add MSU as a requirement, and queue after MSU
 // https://bbmodding.enduriel.com/docs/modern-hooks/mod-object/
@@ -30,7 +30,6 @@
 	::include("script_hooks/setting_gauntlet.nut")
 	::include("script_hooks/hook_gauntlet.nut");
 	::include("script_hooks/file_gauntlet.nut");
-
 	::include("script_hooks/tooltips_gauntlet");
 	// ::MSU.Log.printData(::ModGauntletEvents.Mod.Tooltips, 10, false);
 	::ModGauntletEvents.Mod.Tooltips.setTooltips(this.new("script_hooks/tooltips_gauntlet"))
