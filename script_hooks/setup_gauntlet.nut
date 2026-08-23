@@ -152,13 +152,13 @@ this.setup_gauntlet <- {
 
 		if(_combatSetting.GiveSupplies){
 			::logDebug(this.getDebugInit() + "GIVING PLAYERS SUPPLIES")
-			local supplies = _event.getSupplyFromSuppliesNum();
+			local supplies = event.getSupplyFromSuppliesNum();
 			
 			this.World.Assets.addArmorParts(supplies.ArmorPart);
 			this.World.Assets.addMedicine(supplies.Medicine);
 			this.World.Assets.addAmmo(supplies.Ammo);
 		}
-		return _event.preparePropertiesAndStartCombat(
+		return event.preparePropertiesAndStartCombat(
 			_combatSetting.Days,
 			_combatSetting.DifficultyScore,
 			_combatSetting.AllowLooting

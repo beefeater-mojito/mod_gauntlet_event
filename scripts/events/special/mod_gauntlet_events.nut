@@ -540,7 +540,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 				Text = "To battle!",
 				function getResult(_event) {
 					_event.registerToShowAfterCombat("Survived", "Survived");
-					_events.preparePropertiesAndStartCombat();
+					_event.preparePropertiesAndStartCombat();
 					return 1; // 1 so that processInput doesn't throw a fuss
 				}
 			}],
@@ -944,7 +944,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		spawnlist_arr.append(spawnlist);
 
 		this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy, -150)
-		this.logDebug(this.getDebugInit() + "properties.Entities constructed. Prepare to fight!");
+		this.logDebug(debug_init + "properties.Entities constructed. Prepare to fight!");
 	
 		this.World.Contracts.startScriptedCombat(properties, false, true, true);
 		return 1;

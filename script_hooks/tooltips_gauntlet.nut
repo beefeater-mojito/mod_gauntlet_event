@@ -39,6 +39,7 @@ this.tooltips_gauntlet <- {
             SavePool = ::MSU.Class.BasicTooltip("Save this Pool", "Save this pool into the mod's data file."),
             RestoreAll = ::MSU.Class.BasicTooltip("Restore ALL to Default", "Restore EVERY POOL's data to the default value. If unsure, please make a backup of the mod's datafile before proceeding!"),
             Close = ::MSU.Class.BasicTooltip("Close the Editor", "Close this editor windows.")
+            StartCombat = ::MSU.Class.BasicTooltip("Start a Combat", "Open a pop-up screen for starting a gauntlet combat. Warning: This will use your current party!.")
         }
     }
 };
