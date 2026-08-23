@@ -65,7 +65,7 @@ Follow the tooltips for more informations.
 Thank you to the BB modding community for numerous code references and guidance on technical side of the game. This mod project is possible thanks to:
 * [Sato's Rebalanced Vanilla Origin's](https://github.com/jcsato/sato_rebalanced_vanilla_origins/tree/master) for the special event format in their implementation for the Cultist scenario. 
 * [Combat Simulator](https://www.nexusmods.com/battlebrothers/mods/564) for various references to the screen UI, and the 'Add Unit' boxes.
-* TaroEld's implementation for [the dropdown menu](github.com/TaroEld/js_dropdown).
+* TaroEld's implementation for [the dropdown menu](https://github.com/TaroEld/js_dropdown).
 
 
 And thank you to the Overhype studio for creating such an amazing game.
