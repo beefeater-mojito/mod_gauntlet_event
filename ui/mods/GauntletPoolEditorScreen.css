@@ -126,6 +126,51 @@
     margin: auto 0;
 }
 
+.gauntlet-sort-buttons {
+    /* width: 20rem; */
+    /* height: 4rem; */
+    /* top: 3rem;
+    left: 20.0rem; */
+    /* position: absolute; */
+    width: 4.5rem;
+    height: 4rem;
+
+    display: flex;
+    justify-content: space-between;
+
+    flex-direction: row;
+}
+/* Note to myself and others: Please don't ever do anything like this */
+.gauntlet-column-absolute-position-name {
+    top: 3.4rem;
+    left: 1.0rem;
+    position: absolute;
+}
+
+.gauntlet-column-absolute-position-num {
+    top: 3.4rem;
+    left: 31.0rem;
+    position: absolute;
+}
+
+.gauntlet-column-absolute-position-dr {
+    top: 3.4rem;
+    left: 43.0rem;
+    position: absolute;
+}
+
+.gauntlet-column-absolute-position-weight {
+    top: 3.4rem;
+    left: 55.2rem;
+    position: absolute;
+}
+
+.gauntlet-column-absolute-position-flags {
+    top: 3.4rem;
+    left: 70.0rem;
+    position: absolute;
+}
+
 .flags-icon-container {
     top: 3rem;
     left: 63.0rem;
@@ -219,7 +264,7 @@
 
 .gauntlet-editor-screen>.l-gauntlet-dialog-container .content .scroll-container .l-row .unitnum {
     top: 0;
-    left: 31.0rem;
+    left: 30.0rem;
     position: absolute;
 }
 
@@ -818,8 +863,9 @@
 }
 
 .gauntlet-popup-checkbox-container {
+    width: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin-top: 1rem;
+    top: 2rem;
 }

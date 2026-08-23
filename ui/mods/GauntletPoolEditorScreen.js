@@ -19,6 +19,38 @@ var ModGauntletEvents = {
             Tooltip: "Boss"
         }
     },
+    UnitProperties: { // TODO: map hard-coded value to this
+        Name: {
+            Id: "name",
+            Value: null,
+            ClassName: "name",
+            Type: "String"
+        },
+        Num: {
+            Id: "num",
+            Value: null,
+            ClassName: "unitnum",
+            Type: "Number"
+        },
+        DifficultyRating: {
+            Id: "dr",
+            Value: null,
+            ClassName: "drscore",
+            Type: "Number"
+        },
+        Weight: {
+            Id: "weight",
+            Value: null,
+            ClassName: "weight",
+            Type: "Number"
+        },
+        Flags: { // key/pair for indexing
+            IsRange: false,
+            IsCrowdControl: false,
+            IsSquishyMelee: false,
+            IsBoss: false
+        }
+    },
     GauntletPoolOrder: [
         "GauntletEarly",
         "GauntletMid",
@@ -223,6 +255,7 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
 
     this.mIconRow = $('<div class="l-row-group"/>');
     content.append(this.mIconRow)
+
     this.addFlagsIconRow(this.mIconRow);
 
     this.mListContainerLayout = $('<div class="l-list-container"/>');
@@ -332,6 +365,7 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
         );
     this.mRestoreDefaultButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.RestoreAll" })
 
+    this.addSortIconRow(this.mIconRow);
     this.mIsVisible = false;
 };
 
@@ -386,7 +420,7 @@ GauntletPoolEditorScreen.prototype.createHelpPopup = function () {
     )
 }
 
-GauntletPoolEditorScreen.prototype.compareOrder = function (_poolA, _poolB) {
+GauntletPoolEditorScreen.prototype.comparePoolOrder = function (_poolA, _poolB) {
     var orders = ModGauntletEvents.GauntletPoolOrder;
     var x = orders.indexOf(_poolA.Name)
     if (x === -1) {
@@ -399,18 +433,105 @@ GauntletPoolEditorScreen.prototype.compareOrder = function (_poolA, _poolB) {
     return x - y;
 }
 
+GauntletPoolEditorScreen.prototype.getGroupLeaderUnitData = function (_group, _field) {
+    var group = $(_group); // convert JQuery to DOM?
+    var parentRow = group.children(".l-row").first();
+    if (parentRow.length === 0) {
+        return null;
+    }
+    var val = null;
+    if (_field == "name") {
+        val = parentRow.find(".name").text();
+    } else {
+        val = Number(parentRow.data(_field).val());
+    }
+    if (val === null || val === undefined) {
+        console.error("INVALID FIELD INSIDE UNIT! _field=" + _field)
+        return null;
+    }
+    return val;
+}
+
+GauntletPoolEditorScreen.prototype.getSortFunctionByFields = function (_field) {
+    var self = this;
+    var field = _field;
+    return function (_unitA, _unitB) {
+        var a = self.getGroupLeaderUnitData(_unitA, field);
+        var b = self.getGroupLeaderUnitData(_unitB, field);
+        if (a < b) {
+            return -1;
+        } else if (a > b) {
+            return 1;
+        }
+        return 0
+    }
+}
+
+
+GauntletPoolEditorScreen.prototype.sortCurrentListByField = function (
+    _field
+) {
+    var self = this;
+
+    var groups = this.mListScrollContainer
+        .find(".l-row-group")
+        .get();
+
+    groups.sort(this.getSortFunctionByFields(_field));
+
+    $.each(groups, function (_index, _group) {
+        self.mListScrollContainer.append(_group);
+    });
+};
+
+GauntletPoolEditorScreen.prototype.addSortButton = function (
+    _parentDiv,
+    _field
+) {
+    var self = this;
+    var field = _field;
+
+    this.createOverlayImageButton(
+        _parentDiv,
+        Asset.BUTTON_SORT,
+        function () {
+            self.sortCurrentListByField(field);
+        },
+        "topbar-button-layout",
+        6,
+        "GauntletEditorScreen.TopbarButton.Sort."
+        + this.capitalizeFirstLetter(field)
+    );
+};
+
+GauntletPoolEditorScreen.prototype.addSortIconRow = function (_parentDiv) {
+    var self = this;
+
+
+    var columnFields = [
+        "name",
+        "num",
+        "dr",
+        "weight"
+    ];
+
+    for (var i = 0; i < columnFields.length; i++) {
+        var sortButtonContainer = $('<div class="gauntlet-sort-buttons gauntlet-column-absolute-position-' + columnFields[i] + '"/>')
+            .appendTo(_parentDiv);
+        this.addSortButton(
+            sortButtonContainer,
+            columnFields[i]
+        );
+    }
+
+}
+
 GauntletPoolEditorScreen.prototype.addFlagsIconRow = function (_parentDiv) {
     var iconRow = $(
         '<div class ="flags-icon-container"/>'
     );
     _parentDiv.append(iconRow)
 
-    var iconAssetList = [
-        Asset.ICON_RANGE_SKILL,
-        Asset.ICON_DAMAGE_RECEIVED,
-        Asset.ICON_CENTER,
-        Asset.ICON_CHANCE_TO_HIT_HEAD
-    ]
     for (var key in ModGauntletEvents.AvailableFlags) {
         var flag = ModGauntletEvents.AvailableFlags[key];
         var iconLayout = $('<div class="flags-icon-layout"/>');
@@ -675,6 +796,7 @@ GauntletPoolEditorScreen.prototype.addListEntry = function (_data) {
     );
 
     result.append(name);
+    result.data("unitname", name);
 
     result.rowButtonCallback = function () {
         self.onTableInputChanged();
@@ -1002,6 +1124,12 @@ GauntletPoolEditorScreen.prototype.createRowActionButton = function (
 
     return button;
 };
+
+
+GauntletPoolEditorScreen.prototype.capitalizeFirstLetter = function (val) {
+    return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+}
+
 
 GauntletPoolEditorScreen.prototype.createOverlayImageButton = function (
     _container,
@@ -1392,7 +1520,7 @@ GauntletPoolEditorScreen.prototype.loadFromData = function (_data) {
         this.markClean();
         return;
     }
-    this.mData.Pools.sort(this.compareOrder);
+    this.mData.Pools.sort(this.comparePoolOrder);
     // Set default pool
     var defaultPool = this.mData.Pools[0];
     if ("PreviousPoolPicked" in this.mData && this.mData.PreviousPoolPicked !== null) {

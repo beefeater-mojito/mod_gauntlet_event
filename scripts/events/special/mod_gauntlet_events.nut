@@ -410,12 +410,13 @@ local GauntletManager = function() {
 			switch (_unit.Type.ID) {
 				case this.Const.EntityType.GoblinShaman:
 				case this.Const.EntityType.Necromancer:
-					return !(_unit.Type.ID in this.m.EnemyBucket) ||
-						this.m.EnemyBucket[_unit.Type.ID] <= 1;
+					// cannotAdd = (id in bucket) && (bucket[id] >= 1)
+					return !(_unit.Type.ID in this.m.EnemyBucket) || 
+						this.m.EnemyBucket[_unit.Type.ID] < 1;
 				case this.Const.EntityType.Hexe:
 				case this.Const.EntityType.FaultFinder:
 					return !(_unit.Type.ID in this.m.EnemyBucket) ||
-						this.m.EnemyBucket[_unit.Type.ID] <= 2;
+						this.m.EnemyBucket[_unit.Type.ID] < 2;
 			}
 			return true
 		}
@@ -465,7 +466,7 @@ local GauntletManager = function() {
 			}
 			// this.m.SpawnList.Troops.append(member);
 
-			this.m.SpawnList.Cost += _unit.Type.Cost;
+			this.m.SpawnList.Cost += _unit.Type.Cost * num;
 			this.m.RemainingDifficulty -= _unit.DifficultyRating;
 			this.m.TroopNum += num;
 
@@ -495,7 +496,7 @@ local GauntletManager = function() {
 				} else {
 					this.m.MeleeTroops.append(member)
 				}
-				this.m.SpawnList.Cost += co.Type.Cost;
+				this.m.SpawnList.Cost += co.Type.Cost * num;
 				// Cospawns do not add toward troops' number,
 				// instead they should be treated as one block,
 				// and based on the main unit's num
@@ -539,7 +540,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 				Text = "To battle!",
 				function getResult(_event) {
 					_event.registerToShowAfterCombat("Survived", "Survived");
-					::ModGauntletEvents.Setup.preparePropertiesAndStartCombat(_event);
+					_events.preparePropertiesAndStartCombat();
 					return 1; // 1 so that processInput doesn't throw a fuss
 				}
 			}],
@@ -898,6 +899,55 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			}
 		);
 		return boss_spawnlist
+	}
+
+	function preparePropertiesAndStartCombat(
+		_days = null,
+		_diffScore = null,
+		_allowLooting = null
+	) {
+		local properties = this.World.State.getLocalCombatProperties(this.World.State.getPlayer().getPos());
+		properties.CombatID = "Event";
+
+		local music_arr = [];
+		music_arr.extend(this.Const.Music.NobleTracks);
+		music_arr.extend(this.Const.Music.BarbarianTracks);
+		music_arr.extend(this.Const.Music.BanditTracks);
+		music_arr.extend(this.Const.Music.UndeadTracks);
+		music_arr.extend(this.Const.Music.OrientalCityStateTracks);
+		music_arr.extend(this.Const.Music.OrcsTracks);
+		music_arr.extend(this.Const.Music.GoblinsTracks);
+
+		properties.Music = music_arr;
+		properties.IsAutoAssigningBases = false;
+		properties.Entities = [];
+		properties.IsFleeingProhibited = true;
+		properties.IsArenaMode = !( // note that we negate the inside expr
+			_allowLooting != null ?
+			_allowLooting : this.m.AllowLooting
+		);
+		properties.PlayerDeploymentType = this.Const.Tactical.DeploymentType.Line;
+		properties.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Line;
+		properties.AllyBanners = [
+			this.World.Assets.getBanner()
+		];
+
+		local spawnlist = this.generateSpawnListBasedOnDay(_days, _diffScore);
+		local resource = spawnlist.Cost + 100;
+
+		local champion_spawnlist = this.getBossSpawnList(spawnlist)
+		local champion_spawnlist_arr = [];
+		champion_spawnlist_arr.append(champion_spawnlist)
+
+		this.Const.World.Common.addUnitsToCombat(properties.Entities, champion_spawnlist_arr, resource, this.Const.Faction.Enemy, 150)
+		local spawnlist_arr = [];
+		spawnlist_arr.append(spawnlist);
+
+		this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy, -150)
+		this.logDebug(this.getDebugInit() + "properties.Entities constructed. Prepare to fight!");
+	
+		this.World.Contracts.startScriptedCombat(properties, false, true, true);
+		return 1;
 	}
 
 });

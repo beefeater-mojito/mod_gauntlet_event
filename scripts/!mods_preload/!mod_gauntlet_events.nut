@@ -1,7 +1,7 @@
 ::ModGauntletEvents <- {
 	ID = "mod_gauntlet_events",
 	Name = "The Gauntlet",
-	Version = "1.2.2",
+	Version = "1.2.3",
 }
 // Instantiate the Modern Hooks object, add MSU as a requirement, and queue after MSU
 // https://bbmodding.enduriel.com/docs/modern-hooks/mod-object/

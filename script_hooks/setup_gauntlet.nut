@@ -158,62 +158,10 @@ this.setup_gauntlet <- {
 			this.World.Assets.addMedicine(supplies.Medicine);
 			this.World.Assets.addAmmo(supplies.Ammo);
 		}
-
-		return this.preparePropertiesAndStartCombat(
-			event,
+		return _event.preparePropertiesAndStartCombat(
 			_combatSetting.Days,
 			_combatSetting.DifficultyScore,
 			_combatSetting.AllowLooting
-		);
-	}
-
-	function preparePropertiesAndStartCombat(
-		_event,
-		_days = null,
-		_diffScore = null,
-		_allowLooting = null
-	) {
-		local properties = this.World.State.getLocalCombatProperties(this.World.State.getPlayer().getPos());
-		properties.CombatID = "Event";
-
-		local music_arr = [];
-		music_arr.extend(this.Const.Music.NobleTracks);
-		music_arr.extend(this.Const.Music.BarbarianTracks);
-		music_arr.extend(this.Const.Music.BanditTracks);
-		music_arr.extend(this.Const.Music.UndeadTracks);
-		music_arr.extend(this.Const.Music.OrientalCityStateTracks);
-		music_arr.extend(this.Const.Music.OrcsTracks);
-		music_arr.extend(this.Const.Music.GoblinsTracks);
-
-		properties.Music = music_arr;
-		properties.IsAutoAssigningBases = false;
-		properties.Entities = [];
-		properties.IsFleeingProhibited = true;
-		properties.IsArenaMode = !( // note that we negate the inside expr
-			_allowLooting != null ?
-			_allowLooting : _event.m.AllowLooting
-		);
-		properties.PlayerDeploymentType = this.Const.Tactical.DeploymentType.Line;
-		properties.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Line;
-		properties.AllyBanners = [
-			this.World.Assets.getBanner()
-		];
-
-		local spawnlist = _event.generateSpawnListBasedOnDay(_days, _diffScore);
-		local resource = spawnlist.Cost + 100;
-
-		local champion_spawnlist = _event.getBossSpawnList(spawnlist)
-		local champion_spawnlist_arr = [];
-		champion_spawnlist_arr.append(champion_spawnlist)
-
-		this.Const.World.Common.addUnitsToCombat(properties.Entities, champion_spawnlist_arr, resource, this.Const.Faction.Enemy, 150)
-		local spawnlist_arr = [];
-		spawnlist_arr.append(spawnlist);
-
-		this.Const.World.Common.addUnitsToCombat(properties.Entities, spawnlist_arr, resource, this.Const.Faction.Enemy, -150)
-		this.logDebug(this.getDebugInit() + "properties.Entities constructed. Prepare to fight!");
-	
-		this.World.Contracts.startScriptedCombat(properties, false, true, true);
-		return 1;
+		)
 	}
 }
