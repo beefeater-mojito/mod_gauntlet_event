@@ -630,7 +630,7 @@ GauntletPoolEditorScreen.prototype.updatePoolMetadata = function () {
             }
         }
     )
-    
+
     this.mDialogContainer.findDialogSubTitle().text(
         "The pool " +
         this.mSelectedPool.Name +
@@ -1838,8 +1838,8 @@ GauntletPoolEditorScreen.prototype.startCombat = function () {
     // collect combat setting
     var content = this.mPopup.find(".gauntlet-generic-popup-container")
 
-    var days = content.data("days");
-    var diffScore = content.data("diffScore");
+    var days = content.data(ModGauntletEvents.CombatSetting.Days.Id);
+    var diffScore = content.data(ModGauntletEvents.CombatSetting.DifficultyScore.Id);
     var checkBoxMap = content.data("combatSettingCheckboxes");
     var allowLootingCheckbox = checkBoxMap["gauntlet-checkbox-allowlooting"];
     var giveSuppliesCheckbox = checkBoxMap["gauntlet-checkbox-allowsupplies"];
@@ -1883,13 +1883,14 @@ GauntletPoolEditorScreen.prototype.createStartCombatPopup = function () {
         + "Difficulty Score" +
         '<div/>'
     )
+    var diffScoreProperty = ModGauntletEvents.CombatSetting.DifficultyScore
     this.addInputFieldToTable(
         diffScoreContainer,
-        ModGauntletEvents.CombatSetting.DifficultyScore,
+        diffScoreProperty,
         combatSetting.DifficultyScore,
         null
     ).bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.CombatPopup.DifficultyScore" })
-    content.data(diffScoreId, diffScoreContainer.data(diffScoreId)) // real clunky, i know
+    content.data(diffScoreProperty.Id, diffScoreContainer.data(diffScoreProperty.Id)) // real clunky, i know
     // days
     var daysContainer = $('<div class="gauntlet-popup-input-container">')
         .appendTo(content);
@@ -1898,14 +1899,14 @@ GauntletPoolEditorScreen.prototype.createStartCombatPopup = function () {
         + "Days combat taken place" +
         '<div/>'
     )
-    var daysId = "days"
+    var daysProperty = ModGauntletEvents.CombatSetting.Days
     this.addInputFieldToTable(
         daysContainer,
-        ModGauntletEvents.CombatSetting.Days,
+        daysProperty,
         combatSetting.Days,
         null
     ).bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.CombatPopup.Days" })
-    content.data(daysId, daysContainer.data(daysId))
+    content.data(daysProperty.Id, daysContainer.data(daysProperty.Id))
     // TODO: booleans allowlooting allowsupplies checkboxes
     var checkboxMap = {};
     // allow looting
