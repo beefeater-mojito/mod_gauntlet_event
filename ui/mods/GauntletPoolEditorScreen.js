@@ -630,13 +630,14 @@ GauntletPoolEditorScreen.prototype.updatePoolMetadata = function () {
             }
         }
     )
+    
     this.mDialogContainer.findDialogSubTitle().text(
         "The pool " +
         this.mSelectedPool.Name +
         " contains " +
         leaderCount +
         " units, and a total weight of " +
-        totalWeight
+        totalWeight.toPrecision(6)
     );
 }
 
@@ -659,13 +660,17 @@ GauntletPoolEditorScreen.prototype.addInputFieldToTable = function (
     if (_callback !== "undefined" && _callback !== "null") {
         input.on("input", function () {
             var valid = self.validateInput(input, _property.Type)
-            inputLayout.toggleClass("is-invalid", !valid);
+            if (valid) {
+                input.removeClass("is-invalid")
+            } else {
+                input.addClass("is-invalid")
+            }
             _callback();
         });
     } else {
         input.on("input", function () {
             var valid = self.validateInput(input, _property.Type)
-            inputLayout.toggleClass("is-invalid", !valid);
+            input.toggleClass("is-invalid", !valid);
         });
     }
 
@@ -1896,7 +1901,7 @@ GauntletPoolEditorScreen.prototype.createStartCombatPopup = function () {
     var daysId = "days"
     this.addInputFieldToTable(
         daysContainer,
-         ModGauntletEvents.CombatSetting.Days,
+        ModGauntletEvents.CombatSetting.Days,
         combatSetting.Days,
         null
     ).bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.CombatPopup.Days" })
