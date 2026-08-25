@@ -467,12 +467,13 @@ GauntletPoolEditorScreen.prototype.comparePoolOrder = function (_poolA, _poolB) 
     return x - y;
 }
 
-GauntletPoolEditorScreen.prototype.getAvailableUnitSubProperties = function (_entry) {
+GauntletPoolEditorScreen.prototype.getAvailableUnitSubProperties = function (_subpropKey) {
     var unitClass = ModGauntletEvents.UnitProperties;
     var availableSubproperties = [];
-    for (var property in unitClass) {
-        if (property.hasOwnProperty(_entry)) {
-            availableSubproperties.append(property[subproperty])
+    for (var propertyKey in unitClass) {
+        var property = unitClass[propertyKey]
+        if (property.hasOwnProperty(_subpropKey)) {
+            availableSubproperties.push(property[_subpropKey])
         }
     }
     return availableSubproperties
