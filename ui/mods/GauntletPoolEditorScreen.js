@@ -22,33 +22,47 @@ var ModGauntletEvents = {
     UnitProperties: { // TODO: map hard-coded value to this
         Name: {
             Id: "name",
-            Value: null,
             ClassName: "name",
             Type: "String"
         },
         Num: {
             Id: "num",
-            Value: null,
             ClassName: "unitnum",
-            Type: "Number"
+            Type: "Integer"
         },
         DifficultyRating: {
             Id: "dr",
-            Value: null,
             ClassName: "drscore",
             Type: "Number"
         },
         Weight: {
             Id: "weight",
-            Value: null,
             ClassName: "weight",
             Type: "Number"
+        }
+    },
+    CoSpawnProperties: {
+        Name: {
+            Id: "name",
+            ClassName: "name",
+            Type: "String"
         },
-        Flags: { // key/pair for indexing
-            IsRange: false,
-            IsCrowdControl: false,
-            IsSquishyMelee: false,
-            IsBoss: false
+        Num: {
+            Id: "num",
+            ClassName: "unitnum",
+            Type: "Integer"
+        }
+    },
+    CombatSetting: {
+        DifficultyScore: {
+            Id: "diffScore",
+            ClassName: "",
+            Type: "Number"
+        },
+        Days: {
+            Id: "days",
+            ClassName: "",
+            Type: "Integer"
         }
     },
     GauntletPoolOrder: [
@@ -112,6 +126,8 @@ var GauntletPoolEditorScreen = function (_parent) {
 
     this.mPopup = null;
     this.mIconRow = null;
+
+    this.mLastInvalidInput = null;
 };
 
 GauntletPoolEditorScreen.prototype = Object.create(MSUUIScreen.prototype)
@@ -318,7 +334,10 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
         this.mSaveButtonLayout.createTextButton(
             "Save",
             function () {
-                self.saveCurrentPool();
+                var success = self.saveCurrentPool();
+                if (!success) {
+                    self.createInvalidInputPopup(self.mLastInvalidInput);
+                }
             },
             '',
             1
@@ -349,7 +368,7 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
             '',
             1
         );
-    this.mStartCombatButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.RestoreThis" });
+    this.mStartCombatButton.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.FootbarButton.StartCombat" });
     // Restore default
     this.mRestoreDefaultButtonLayout =
         $('<div class="gauntlet-text-button-layout"/>');
@@ -368,6 +387,21 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
     this.addSortIconRow(this.mIconRow);
     this.mIsVisible = false;
 };
+
+GauntletPoolEditorScreen.prototype.createInvalidInputPopup = function (_unitName) {
+    var content = this.createPopup(
+        "Input Validation Failed",
+        'gauntlet-generic-popup gauntlet-unsaved-popup',
+        'gauntlet-generic-popup-container'
+    )
+    var message = $(
+        '<div class="text-font-normal font-color-subtitle gauntlet-unsaved-message">' +
+        'Input validation fails on unit ' + _unitName +
+        '. Please make sure the input fields are correctly typed.' +
+        '</div>'
+    );
+    content.append(message);
+}
 
 GauntletPoolEditorScreen.prototype.createHelpPopup = function () {
     var self = this;
@@ -433,7 +467,23 @@ GauntletPoolEditorScreen.prototype.comparePoolOrder = function (_poolA, _poolB) 
     return x - y;
 }
 
+GauntletPoolEditorScreen.prototype.getAvailableUnitSubProperties = function (_entry) {
+    var unitClass = ModGauntletEvents.UnitProperties;
+    var availableSubproperties = [];
+    for (var property in unitClass) {
+        if (property.hasOwnProperty(_entry)) {
+            availableSubproperties.append(property[subproperty])
+        }
+    }
+    return availableSubproperties
+}
+
 GauntletPoolEditorScreen.prototype.getGroupLeaderUnitData = function (_group, _field) {
+    var availableId = this.getAvailableUnitSubProperties("Id");
+    if (availableId.indexOf(_field) === -1) {
+        console.error("UNIT'S FIELD " + _field + " DOES NOT EXIST!");
+        return null;
+    }
     var group = $(_group); // convert JQuery to DOM?
     var parentRow = group.children(".l-row").first();
     if (parentRow.length === 0) {
@@ -446,7 +496,7 @@ GauntletPoolEditorScreen.prototype.getGroupLeaderUnitData = function (_group, _f
         val = Number(parentRow.data(_field).val());
     }
     if (val === null || val === undefined) {
-        console.error("INVALID FIELD INSIDE UNIT! _field=" + _field)
+        console.error("INVALID FIELD'S VALUE INSIDE UNIT! _field=" + _field)
         return null;
     }
     return val;
@@ -508,12 +558,7 @@ GauntletPoolEditorScreen.prototype.addSortIconRow = function (_parentDiv) {
     var self = this;
 
 
-    var columnFields = [
-        "name",
-        "num",
-        "dr",
-        "weight"
-    ];
+    var columnFields = this.getAvailableUnitSubProperties("Id");
 
     for (var i = 0; i < columnFields.length; i++) {
         var sortButtonContainer = $('<div class="gauntlet-sort-buttons gauntlet-column-absolute-position-' + columnFields[i] + '"/>')
@@ -564,10 +609,40 @@ GauntletPoolEditorScreen.prototype.onTableInputChanged = function () {
     this.markDirty();
 };
 
+GauntletPoolEditorScreen.prototype.updatePoolMetadata = function () {
+    var self = this;
+    var leaderCount = this.mListScrollContainer.children(".l-row-group").length;
+    var weightId = ModGauntletEvents.UnitProperties.Weight.Id;
+    var weightType = ModGauntletEvents.UnitProperties.Weight.Type;
+    var totalWeight = 0;
+    this.mListScrollContainer.children(".l-row-group").each(
+        function () {
+            var group = $(this);
+            var parentRow = group.children(".l-row").first();
+            var input = parentRow.data(weightId);
+            if (parentRow.length === 0) {
+                return;
+            }
+            if (self.validateInput(input, weightType)) {
+                totalWeight += Number(input.val());
+            } else {
+                totalWeight += 0;
+            }
+        }
+    )
+    this.mDialogContainer.findDialogSubTitle().text(
+        "The pool " +
+        this.mSelectedPool.Name +
+        " contains " +
+        leaderCount +
+        " units, and a total weight of " +
+        totalWeight
+    );
+}
+
 GauntletPoolEditorScreen.prototype.addInputFieldToTable = function (
     _parent,
-    _field,
-    _class,
+    _property,
     _value,
     _callback
 ) {
@@ -578,18 +653,70 @@ GauntletPoolEditorScreen.prototype.addInputFieldToTable = function (
         '<input type="text" class="title-font-normal font-color-subtitle short-input"/>'
     );
 
-    inputLayout.addClass(_class);
+    inputLayout.addClass(_property.ClassName);
     input.val(_value);
 
     if (_callback !== "undefined" && _callback !== "null") {
-        input.on("input", _callback);
+        input.on("input", function () {
+            var valid = self.validateInput(input, _property.Type)
+            inputLayout.toggleClass("is-invalid", !valid);
+            _callback();
+        });
+    } else {
+        input.on("input", function () {
+            var valid = self.validateInput(input, _property.Type)
+            inputLayout.toggleClass("is-invalid", !valid);
+        });
     }
 
     _parent.append(inputLayout);
     inputLayout.append(input);
-    _parent.data(_field, input);
+    _parent.data(_property.Id, input);
     return inputLayout;
 };
+
+GauntletPoolEditorScreen.prototype.validateInput = function (
+    _input,
+    _type
+) {
+    if (_type === null || _type === undefined) {
+        console.error("WARNING: undefined type when type-checking! Assuming Integer.")
+        _type = "Integer";
+    }
+    var value = _input.val();
+    // this mess is because we cannot use 
+    // Number.isInteger and Number.isFinite,
+    // since those functions don't exist
+    if (_type === "Integer") {
+        var num = Number(value);
+        if (num === NaN) {
+            return false;
+        }
+        if (num - parseInt(num, 10) !== 0) {
+            return false
+        }
+        return num > 0;
+    }
+
+    if (_type === "Number") {
+        var num = Number(value);
+        if (num === NaN) {
+            return false;
+        }
+        return num > 0;
+    }
+
+    return true;
+}
+
+GauntletPoolEditorScreen.prototype.isValInteger = function (value) {
+    try {
+
+    } catch (exception) {
+        return false;
+    }
+    return true;
+}
 
 GauntletPoolEditorScreen.prototype.addCheckbox = function (
     _parent,
@@ -759,13 +886,6 @@ GauntletPoolEditorScreen.prototype.getFlagsFromRow = function (_row) {
 
     var flags = [];
 
-    var availableFlags = [
-        "IsRange",
-        "IsSquishyMelee",
-        "IsCrowdControl",
-        "IsBoss"
-    ];
-
     for (var flag in ModGauntletEvents.AvailableFlags) {
         var checkbox = checkboxMap[flag];
         if (checkbox !== undefined &&
@@ -801,29 +921,29 @@ GauntletPoolEditorScreen.prototype.addListEntry = function (_data) {
     result.rowButtonCallback = function () {
         self.onTableInputChanged();
     }
-
+    var property = ModGauntletEvents.UnitProperties;
     this.addInputFieldToTable(
         result,
-        "num",
-        "unitnum",
+        property.Num,
         _data.Num,
         result.rowButtonCallback
     );
 
     this.addInputFieldToTable(
         result,
-        "dr",
-        "drscore",
+        property.DifficultyRating,
         _data.DifficultyRating,
         result.rowButtonCallback
     );
 
     this.addInputFieldToTable(
         result,
-        "weight",
-        "weight",
+        property.Weight,
         _data.Weight,
-        result.rowButtonCallback
+        function () {
+            result.rowButtonCallback();
+            self.updatePoolMetadata();
+        }
     );
 
     this.addFlagCheckboxes(
@@ -861,12 +981,15 @@ GauntletPoolEditorScreen.prototype.addCoSpawnEntry = function (
     );
 
     result.append(name);
-
+    result.rowButtonCallback = function () {
+        self.onTableInputChanged();
+    }
+    var property = ModGauntletEvents.CoSpawnProperties
     this.addInputFieldToTable(
         result,
-        "num",
-        "unitnum",
-        _data.Num
+        property.Num,
+        _data.Num,
+        result.rowButtonCallback
     );
 
     var actions = $('<div class="gauntlet-row-actions"/>');
@@ -893,54 +1016,75 @@ GauntletPoolEditorScreen.prototype.collectCurrentPoolData = function () {
 
     var rows = this.mListScrollContainer.find(".l-row-group");
 
-    rows.each(function () {
-        var group = $(this);
-        var parentRow = group.children(".l-row").first();
-        if (parentRow.length === 0) {
-            return;
-        }
-
-        var numInput = parentRow.data("num");
-        var drInput = parentRow.data("dr");
-        var weightInput = parentRow.data("weight");
-
-        var troop = {
-            Name: parentRow.find(".name").text(),
-            Num: Number(numInput.val()),
-            DifficultyRating: Number(drInput.val()),
-            Weight: Number(weightInput.val()),
-            Flags: self.getFlagsFromRow(parentRow),
-            CoSpawn: []
-        };
-
-        group.children(".co-spawn-row").each(function () {
-            var coSpawnRow = $(this);
-
-            var coSpawnNumInput = coSpawnRow.data("num");
-
-            if (coSpawnNumInput === undefined || coSpawnNumInput === null) {
+    try {
+        rows.each(function () {
+            var group = $(this);
+            var parentRow = group.children(".l-row").first();
+            if (parentRow.length === 0) {
                 return;
             }
+            var unitProperty = ModGauntletEvents.UnitProperties
+            var unitName = parentRow.find(".name").text();
+            var numInput = parentRow.data(unitProperty.Num.Id);
+            var drInput = parentRow.data(unitProperty.DifficultyRating.Id);
+            var weightInput = parentRow.data(unitProperty.Weight.Id);
 
-            troop.CoSpawn.push({
-                Name: coSpawnRow
-                    .find(".name")
-                    .first()
-                    .text()
-                    .replace(/^└─\s*/, ""),
-                Num: Number(coSpawnNumInput.val())
+            var validInput = self.validateInput(numInput, "Integer")
+                && self.validateInput(drInput, "Number")
+                && self.validateInput(weightInput, "Number");
+            if (!validInput) {
+                var error = "VALIDATING FAILED ON UNIT " + unitName;
+                self.mLastInvalidInput = unitName;
+                throw error;
+            }
+
+            var troop = {
+                Name: unitName,
+                Num: String(Number(numInput.val())),
+                DifficultyRating: String(Number(drInput.val())),
+                Weight: String(Number(weightInput.val())),
+                Flags: self.getFlagsFromRow(parentRow),
+                CoSpawn: []
+            }
+            
+
+            group.children(".co-spawn-row").each(function () {
+                var coSpawnRow = $(this);
+
+                var coSpawnUnitName = coSpawnRow.find(".name").first()
+                    .text().replace(/^└─\s*/, "");
+                var coSpawnNumInput = coSpawnRow.data("num");
+
+                var validInput = self.validateInput(coSpawnNumInput, "Integer")
+                if (!validInput) {
+                    var error = "VALIDATING FAILED ON CO-SPAWN " + coSpawnUnitName;
+                    self.mLastInvalidInput = unitName + "'s cospawn: " + coSpawnUnitName;
+                    throw error;
+                }
+
+                troop.CoSpawn.push({
+                    Name: coSpawnUnitName,
+                    Num: String(Number(coSpawnNumInput.val()))
+                });
             });
+
+            pool.Troops.push(troop);
         });
+    } catch (error) {
+        console.error(error)
+        return null;
+    }
 
-        pool.Troops.push(troop);
-    });
 
+    this.mLastInvalidInput = null;
     return pool;
 };
 
-GauntletPoolEditorScreen.prototype.saveCurrentPoolToBackend = function (
+GauntletPoolEditorScreen.prototype.notifyBackendOnSaveCurrentPool = function (
     _pool
 ) {
+    // console.error("Sending Weight:" + _pool.Troops[0].Weight);
+    // console.error("Sending DR:" + _pool.Troops[0].DifficultyRating);
     if (this.mSQHandle === null) {
         console.error("Cannot save pool: screen is not connected.");
         return false;
@@ -955,8 +1099,12 @@ GauntletPoolEditorScreen.prototype.saveCurrentPool = function () {
     }
 
     var pool = this.collectCurrentPoolData();
+    if (pool === null) {
+        console.error("Failed to collect pool data!");
+        return false
+    }
 
-    var success = this.saveCurrentPoolToBackend(pool);
+    var success = this.notifyBackendOnSaveCurrentPool(pool);
 
     if (success) {
         this.mSelectedPool.Troops = pool.Troops;
@@ -971,11 +1119,10 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
     _onDiscard
 ) {
     var self = this;
-    this.createUnsavedWarningPopup(
+    this.createWarningPopup(
         "Unsaved Changes",
         'You have unsaved changes to this pool. What would you like to do?'
     )
-
 
     var footerButtonBar = this.mPopup
         .findPopupDialogFooterContainer();
@@ -989,12 +1136,13 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
         function () {
             var saved = self.saveCurrentPool();
 
-            if (!saved) {
-                return;
-            }
-
             self.destroyPopupDialog();
             self.mPopup = null;
+
+            if (!saved) {
+                self.createInvalidInputPopup(self.mLastInvalidInput)
+                return;
+            }
 
             if (_onSave !== undefined && _onSave !== null) {
                 _onSave();
@@ -1023,7 +1171,6 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
         '',
         1
     )
-    // discardButtonLayout.append(discardButton)
 
     var cancelButtonLayout = $('<div class="popup-text-button-layout"/>');
     footerButtonBar.append(cancelButtonLayout)
@@ -1037,7 +1184,6 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
         '',
         1
     )
-    // cancelButtonLayout.append(cancelButton)
 
 };
 
@@ -1054,6 +1200,7 @@ GauntletPoolEditorScreen.prototype.discardCurrentPoolChanges = function () {
     }
 
     this.markClean();
+    this.updatePoolMetadata();
 };
 
 GauntletPoolEditorScreen.prototype.confirmDiscardBefore = function (
@@ -1077,14 +1224,6 @@ GauntletPoolEditorScreen.prototype.confirmDiscardBefore = function (
 GauntletPoolEditorScreen.prototype.switchToPool = function (_selectedEntry) {
     this.mSelectedPool = _selectedEntry;
 
-    this.mDialogContainer.findDialogSubTitle().text(
-        "The pool " +
-        _selectedEntry.Name +
-        " contains " +
-        _selectedEntry.Troops.length +
-        " units"
-    );
-
     this.mListScrollContainer.empty();
 
     for (var i = 0; i < _selectedEntry.Troops.length; ++i) {
@@ -1092,6 +1231,7 @@ GauntletPoolEditorScreen.prototype.switchToPool = function (_selectedEntry) {
     }
 
     this.markClean();
+    this.updatePoolMetadata();
 };
 
 GauntletPoolEditorScreen.prototype.createRowActionButton = function (
@@ -1169,6 +1309,7 @@ GauntletPoolEditorScreen.prototype.createRowActions = function (
 
             if (_group !== null && _group !== undefined) {
                 _group.remove();
+                self.updatePoolMetadata();
             } else {
                 _row.remove();
             }
@@ -1280,25 +1421,12 @@ GauntletPoolEditorScreen.prototype.show = function (_data) {
 
 GauntletPoolEditorScreen.prototype.showFailedToFetchData = function () {
     this.doStartAnimation();
-    this.mPopup = this.createPopup(
-        "Failed to load data from files",
-        "",
-        null,
-        "gauntlet-generic-popup gauntlet-unsaved-popup"
+    var popup = this.createWarningPopup(
+        "Loading Failed",
+        "Loading the gauntlet data from the file has failed. Press \'OK\' to restore to the default data. If unsured, please make a backup before proceeding."
     )
-    this.setPopupDialog(this.mPopup)
-    var content = this.mPopup.addPopupDialogContent(
-        $('<div class="gauntlet-generic-popup-container"/>')
-    );
 
-    var message = $(
-        '<div class="title-font-normal font-color-subtitle gauntlet-unsaved-message">' +
-        'Loading the gauntlet data from the file has failed. Press \'OK\' to restore to the default data.' +
-        '</div>'
-    );
-
-    content.append(message);
-    this.mPopup.addPopupDialogOkButton(
+    popup.addPopupDialogOkButton(
         function () {
             self.notifyBackendOnRestoreDefaultAll();
 
@@ -1308,7 +1436,7 @@ GauntletPoolEditorScreen.prototype.showFailedToFetchData = function () {
         false
     );
 
-    this.mPopup.addPopupDialogCancelButton(
+    popup.addPopupDialogCancelButton(
         function () {
             self.destroyPopupDialog();
             self.mPopup = null;
@@ -1525,8 +1653,8 @@ GauntletPoolEditorScreen.prototype.loadFromData = function (_data) {
     var defaultPool = this.mData.Pools[0];
     if ("PreviousPoolPicked" in this.mData && this.mData.PreviousPoolPicked !== null) {
         var previousPool = null;
-        for (var poolIdx in this.mData.Pools) { // old js only supports for... in?
-            var pool = this.mData.Pools[poolIdx]
+        for (var i = 0; i < this.mData.Pools.length; i++) { // old js only supports for... in?
+            var pool = this.mData.Pools[i]
             if (pool.Name === this.mData.PreviousPoolPicked) {
                 previousPool = pool;
                 break;
@@ -1654,6 +1782,7 @@ GauntletPoolEditorScreen.prototype.createAddUnitScrollContainer = function (_dia
             }
             if (_coSpawnGroup === null) {
                 this.addListEntry(data)
+                this.updatePoolMetadata()
             } else {
                 this.addCoSpawnEntry(_coSpawnGroup, data)
             }
@@ -1667,7 +1796,7 @@ GauntletPoolEditorScreen.prototype.createAddUnitScrollContainer = function (_dia
     this.focusActiveFilterBar();
 }
 
-GauntletPoolEditorScreen.prototype.createUnsavedWarningPopup = function (
+GauntletPoolEditorScreen.prototype.createWarningPopup = function (
     _title,
     _message
 ) {
@@ -1749,12 +1878,11 @@ GauntletPoolEditorScreen.prototype.createStartCombatPopup = function () {
         + "Difficulty Score" +
         '<div/>'
     )
-    var diffScoreId = "diffScore";
     this.addInputFieldToTable(
         diffScoreContainer,
-        diffScoreId,
-        '',
-        combatSetting.DifficultyScore
+        ModGauntletEvents.CombatSetting.DifficultyScore,
+        combatSetting.DifficultyScore,
+        null
     ).bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.CombatPopup.DifficultyScore" })
     content.data(diffScoreId, diffScoreContainer.data(diffScoreId)) // real clunky, i know
     // days
@@ -1768,9 +1896,9 @@ GauntletPoolEditorScreen.prototype.createStartCombatPopup = function () {
     var daysId = "days"
     this.addInputFieldToTable(
         daysContainer,
-        daysId,
-        '',
-        combatSetting.Days
+         ModGauntletEvents.CombatSetting.Days,
+        combatSetting.Days,
+        null
     ).bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: "GauntletEditorScreen.CombatPopup.Days" })
     content.data(daysId, daysContainer.data(daysId))
     // TODO: booleans allowlooting allowsupplies checkboxes
@@ -1823,13 +1951,15 @@ GauntletPoolEditorScreen.prototype.createStartCombatPopup = function () {
 
 GauntletPoolEditorScreen.prototype.createRestoreDefaultThisPopup = function () {
     var self = this;
-    this.createUnsavedWarningPopup(
+    this.createWarningPopup(
         "Restoring to default data",
         'You are about to restore the data of this pool to its default value. Confirm?'
     )
 
     this.mPopup.addPopupDialogOkButton(
         function () {
+            self.discardCurrentPoolChanges();
+
             var poolName = self.mSelectedPool.Name
             self.notifyBackendOnRestoreDefaultThis(poolName);
 
@@ -1850,13 +1980,14 @@ GauntletPoolEditorScreen.prototype.createRestoreDefaultThisPopup = function () {
 
 GauntletPoolEditorScreen.prototype.createRestoreDefaultAllPopup = function () {
     var self = this;
-    this.createUnsavedWarningPopup(
+    this.createWarningPopup(
         "Restoring to default data",
         'You are about to restore the data of **EVERY POOL** to their default value. Confirm?'
     )
 
     this.mPopup.addPopupDialogOkButton(
         function () {
+            self.discardCurrentPoolChanges();
             self.notifyBackendOnRestoreDefaultAll();
 
             self.destroyPopupDialog();

@@ -44,8 +44,9 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 			local data = null;
 			try {
 				data = this.queryData();
-			} catch (exception){
-				::logError("FAIL TO READ GAUNTLET DATA FILE!")
+			} catch (exception) {
+				::logError("FAIL TO READ GAUNTLET DATA FILE!");
+
 				::logError(exception)
 				this.m.JSHandle.asyncCall("showFailedToFetchData")
 				// throw exception;
@@ -74,22 +75,18 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 	}
 
 	function onSaveGauntletPool(_pool) {
-		local mod = ::ModGauntletEvents.Mod
-		local filename = ::ModGauntletEvents.Setup.getFilename()
-		local writeData = mod.PersistentData.readFile(filename)
-		if (!(_pool.Name in writeData)) {
-			writeData[_pool.Name] <- {
-				Pool = []
-			}
-		}
-		writeData[_pool.Name].Pool = this.constructPoolFromJSON(_pool.Troops)
-		mod.PersistentData.createFile(filename, writeData)
+		// ::logDebug("Received unit's weight: " + _pool.Troops[0].Weight);
+		// ::logDebug("Received unit's DR: " + _pool.Troops[0].DifficultyRating);
+		local poolKey = _pool.Name;
+		local poolProperty = {
+			Pool = []
+		};
+		poolProperty.Pool = this.constructPoolFromJSON(_pool.Troops);
 
-		local readData = mod.PersistentData.readFile(filename)
-		assert(::MSU.deepEquals(writeData, readData))
+		::ModGauntletEvents.Setup.writePoolToFile(poolKey, poolProperty);
 	}
 
-	function onRestoreDefault(_name){
+	function onRestoreDefault(_name) {
 		::ModGauntletEvents.Setup.defaultOverwritePool(_name)
 		if (this.m.JSHandle != null) {
 			this.Tooltip.hide();
@@ -107,16 +104,40 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 
 	function onStartCombat(_combatSetting) {
 		this.hide();
+
 		::ModGauntletEvents.Setup.startGauntletCombat(_combatSetting);
 	}
 
-	// data query
-	function constructCoSpawnFromJSON(_JSONarr){
+	function extractValueFromStr(_value, _type) {
+		try {
+			if (typeof _value != "string") {
+				::logError("INVALID VALUE'S TYPE: " + typeof _value)
+			}
+			if (_type == "integer") {
+				return _value.tointeger();
+			}
+			if (_type == "float") {
+				return _value.tofloat();
+			}
+			if (_type == "number") {
+				if (_value.tointeger() && _value.find(".") == null) {
+					return _value.tointeger();
+				}
+				return _value.tofloat();
+			}
+			return _value;
+		} catch (exception) {
+			throw exception;
+		}
+		return null;
+	}
+
+	function constructCoSpawnFromJSON(_JSONarr) {
 		local pool = []
-		foreach(unit in _JSONarr){
+		foreach(unit in _JSONarr) {
 			local data = {
 				UnitKey = unit.Name,
-				Num = unit.Num
+				Num = this.extractValueFromStr(unit.Num, "integer")
 			}
 			pool.append(data);
 		}
@@ -128,9 +149,9 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		foreach(unit in _JSONpool) {
 			local data = {
 				UnitKey = unit.Name,
-				Num = unit.Num,
-				DifficultyRating = unit.DifficultyRating,
-				Weight = unit.Weight
+				Num = this.extractValueFromStr(unit.Num, "integer"),
+				DifficultyRating = this.extractValueFromStr(unit.DifficultyRating, "number"),
+				Weight = this.extractValueFromStr(unit.Weight, "number"),
 				CoSpawn = this.constructCoSpawnFromJSON(unit.CoSpawn)
 			}
 			foreach(flag in unit.Flags) {
@@ -145,12 +166,13 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		return pool
 	}
 
+	// data query
 	function gatherUnitFlags(_unit) {
 		local esssential_fields = ["UnitKey", "Num", "Weight", "DifficultyRating", "CoSpawn"]
 		local ret = []
 		foreach(key, value in _unit) {
-			if (esssential_fields.find(key) != null
-			||	!(value)) {
+			if (esssential_fields.find(key) != null ||
+				!(value)) {
 				// ::logDebug("Key of unit: " + key)
 				continue;
 			}
@@ -158,6 +180,7 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 		}
 		return ret
 	}
+
 
 	function queryCoSpawn(_unit) {
 		if (!("CoSpawn" in _unit)) {
@@ -168,7 +191,7 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 			local num = "Num" in co ? co.Num : 1;
 			arr.append({
 				Name = co.UnitKey,
-				Num = num
+				Num = num.tostring()
 			})
 		}
 		return arr
@@ -182,9 +205,9 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 
 			ret_pool.append({
 				Name = unit.UnitKey,
-				Num = "Num" in unit ? unit.Num : 1,
-				DifficultyRating = "DifficultyRating" in unit ? unit.DifficultyRating : null,
-				Weight = "Weight" in unit ? unit.Weight : 1,
+				Num = "Num" in unit ? unit.Num.tostring() : 1,
+				DifficultyRating = "DifficultyRating" in unit ? unit.DifficultyRating.tostring() : null,
+				Weight = "Weight" in unit ? unit.Weight.tostring() : 1,
 				Flags = unitFlags,
 				CoSpawn = this.queryCoSpawn(unit)
 			})
@@ -199,9 +222,8 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 
 	function getFormattedPool(_poolName, _poolProperties) {
 		local forceFlags =
-			"ForceFlags" in _poolProperties
-			? _poolProperties.ForceFlags
-			: [];
+			"ForceFlags" in _poolProperties ?
+			_poolProperties.ForceFlags : [];
 		local pool = {
 			Name = _poolName,
 			ForceFlags = forceFlags,

@@ -26,10 +26,22 @@ this.setup_gauntlet <- {
 		return this.m.GauntletEventID
 	}
 
+
 	function assertUnitDataIsCorrect(_unit) {
 		try {
 			assert("UnitKey" in _unit && _unit.UnitKey in ::Const.World.Spawn.Troops)
 			assert("DifficultyRating" in _unit && _unit.DifficultyRating > 0)
+			if ("Weight" in _unit){
+				assert(_unit.Weight > 0);
+			}
+			if ("Num" in _unit){
+				assert(typeof _unit.Num == "integer" && _unit.Num > 0);
+			}
+			if ("CoSpawn" in _unit){
+				foreach(co in _unit.CoSpawn){
+					assert(this.assertCoSpawnDataIsCorrect(co))
+				}
+			}
 		} catch (exception) {
 			::logError(this.m.GauntletDebugInit + "ERROR WHILE READING THIS UNIT DATA");
 			::logError(exception);
@@ -40,17 +52,31 @@ this.setup_gauntlet <- {
 		return true;
 	}
 
-	function assertPoolDataIsCorrect(_pool) {
+	function assertCoSpawnDataIsCorrect(_cospawn) {
 		try {
-			assert("Pool" in _pool && typeof _pool.Pool == "array")
+			assert("UnitKey" in _cospawn && _cospawn.UnitKey in ::Const.World.Spawn.Troops);
+			if ("Num" in _cospawn){
+				assert(typeof _cospawn.Num == "integer" && _cospawn.Num > 0);
+			}
+		} catch (exception){
+			::logError(this.m.GauntletDebugInit + "ERROR WHILE READING THIS COSPAWN DATA");
+			::logError(exception);
+			return false;
+		}
+		return true;
+	}
+
+	function assertPoolPropertyIsCorrect(_poolProperty) {
+		try {
+			assert("Pool" in _poolProperty && typeof _poolProperty.Pool == "array")
 		} catch (exception) {
 			::logError(this.m.GauntletDebugInit + "ERROR WHILE READING THIS POOL DATA");
 			::logError(exception);
 			::logError("POOL OBJ DUMP!");
-			::MSU.Log.printData(_pool, 1, false);
+			::MSU.Log.printData(_poolProperty, 1, false);
 			return false;
 		}
-		foreach(unit in _pool.Pool) {
+		foreach(unit in _poolProperty.Pool) {
 			if (!(this.assertUnitDataIsCorrect(unit))) {
 				return false
 			}
@@ -68,7 +94,7 @@ this.setup_gauntlet <- {
 				throw "INVALID DATA IN FILE!";
 			}
 			foreach(poolName, poolProperty in readData) {
-				if (!(this.assertPoolDataIsCorrect(poolProperty))) {
+				if (!(this.assertPoolPropertyIsCorrect(poolProperty))) {
 					return false
 				}
 			}
@@ -79,6 +105,28 @@ this.setup_gauntlet <- {
 		}
 
 		return true
+	}
+
+	function writePoolToFile(_poolKey, _poolProperty) {
+		::logDebug("VERIFYING POOL TO BE SAVED!")
+		if(this.assertPoolPropertyIsCorrect(_poolProperty)){
+			::logDebug("VERIFYING POOL SUCCESS!")
+		} else {
+			::logDebug("VERIFYING POOL FAILED! ABORT SAVING!")
+			return;
+		}
+
+		local mod = ::ModGauntletEvents.Mod
+		local filename = this.getFilename()
+		local writeData = mod.PersistentData.readFile(filename)
+		if (!(_poolKey in writeData)) {
+			writeData[_poolKey] <- {}
+		}
+		writeData[_poolKey] = _poolProperty
+		mod.PersistentData.createFile(filename, writeData)
+
+		local readData = mod.PersistentData.readFile(filename)
+		assert(::MSU.deepEquals(writeData, readData))
 	}
 
 	function defaultOverwritePool(_poolName) {
@@ -153,7 +201,7 @@ this.setup_gauntlet <- {
 		if(_combatSetting.GiveSupplies){
 			::logDebug(this.getDebugInit() + "GIVING PLAYERS SUPPLIES")
 			local supplies = event.getSupplyFromSuppliesNum();
-			
+
 			this.World.Assets.addArmorParts(supplies.ArmorPart);
 			this.World.Assets.addMedicine(supplies.Medicine);
 			this.World.Assets.addAmmo(supplies.Ammo);
