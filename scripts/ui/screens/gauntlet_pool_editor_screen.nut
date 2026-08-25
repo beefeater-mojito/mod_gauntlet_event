@@ -120,7 +120,7 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 				return _value.tofloat();
 			}
 			if (_type == "number") {
-				if (_value.tointeger() && _value.find(".") == null) {
+				if (_value.find(".") == null) {
 					return _value.tointeger();
 				}
 				return _value.tofloat();
