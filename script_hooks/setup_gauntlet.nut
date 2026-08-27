@@ -179,13 +179,13 @@ this.setup_gauntlet <- {
 	function getDifficultyModifierBasedOnCombatDifficulty() {
 		switch (this.World.Assets.getCombatDifficulty()) {
 			case 0:
-				return 1.2;
+				return this.getModSettingValue("diff_mod_beginner", "float");
 			case 1:
-				return 1.35;
+				return this.getModSettingValue("diff_mod_veteran", "float");
 			case 2:
-				return 1.5;
+				return this.getModSettingValue("diff_mod_expert", "float");
 		}
-		return 1.5;
+		return this.getModSettingValue("diff_mod_expert", "float");
 	}
 
 	function calculateDifficultyScoreBasedOnDay(_days = null, _difficulty = null) {
@@ -195,21 +195,11 @@ this.setup_gauntlet <- {
 	}
 
 	function startGauntletCombat(_combatSetting) {
-		local event = ::World.Events.getEvent(this.getGauntletEventID());
-		event.onPrepare();
+		World.Statistics.getFlags().set("GauntletEditorCombat", true);
+		World.Statistics.getFlags().set("GauntletEditorCombatDifficultyScore", _combatSetting.DifficultyScore);
+		World.Statistics.getFlags().set("GauntletEditorCombatAllowLooting", _combatSetting.AllowLooting);
+		World.Statistics.getFlags().set("GauntletEditorCombatGiveSupplies", _combatSetting.GiveSupplies);
 
-		if(_combatSetting.GiveSupplies){
-			::logDebug(this.getDebugInit() + "GIVING PLAYERS SUPPLIES")
-			local supplies = event.getSupplyFromSuppliesNum();
-
-			this.World.Assets.addArmorParts(supplies.ArmorPart);
-			this.World.Assets.addMedicine(supplies.Medicine);
-			this.World.Assets.addAmmo(supplies.Ammo);
-		}
-		return event.preparePropertiesAndStartCombat(
-			_combatSetting.Days,
-			_combatSetting.DifficultyScore,
-			_combatSetting.AllowLooting
-		)
+		World.Events.fire(this.getGauntletEventID());
 	}
 }

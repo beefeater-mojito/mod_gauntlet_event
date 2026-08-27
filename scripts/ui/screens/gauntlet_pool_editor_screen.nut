@@ -41,17 +41,7 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 
 		if (this.m.JSHandle != null) {
 			this.Tooltip.hide();
-			local data = null;
-			try {
-				data = this.queryData();
-			} catch (exception) {
-				::logError("FAIL TO READ GAUNTLET DATA FILE!");
-
-				::logError(exception)
-				this.m.JSHandle.asyncCall("showFailedToFetchData")
-				// throw exception;
-				return;
-			}
+			local data = this.queryData();
 			this.m.JSHandle.asyncCall("show", data);
 		}
 	}
@@ -259,11 +249,9 @@ this.gauntlet_pool_editor_screen <- ::inherit("scripts/mods/msu/ui_screen", {
 
 	function querytInitialCombatSetting() {
 		local current_day = ::World.getTime().Days;
-		local difficulty = this.World.Assets.getCombatDifficulty();
-		local difficultyScore = ::ModGauntletEvents.Setup.calculateDifficultyScoreBasedOnDay(current_day, difficulty);
+		local difficultyScore = ::ModGauntletEvents.Setup.calculateDifficultyScoreBasedOnDay(current_day);
 		local ret = {
 			Days = current_day,
-			SetDifficulty = difficulty,
 			DifficultyScore = difficultyScore,
 			AllowLooting = false,
 			GiveSupplies = true

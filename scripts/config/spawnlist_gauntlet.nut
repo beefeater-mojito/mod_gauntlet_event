@@ -165,6 +165,14 @@ gt.Const.World.Spawn.GauntletEarly <- [
 			},
 			// undead
 			{
+				UnitKey = "ZombieNomad",
+				DifficultyRating = 1,
+				Weight = 2,
+				CoSpawn = [
+					{UnitKey = "Warhound"}
+				]
+			},
+			{
 				UnitKey = "ZombieKnight",
 				DifficultyRating = 3,
 				CoSpawn = [
@@ -175,16 +183,16 @@ gt.Const.World.Spawn.GauntletEarly <- [
 			},
 			{
 				UnitKey = "Ghost",
-				DifficultyRating = 7,
+				DifficultyRating = 6,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
 						UnitKey = "ZombieNomad",
-						Num = 2
+						Num = 1
 					},
 					{
 						UnitKey = "ZombieYeomanBodyguard",
-						Num = 2
+						Num = 1
 					},
 					{
 						UnitKey = "ArmoredWardog",
@@ -381,7 +389,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				UnitKey = "OrcWarlord",
-				DifficultyRating = 8
+				DifficultyRating = 7
 			},
 			// gobbo
 			{
@@ -396,7 +404,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				UnitKey = "GoblinOverseer",
-				DifficultyRating = 4,
+				DifficultyRating = 5,
 				IsRange = true
 			},
 			// beast
@@ -471,7 +479,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				UnitKey = "VampireLOW",
-				DifficultyRating = 6,
+				DifficultyRating = 5,
 				IsSquishyMelee = true
 				CoSpawn = [
 					{

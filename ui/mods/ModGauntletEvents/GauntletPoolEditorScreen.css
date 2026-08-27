@@ -302,6 +302,11 @@
     left: 31rem;
 }
 
+.l-row-group .co-spawn-row .unitnum input {
+    color: #ffffff !important;
+    text-align: right;
+}
+
 /* ============================================================
    Table input fields
    ============================================================ */

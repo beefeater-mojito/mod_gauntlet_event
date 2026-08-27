@@ -403,6 +403,25 @@ GauntletPoolEditorScreen.prototype.createInvalidInputPopup = function (_unitName
     content.append(message);
 }
 
+GauntletPoolEditorScreen.prototype.addTextToContainer = function (_container, _title, _texts) {
+    var title = $(
+        '<div class="title-font-normal font-color-subtitle gauntlet-help-message"/>'
+    );
+    title.html("<br><br>" + _title + "<br><br>");
+    _container.append(title)
+
+    var message = $(
+        '<div class="text-font-normal font-color-description gauntlet-help-message"/>'
+    );
+    if (_texts instanceof Array) {
+        message.html(_texts.join("<br><br>"));
+    } else {
+        message.html(_texts)
+    }
+    _container.append(message)
+    return _container
+}
+
 GauntletPoolEditorScreen.prototype.createHelpPopup = function () {
     var self = this;
     if (this.mPopup !== null) {
@@ -425,25 +444,46 @@ GauntletPoolEditorScreen.prototype.createHelpPopup = function () {
     var popupListContainer = content.createList(2);
     var scrollContainer = popupListContainer.findListScrollContainer();
 
-
-    var helpText = [
-        'How is the composition of the gauntlet generated?\n',
-        'First, the game calculate the total difficulty rating (DR) score, based on the current day when the gauntlet takes place.\n',
-        'Next, it construct the base pool from either GauntletEarly, GauntletMid or GauntletLate. The gauntlet is chosen based on both the current days and the mod setting for day threshold (for example, GauntletEarly is chosen if current day is lower than the midgame threshold). Then it adds other unit from GauntletChampion, GauntletMiniBoss or GauntletBoss if allowed in the mod settings.\n',
-        'Then it filters out units with the Boss, Range or Crowd Control flags into their own separate pools. Unit with multiple flags might be included in multiple pools. The gauntlet then start to construct the composition, starting from Boss -> Range -> Crowd Control -> the rest.\n',
-        'Within a pool, it tallies up all units\' weight, and randomly draws units. The weight is treated as biases, with higher biases mean more likelihood of being picked (assuming the unit is valid to pick). The drawn unit is then determined if valid to be added to the composition. A unit is valid if adding it would:\n',
+    var compositionHelpTitle = "How is the composition of the gauntlet generated?"
+    var compositionHelpTexts = [
+        'First, the gauntlet calculates the total difficulty rating (DR) score, based on the current day when the gauntlet takes place.\n',
+        'Next, it constructs the base pool from either GauntletEarly, GauntletMid or GauntletLate. The gauntlet is chosen based on both the current days and the mod setting for day threshold (for example, GauntletEarly is chosen if current day is lower than the end of earlygame threshold). Then it adds other unit from GauntletChampion, GauntletMiniBoss or GauntletBoss if allowed in the mod settings.\n',
+        'Then it filters out units with the Boss, Range or Crowd Control flags into their own separate pools. Units with multiple flags might be included in multiple pools. The gauntlet then starts to construct the composition, starting from Boss -> Range -> Crowd Control -> the rest.\n',
+        'Within a pool, it tallies up all units\' weight, and randomly draws units. The weight is treated as biases, with a higher bias means more likelihood of being picked. The drawn unit is then determined if valid to be added to the composition. A unit is valid if adding it would:\n',
         '\t + Not exceed the upper amount of range, crowd control or boss units. This value is random but has an upper limit based on number of gauntlets survived, and has a seperate limit for both certain individual and every unit sharing flags. (Example: at most one necromancer in a fight)\n\n',
-        '\t + Not make the total DR of squishy units exceed the squishy limit. This score is added every time a valid range, squishy melee or crowd control is added to the composition. The limit is half of the initial total DR score.\n',
-        '\t + Not exceed the boss\'s DR limit. This limit is also half of the initial total DR score.\n',
-        '\t + Guarantee at least a minimum of unit added to the composition. This minimum is based on the current days and party sizes.\n',
-        'Adding a valid unit spend scores equal to its DR score. Invalid units are removed from the pool, and when a pool is empty, it then moves to the next one. A base pool (early, mid, late) should have at least one unit with DR 1 without any special flags to ensure no left-over points and the minimum number of unit constraint can be satisfiable.\n',
-        'After all of the initial DR score is spent or every pool is empty, it then reorganizes unit and return the final composition for the fight.\n'
+        '\t + Not make the total DR of squishy units exceed the squishy limit. This limit accounts for valid range, squishy melee and crowd control units added to the composition.\n',
+        '\t + Not exceed the boss\'s DR limit.\n',
+        '\t + Guarantee at least a minimum number of units added to the composition. This minimum is based on the current days and party sizes.\n',
+        'Only valid units are added. Adding a unit spends scores equal to its DR score. Invalid units are removed from the pool, and when a pool is empty, it then moves to the next one. A base pool (early, mid, late) should have at least one unit with DR 1 without any special flags to ensure no left-over points and that the minimum number of unit constraint can be satisfiable.\n',
+        'After all of the initial DR score is spent or every pool is empty, it then reorganizes unit and returns the final composition for the fight.\n'
     ];
-    var message = $(
-        '<div class="text-font-normal font-color-description gauntlet-help-message"/>'
-    );
-    message.html(helpText.join("<br><br>"));
-    scrollContainer.append(message);
+
+    this.addTextToContainer(
+        scrollContainer,
+        compositionHelpTitle,
+        compositionHelpTexts
+    )
+
+    var scalingHelpTitle = "How does the gauntlet scaling work?"
+    var scalingHelpTexts = [
+        "The gauntlet divides into three \"periods\": early, mid and late. Each period is determined by the threshold set in the Mod Setting menu. The chosen pool and scaling function are different in each period. Pressing the \'Start Combat\' button will give you an estimate for Difficulty Score on the current day.\n",
+        "In-depth explanation: Scaling functions are subjected to the days when the gauntlet takes place (Day) and the difficulty modifier (DiffMod). DiffMod is based on the current combat difficulty of the campaign. Currently, the values are 1.2, 1.35 and 1.5 for Beginner, Veteran and Expert respectively\n",
+        "d0: Days marking the end of Earlygame\n",
+        "d1: Days marking the end of Midgame\n",
+        "\t+ Earlygame: when days < d0, Pool used: GauntletEarly. Score = Day * DiffMod",
+        "\t+ Midgame: when d0 ≤ Day < d1, Pool used: GauntletMid. Score = d0 * DiffMod + (Day - d0) * DiffMod / 2\n",
+        "\t+ Lategame: when d1 ≤ Day, Pool used: GauntletLate. Score = C*e^(-k*Day).\n",
+        "\t   + C and k is calculated such that this function passes (d1, s1) and (d2, s2).\n",
+        "\t   + d2: Days when Maximum Score Reached\n",
+        "\t   + s1: The maximum value of Difficulty Score from the Midgame function\n",
+        "\t   + s2: The Maximum Difficulty Score (set in the Mod setting menu)\n",
+        "Scaling function will always return within bound of minimum and maximum Difficulty Score. At the moment, it's a WIP. In the future custom scaling might be added.\n"
+    ]
+    this.addTextToContainer(
+        scrollContainer,
+        scalingHelpTitle,
+        scalingHelpTexts
+    )
 
     this.mPopup.addPopupDialogOkButton(
         function () {
@@ -491,7 +531,7 @@ GauntletPoolEditorScreen.prototype.getGroupLeaderUnitData = function (_group, _f
         return null;
     }
     var val = null;
-    if (_field == "name") {
+    if (_field == ModGauntletEvents.UnitProperties.Name.Id) {
         val = parentRow.find(".name").text();
     } else {
         val = Number(parentRow.data(_field).val());
@@ -557,8 +597,6 @@ GauntletPoolEditorScreen.prototype.addSortButton = function (
 
 GauntletPoolEditorScreen.prototype.addSortIconRow = function (_parentDiv) {
     var self = this;
-
-
     var columnFields = this.getAvailableUnitSubProperties("Id");
 
     for (var i = 0; i < columnFields.length; i++) {
@@ -620,10 +658,10 @@ GauntletPoolEditorScreen.prototype.updatePoolMetadata = function () {
         function () {
             var group = $(this);
             var parentRow = group.children(".l-row").first();
-            var input = parentRow.data(weightId);
             if (parentRow.length === 0) {
                 return;
             }
+            var input = parentRow.data(weightId);
             if (self.validateInput(input, weightType)) {
                 totalWeight += Number(input.val());
             } else {
@@ -638,7 +676,7 @@ GauntletPoolEditorScreen.prototype.updatePoolMetadata = function () {
         " contains " +
         leaderCount +
         " units, and a total weight of " +
-        totalWeight.toPrecision(6)
+        parseFloat(totalWeight.toPrecision(6))
     );
 }
 
@@ -1659,7 +1697,7 @@ GauntletPoolEditorScreen.prototype.loadFromData = function (_data) {
     var defaultPool = this.mData.Pools[0];
     if ("PreviousPoolPicked" in this.mData && this.mData.PreviousPoolPicked !== null) {
         var previousPool = null;
-        for (var i = 0; i < this.mData.Pools.length; i++) { // old js only supports for... in?
+        for (var i = 0; i < this.mData.Pools.length; i++) {
             var pool = this.mData.Pools[i]
             if (pool.Name === this.mData.PreviousPoolPicked) {
                 previousPool = pool;
