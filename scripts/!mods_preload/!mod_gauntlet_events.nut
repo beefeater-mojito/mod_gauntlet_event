@@ -34,32 +34,3 @@
 	// ::MSU.Log.printData(::ModGauntletEvents.Mod.Tooltips, 10, false);
 	::ModGauntletEvents.Mod.Tooltips.setTooltips(this.new("script_hooks/tooltips_gauntlet"))
 });
-
-// Add the gauntlet event and setup gauntlet-related flags
-::ModGauntletEvents.MH.queue(">mod_msu", function () {
-	local eventId = ::ModGauntletEvents.Setup.getGauntletEventID();
-	local event = World.Events.getEvent(eventId);
-	if(event == null){
-		local mundaneEvents = this.IO.enumerateFiles("scripts/events/special");
-		foreach (i, event in mundaneEvents) {
-			local instantiatedEvent = this.new(event);
-			World.Events.m.Events.push(instantiatedEvent);
-		};
-
-		World.Events.addSpecialEvent(eventId);
-		::logDebug("Gauntlet event added!");
-	}
-
-	if (!(World.Statistics.getFlags().get("GauntletEnabled"))) {
-		World.Statistics.getFlags().set("GauntletEnabled", true);
-		World.Statistics.getFlags().set("GauntletLastTriggeredOnDay", 0);
-		World.Statistics.getFlags().set("GauntletSurvivedFlag", 0);
-		World.Statistics.getFlags().set("GauntletEarly", 0);
-		World.Statistics.getFlags().set("GauntletMid", 0);
-		World.Statistics.getFlags().set("GauntletLate", 0);
-	}
-
-	// Reset tactical flag
-	World.Statistics.getFlags().set("HasGauntletInit", false);
-	World.Statistics.getFlags().set("GauntletEditorCombat", false);
-}, ::Hooks.QueueBucket.FirstWorldInit)
