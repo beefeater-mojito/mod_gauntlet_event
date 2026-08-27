@@ -379,7 +379,7 @@ local GauntletManager = function() {
 
 			local squishyLimit = this.m.InitDifficulty * this.m.SquishyLimit - _unit.DifficultyRating;
 
-			if ("IsRange" in _unit) {
+			if ("IsRange" in _unit && _unit.IsRange) {
 				if (this.m.RangeTotal >= this.m.RangeMax) {
 					return false;
 				}
@@ -389,13 +389,13 @@ local GauntletManager = function() {
 				}
 			}
 
-			if ("IsSquishyMelee" in _unit) {
+			if ("IsSquishyMelee" in _unit && _unit.IsSquishyMelee) {
 				if (this.m.SquishyScore >= squishyLimit) {
 					return false;
 				}
 			}
 
-			if ("IsCrowdControl" in _unit) {
+			if ("IsCrowdControl" in _unit && _unit.IsCrowdControl) {
 				if (this.m.CrowdControlTotal >= this.m.CrowdControlMax) {
 					return false;
 				}
@@ -409,7 +409,7 @@ local GauntletManager = function() {
 				}
 			}
 
-			if ("IsBoss" in _unit) {
+			if ("IsBoss" in _unit && _unit.IsBoss) {
 				if (this.m.BossTotal >= this.m.BossMax) {
 					return false;
 				}
