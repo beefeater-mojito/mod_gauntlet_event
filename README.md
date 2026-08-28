@@ -17,7 +17,6 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
   * Persistent data and saving features for customized gauntlet pool.
 * Customizable thresholds, flags and scalings (WIP).
    
-
 \*While the special events (examples are new ambitions and desertions) are checked frequently, there are a few edge cases where events might be prevented from firing, such as wandering near a hostile party.
 
 \*\*This works by enabling `IsArenaMode` in combat properties, allowing `gatherLoot()` to remove non-players loot while let players recover gears from their fallen bros. However, this comes with a few unwanted behaviors, such as corpse resurrection not having full gears (partially fixed by equipping resurrected zombies and skeletons random weapons). 
@@ -36,7 +35,7 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
 
 # Usage 
 
-## Gauntlet Pool Editor (WIP)
+## Gauntlet Pool Editor
 
 The Gauntlet Pool Editor is a UI screen that allow player's customization for the current gauntlet pool used in the mod.
 
@@ -44,11 +43,36 @@ To open the pool, press the keybind button \(default is `Ctrl-Shift-P`\) WHILE I
 
 Follow the tooltips for more informations.
 
-# Suggested cooldown setting (WIP)
+### Basic Usage
+
+The Gauntlet Editor allows players to edit a pre-set pool's composition used in the event. A pool consist of multiple units, consisting each unit's Name, Num, Difficulty Rating (DR), Weights and special Flags. The editor allow players to:
+* Add or remove a unit from the composition.
+* Change a unit's Num, DR, Weights or special Flags.
+* Save the current pool composition, or restore to the default value of the current edited pool or every pool.
+
+The editor also includes a help popup regarding the gauntlet event, sort functions for units' enumerable fields, and copy-and-paste the edited pool as JSON's data.
+
+### Temporary state (clean/dirty)
+
+Some operations, like adding/removing unit or changing its value, can affect the pool's data. Player may be prompted to save or discard the current composition, or cancel the operation that would terminal or overwrite unsaved data.
+
+### Copy-and-paste
+
+Players can copy the edited pool's current composition, stored as JSON, into the clipboard. Players can also paste from the clipboard a valid JSON data to parse and overwrite the edited pool's composition. 
+
+## Persistent data
+
+The Gauntlet saves the composition of the default six pools used in the event's logic. Its data are read and written by the MSU's Persistent Data feature. You can access the file at `Documents\Battle Brothers\savegames\MSU#mod_gauntlet_events#GauntletData.sav`.
+
+You can also access a pool's composition by the editor's copy-and-paste feature.
+
+# Suggested setting (WIP)
 
 **For a normal campaign with a few occasional fights:** Cooldown 8-15.
 
 **For a heavy fighting campaign that almost ignore the overworld**: Cooldown 4-7, toggle on "Always Allow Looting".
+
+Players wanting tougher early composition can increase the difficulty modifers inside the Mod Setting menu.
 
 # To-do
 
