@@ -16,9 +16,9 @@
 	PresetSpawnlistScore = "30",
 	SquishyLimit = 0.45,
 	BossLimit = 0.5,
-	DifficultyModifierBeginner = 1.2,
-	DifficultyModifierVeteran = 1.35,
-	DifficultyModifierExpert = 1.5,
+	DifficultyModifierBeginner = 1.25,
+	DifficultyModifierVeteran = 1.4,
+	DifficultyModifierExpert = 1.55,
 	ExtraDayBeginner = 40,
 	ExtraDaysVeteran = 20,
 	StartCombatSetLastGauntlet = false

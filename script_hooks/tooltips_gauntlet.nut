@@ -27,6 +27,8 @@ this.tooltips_gauntlet <- {
             RevertChange = ::MSU.Class.BasicTooltip("Revert Changes", "Revert changes made to this pool, and load the its latest version."),
             RestoreThis = ::MSU.Class.BasicTooltip("Restore THIS to Default", "Restore this pool's data to its default value."),
             ViewHelp = ::MSU.Class.BasicTooltip("View help", "View extra infos about the gauntlet mechanic.")
+            CopyPool = ::MSU.Class.BasicTooltip("Copy this Pool", "Copy this pool's data as JSON to your clipboard. You can then paste and store it in a txt file."),
+            PastePool = ::MSU.Class.BasicTooltip("Paste onto this Pool", "Paste the JSON data from your clipboard and parse it as data for this Gauntlet Pool. Recommend to save this pool before pasting. Newly pasted pool isn't saved yet, so this action can be reverted.")
             Sort = {
                 Name = ::MSU.Class.BasicTooltip("Sort by Name", "Sort units by Name, alphabetically.")
                 Num = ::MSU.Class.BasicTooltip("Sort by Num", "Sort units by Numbers.")

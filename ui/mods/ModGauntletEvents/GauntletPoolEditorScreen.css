@@ -109,9 +109,9 @@
 }
 
 .gauntlet-topbar-buttons {
-    width: 12rem;
+    width: 20rem;
     height: 4rem;
-    margin-left: 84%;
+    margin-left: 80%;
 
     display: flex;
     align-items: center;
@@ -120,7 +120,7 @@
 
 .topbar-button-layout {
     bottom: 0.7rem;
-    width: 4rem;
+    width: 3.8rem;
     height: 3.6rem;
     position: absolute;
     margin: auto 0;
@@ -322,6 +322,10 @@
 }
 
 .is-invalid {
+    color: #ff0000 !important;
+}
+
+.l-row-group .co-spawn-row .unitnum .is-invalid {
     color: #ff0000 !important;
 }
 

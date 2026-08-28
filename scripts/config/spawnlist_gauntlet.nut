@@ -74,7 +74,7 @@ gt.Const.World.Spawn.GauntletEarly <- [
 				UnitKey = "BanditRaider",
 				DifficultyRating = 1,
 				IsSquishyMelee = true,
-				Weight = 4
+				Weight = 3
 			},
 			{
 				UnitKey = "BanditMarksman",
@@ -166,11 +166,9 @@ gt.Const.World.Spawn.GauntletEarly <- [
 			// undead
 			{
 				UnitKey = "ZombieNomad",
+				Num = 2,
 				DifficultyRating = 1,
-				Weight = 2,
-				CoSpawn = [
-					{UnitKey = "Warhound"}
-				]
+				Weight = 2
 			},
 			{
 				UnitKey = "ZombieKnight",
@@ -188,11 +186,11 @@ gt.Const.World.Spawn.GauntletEarly <- [
 				CoSpawn = [
 					{
 						UnitKey = "ZombieNomad",
-						Num = 1
+						Num = 2
 					},
 					{
 						UnitKey = "ZombieYeomanBodyguard",
-						Num = 1
+						Num = 2
 					},
 					{
 						UnitKey = "ArmoredWardog",
@@ -218,12 +216,22 @@ gt.Const.World.Spawn.GauntletEarly <- [
 			{
 				UnitKey = "SkeletonMedium",
 				DifficultyRating = 3,
-				Weight = 2
+				Weight = 2,
+				CoSpawn = [
+					{
+						UnitKey = "SkeletonLight"
+					}
+				]
 			},
 			{
 				UnitKey = "SkeletonMediumPolearm",
 				DifficultyRating = 3,
-				Weight = 2
+				Weight = 2,
+				CoSpawn = [
+					{
+						UnitKey = "SkeletonLight"
+					}
+				]
 			}
 		]
 	}

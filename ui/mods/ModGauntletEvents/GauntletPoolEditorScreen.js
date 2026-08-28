@@ -195,7 +195,7 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
     );
 
     var content = this.mDialogContainer.findDialogContentContainer();
-
+    /*Headers */
     this.mHeaders = $('<div class="table-header"/>');
     content.append(this.mHeaders);
 
@@ -233,7 +233,7 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
         '<div class="gauntlet-topbar-buttons"/>'
     )
     this.mHeaders.append(this.mColumnButtons)
-
+    /*Headers buttons*/
     this.createOverlayImageButton(
         this.mColumnButtons,
         Asset.ICON_CONTRACT_SCROLL,
@@ -263,6 +263,29 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
         "topbar-button-layout",
         6,
         "GauntletEditorScreen.TopbarButton.ViewHelp"
+    )
+    this.createOverlayImageButton(
+        this.mColumnButtons,
+        'ui/icons/copy_button.png',
+        function () {
+            var success = self.copyCurrentPoolDataToClipboard();
+            if (!success) {
+                self.createFailedToCopyPopup();
+            }
+        },
+        "topbar-button-layout",
+        6,
+        "GauntletEditorScreen.TopbarButton.CopyPool"
+    )
+    this.createOverlayImageButton(
+        this.mColumnButtons,
+        'ui/icons/clipboard-notes_button.png',
+        function () {
+            self.pastePoolDataFromClipboard()
+        },
+        "topbar-button-layout",
+        6,
+        "GauntletEditorScreen.TopbarButton.PastePool"
     )
 
     /* Dialog */
@@ -336,7 +359,7 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
             function () {
                 var success = self.saveCurrentPool();
                 if (!success) {
-                    self.createInvalidInputPopup(self.mLastInvalidInput);
+                    self.createFailedToSavePopup();
                 }
             },
             '',
@@ -389,15 +412,37 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
 };
 
 GauntletPoolEditorScreen.prototype.createInvalidInputPopup = function (_unitName) {
+    var title = "Input Validation Failed";
+    var message = 'Input validation fails on unit ' + _unitName + '. Please make sure the input fields are correctly typed.'
+    this.createStatusPopup(title, message);
+}
+
+GauntletPoolEditorScreen.prototype.createFailedToCopyPopup = function () {
+    var title = "Copy to clipboard Failed";
+    var message = "Copying this pool's data to the clipboard has failed. Please make sure the input fields are valid, and consult the log if this problems persist."
+    this.createStatusPopup(title, message)
+}
+
+GauntletPoolEditorScreen.prototype.createFailedToSavePopup = function () {
+    var title = "Save this Pool Failed";;
+    var message = "Saving this pool's data has failed. Please make sure the input fields are correct, and consult the log if this problem persists!";
+    this.createStatusPopup(title, message);
+}
+
+// Create a simple popup with a title, messages and an OK button 
+GauntletPoolEditorScreen.prototype.createStatusPopup = function (_title, _message) {
+    if (this.mPopup !== null) {
+        console.error("Another popup has taken place!")
+        return;
+    }
     var content = this.createPopup(
-        "Input Validation Failed",
+        _title,
         'gauntlet-generic-popup gauntlet-unsaved-popup',
         'gauntlet-generic-popup-container'
     )
     var message = $(
         '<div class="text-font-normal font-color-subtitle gauntlet-unsaved-message">' +
-        'Input validation fails on unit ' + _unitName +
-        '. Please make sure the input fields are correctly typed.' +
+        _message +
         '</div>'
     );
     content.append(message);
@@ -474,9 +519,9 @@ GauntletPoolEditorScreen.prototype.createHelpPopup = function () {
         "\t+ Midgame: when d0 ≤ Day < d1, Pool used: GauntletMid. Score = d0 * DiffMod + (Day - d0) * DiffMod / 2\n",
         "\t+ Lategame: when d1 ≤ Day, Pool used: GauntletLate. Score = C*e^(-k*Day).\n",
         "\t   + C and k is calculated such that this function passes (d1, s1) and (d2, s2).\n",
-        "\t   + d2: Days when Maximum Score Reached\n",
-        "\t   + s1: The maximum value of Difficulty Score from the Midgame function\n",
-        "\t   + s2: The Maximum Difficulty Score (set in the Mod setting menu)\n",
+        "\t   + d2: Days when Maximum Score is reached.\n",
+        "\t   + s1: The maximum value of Difficulty Score from the Midgame function. In the other word, it's ScoreMid(d1)\n",
+        "\t   + s2: The Maximum Difficulty Score.\n",
         "Scaling function will always return within bound of minimum and maximum Difficulty Score. At the moment, it's a WIP. In the future custom scaling might be added.\n"
     ]
     this.addTextToContainer(
@@ -1051,6 +1096,68 @@ GauntletPoolEditorScreen.prototype.addCoSpawnEntry = function (
     return result;
 };
 
+// Implementation from CombatSimulator
+GauntletPoolEditorScreen.prototype.copyData = function (_obj) {
+    var str = JSON.stringify(_obj);
+    var input = $('<input type="text"/>').appendTo(this.mDialogContainer);
+    input.val(str);
+    input.select();
+    input.focus();
+    document.execCommand('copy');
+    input.remove();
+}
+
+// Implementation from CombatSimulator
+GauntletPoolEditorScreen.prototype.pasteData = function () {
+    var input = $('<input type="text"/>').appendTo(this.mDialogContainer);
+    input.select();
+    input.focus();
+    document.execCommand('paste');
+    var ret = input.val();
+    input.remove();
+    return ret;
+}
+
+GauntletPoolEditorScreen.prototype.copyCurrentPoolDataToClipboard = function () {
+    var pool = this.collectCurrentPoolData();
+    if (pool === null) {
+        console.error("Failed to collect pool data!");
+        return false
+    }
+    this.copyData(pool);
+    return true;
+}
+
+GauntletPoolEditorScreen.prototype.pastePoolDataFromClipboard = function () {
+    var self = this;
+    this.mColumnButtons.pasteCallback = function () {
+        var success = self.setPoolDataFromString(self.pasteData())
+        self.markDirty();
+        if (!success) {
+            self.discardCurrentPoolChanges();
+            self.createStatusPopup(
+                "Paste pool data Failed",
+                "Failed to paste and parse data copied from clipboard. Please make sure the copied JSON is valid and consult the logs if the problems persist."
+            )
+        }
+    }
+    this.confirmDiscardBefore(this.mColumnButtons.pasteCallback)
+}
+
+GauntletPoolEditorScreen.prototype.setPoolDataFromString = function (_string) {
+    var self = this;
+    try {
+        var data = JSON.parse(_string);
+        this.resetAndFillUnitTables(data);
+    } catch (exception) {
+        console.error("Failed to parseData from string.")
+        console.error(exception)
+        return false
+    }
+    return true;
+}
+
+
 GauntletPoolEditorScreen.prototype.collectCurrentPoolData = function () {
     var self = this;
     var pool = {
@@ -1059,7 +1166,7 @@ GauntletPoolEditorScreen.prototype.collectCurrentPoolData = function () {
     };
 
     var rows = this.mListScrollContainer.find(".l-row-group");
-
+    var isInputValid = true;
     try {
         rows.each(function () {
             var group = $(this);
@@ -1073,12 +1180,13 @@ GauntletPoolEditorScreen.prototype.collectCurrentPoolData = function () {
             var drInput = parentRow.data(unitProperty.DifficultyRating.Id);
             var weightInput = parentRow.data(unitProperty.Weight.Id);
 
-            var validInput = self.validateInput(numInput, "Integer")
-                && self.validateInput(drInput, "Number")
-                && self.validateInput(weightInput, "Number");
+            var validInput = self.validateInput(numInput, unitProperty.Num.Type)
+                && self.validateInput(drInput, unitProperty.DifficultyRating.Type)
+                && self.validateInput(weightInput, unitProperty.Weight.Type);
             if (!validInput) {
                 var error = "VALIDATING FAILED ON UNIT " + unitName;
                 self.mLastInvalidInput = unitName;
+                isInputValid = false;
                 throw error;
             }
 
@@ -1090,7 +1198,7 @@ GauntletPoolEditorScreen.prototype.collectCurrentPoolData = function () {
                 Flags: self.getFlagsFromRow(parentRow),
                 CoSpawn: []
             }
-            
+
 
             group.children(".co-spawn-row").each(function () {
                 var coSpawnRow = $(this);
@@ -1103,6 +1211,7 @@ GauntletPoolEditorScreen.prototype.collectCurrentPoolData = function () {
                 if (!validInput) {
                     var error = "VALIDATING FAILED ON CO-SPAWN " + coSpawnUnitName;
                     self.mLastInvalidInput = unitName + "'s cospawn: " + coSpawnUnitName;
+                    isInputValid = false;
                     throw error;
                 }
 
@@ -1115,7 +1224,11 @@ GauntletPoolEditorScreen.prototype.collectCurrentPoolData = function () {
             pool.Troops.push(troop);
         });
     } catch (error) {
-        console.error(error)
+        console.error("FAILED TO COLLECT UNITS DATA!")
+        console.error(error);
+        if (!isInputValid) {
+            this.createInvalidInputPopup(this.mLastInvalidInput)    
+        }
         return null;
     }
 
@@ -1184,7 +1297,7 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
             self.mPopup = null;
 
             if (!saved) {
-                self.createInvalidInputPopup(self.mLastInvalidInput)
+                self.createFailedToSavePopup()
                 return;
             }
 
@@ -1231,21 +1344,27 @@ GauntletPoolEditorScreen.prototype.createUnsavedChangesPopup = function (
 
 };
 
+GauntletPoolEditorScreen.prototype.resetAndFillUnitTables = function (_data, _setClean) {
+    this.mListScrollContainer.empty();
+
+    for (var i = 0; i < _data.Troops.length; ++i) {
+        this.addListEntry(_data.Troops[i]);
+    }
+    if (_setClean) {
+        this.markClean();
+    }
+    this.updatePoolMetadata();
+}
+
+
 GauntletPoolEditorScreen.prototype.discardCurrentPoolChanges = function () {
     if (this.mSelectedPool === null) {
         return;
     }
-
     //mSelectedPool represents the last saved version of this pool.
-    this.mListScrollContainer.empty();
-
-    for (var i = 0; i < this.mSelectedPool.Troops.length; ++i) {
-        this.addListEntry(this.mSelectedPool.Troops[i]);
-    }
-
-    this.markClean();
-    this.updatePoolMetadata();
+    this.resetAndFillUnitTables(this.mSelectedPool, true)
 };
+
 
 GauntletPoolEditorScreen.prototype.confirmDiscardBefore = function (
     _callback
@@ -1267,15 +1386,7 @@ GauntletPoolEditorScreen.prototype.confirmDiscardBefore = function (
 
 GauntletPoolEditorScreen.prototype.switchToPool = function (_selectedEntry) {
     this.mSelectedPool = _selectedEntry;
-
-    this.mListScrollContainer.empty();
-
-    for (var i = 0; i < _selectedEntry.Troops.length; ++i) {
-        this.addListEntry(_selectedEntry.Troops[i]);
-    }
-
-    this.markClean();
-    this.updatePoolMetadata();
+    this.resetAndFillUnitTables(_selectedEntry, true);
 };
 
 GauntletPoolEditorScreen.prototype.createRowActionButton = function (

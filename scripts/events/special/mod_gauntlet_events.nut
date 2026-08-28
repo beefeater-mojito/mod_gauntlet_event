@@ -903,7 +903,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 			this.Const.World.Spawn.Troops.MilitiaCaptain;
 
 		local fieldable_bros = this.Math.min(this.World.getPlayerRoster().getAll().len(), this.World.Assets.m.BrothersMaxInCombat + 1);
-		local min_troop_num = this.Math.min(fieldable_bros, this.Math.floor(current_day * 0.9));
+		local min_troop_num = this.Math.min(fieldable_bros, this.Math.floor(current_day * 0.8));
 
 		return pool_manager.generateSpawnList(
 			init_difficulty_score,
