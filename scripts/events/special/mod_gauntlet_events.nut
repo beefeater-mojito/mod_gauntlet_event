@@ -531,6 +531,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		MinDifficultyScore = 0,
 		MaxDifficultyScore = 90,
 		MaxExpertDifficultyScoreOnDay = 120,
+		AdditionalScore = 0,
 
 		AllowLooting = 1,
 		AllowSuppliesAfterCombat = true,
@@ -649,6 +650,8 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		this.m.DifficultyScoreModifier = setup.getDifficultyModifierBasedOnCombatDifficulty();
 		this.m.IsEditorCombat = World.Statistics.getFlags().get("GauntletEditorCombat");
 
+		this.m.AdditionalScore = setup.getModSettingValue("additional_score");
+
 		if (!(World.Statistics.getFlags().get("GauntletSurvivedFlag"))) {
 			World.Statistics.getFlags().set("GauntletSurvivedFlag", 0);
 		}
@@ -728,16 +731,17 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 
 	function calculateDifficultyScoreBasedOnDay(_days = null, _difficultyModifier = null) {
 		local current_day = _days == null ? this.World.getTime().Days : _days;
-		if (_difficultyModifier != null) {
-			this.m.DifficultyScoreModifier = _difficultyModifier;
-		}
+		local diffMod = _difficultyModifier == null ? this.m.DifficultyScoreModifier : _difficultyModifier;
+
+		local baseScore = this.m.AdditionalScore; // can be thought of as score on day 1
 		if (current_day < this.m.EndofEarlyGameThreshold) {
-			return this.Math.ceil(current_day * this.m.DifficultyScoreModifier);
+			return this.Math.ceil(baseScore + current_day * diffMod);
 		}
+
 		local d0 = this.m.EndofEarlyGameThreshold;
-		local s0 = d0 * this.m.DifficultyScoreModifier;
+		local s0 = d0 * diffMod;
 		if (current_day < this.m.EndofMidGameThreshold) {
-			return this.Math.ceil(s0 + (current_day - d0) * this.m.DifficultyScoreModifier / 2);
+			return this.Math.ceil(baseScore + s0 + (current_day - d0) * diffMod / 2);
 		}
 
 		local extraDay = 0;
@@ -753,7 +757,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 		}
 		local d1 = this.m.EndofMidGameThreshold;
 		local d2 = this.m.MaxExpertDifficultyScoreOnDay + extraDay;
-		local s1 = this.Math.ceil(s0 + (d1 - d0) * this.m.DifficultyScoreModifier / 2);
+		local s1 = this.Math.ceil(baseScore + s0 + (d1 - d0) * diffMod / 2);
 		local s2 = this.m.MaxDifficultyScore;
 		// ::logDebug("d1="+d1+" d2="+d2+" s1="+s1+" s2="+s2)
 

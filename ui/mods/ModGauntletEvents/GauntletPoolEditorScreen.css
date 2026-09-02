@@ -140,6 +140,14 @@
 
     flex-direction: row;
 }
+
+.gauntlet-filter-buttons {
+    display: flex;
+    justify-content: space-between;
+
+    flex-direction: row;
+}
+
 /* Note to myself and others: Please don't ever do anything like this */
 .gauntlet-column-absolute-position-name {
     top: 3.4rem;
@@ -175,8 +183,8 @@
     top: 3rem;
     left: 63.0rem;
     position: absolute;
-    width: 22rem;
-    height: 3.2rem;
+    width: 24rem;
+    height: 4rem;
 
     display: flex;
     justify-content: space-between;
@@ -187,17 +195,24 @@
 
 
 .flags-icon-layout {
-    width: 4rem;
-    height: 3.2rem;
+    width: 6rem;
+    height: 3rem;
     z-index: inherit;
+    display: flex;
 }
 
 
 .flags-icon {
-    display: block;
+    /* display: block;
     flex: 0 0 auto;
-    z-index: inherit;
+    z-index: inherit; */
+    flex-shrink: 0;
+    /* width: 200px; */
+    height: auto;
+}
 
+.hideProperty {
+    display: none !important; 
 }
 
 /* ============================================================

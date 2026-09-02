@@ -13,6 +13,7 @@ this.tooltips_gauntlet <- {
             CrowdControl = ::MSU.Class.BasicTooltip("Crowd Control", "Unit can cast debuffs in AOE, or able to call in or resurrect other troops."),
             Boss = ::MSU.Class.BasicTooltip("Champions/Bosses", "Unit will always spawn as champions if variants exist, and will be chosen in the Boss pool. Is set as default in GauntletChampion and GauntletBoss.")
         },
+        Filters = ::MSU.Class.BasicTooltip("Toggle Filters", "Toggle this flag's filters. This will cycle through three states: no filters (three circles), include (funnel), and exclude (crossed-funnel). The initial state is no filters."),
         UnitRowButton = {
             DeleteRow = ::MSU.Class.BasicTooltip("Delete this Row", "Delete this unit row."),
             AddCospawn = ::MSU.Class.BasicTooltip("Add Co-Spawn", "Add units that will spawn along with the main unit. Does not take up a composition's total DR or Num."),

@@ -264,7 +264,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			{
 				UnitKey = "Billman",
 				DifficultyRating = 1,
-				Weight = 4,
+				Weight = 3,
 				IsSquishyMelee = true
 			},
 			{
@@ -294,9 +294,8 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				UnitKey = "Greatsword",
-				DifficultyRating = 3,
-				Weight = 3,
-				IsSquishyMelee = true
+				DifficultyRating = 2,
+				Weight = 2
 			},
 			// gilded
 			{
@@ -307,7 +306,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			{
 				UnitKey = "ConscriptPolearm",
 				DifficultyRating = 2,
-				Weight = 4
+				Weight = 3
 			},
 			{
 				UnitKey = "Gunner",
@@ -367,7 +366,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			{
 				UnitKey = "BarbarianMarauder",
 				DifficultyRating = 1,
-				Weight = 2
+				Weight = 1
 			},
 			{
 				UnitKey = "BarbarianChampion",
@@ -412,7 +411,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				UnitKey = "GoblinOverseer",
-				DifficultyRating = 5,
+				DifficultyRating = 6,
 				IsRange = true
 			},
 			// beast
@@ -428,7 +427,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				UnitKey = "UnholdFrost",
-				DifficultyRating = 8,
+				DifficultyRating = 9,
 				Weight = 2
 			},
 			// undead: zombie
@@ -519,7 +518,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 			// undead: golem
 			{
 				UnitKey = "LesserFleshGolem",
-				DifficultyRating = 4
+				DifficultyRating = 3
 			}
 		]
 	}
@@ -685,7 +684,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				UnitKey = "BarbarianUnholdFrost",
-				DifficultyRating = 9,
+				DifficultyRating = 10,
 				Weight = 2,
 				CoSpawn = [
 					{
@@ -716,13 +715,13 @@ gt.Const.World.Spawn.GauntletLate <- [
 			// gobbo
 			{
 				UnitKey = "GoblinOverseer",
-				DifficultyRating = 4,
+				DifficultyRating = 5,
 				IsRange = true
 			},
 			// beast
 			{
 				UnitKey = "UnholdFrost",
-				DifficultyRating = 7,
+				DifficultyRating = 8,
 				Weight = 2
 			},
 			// undead: zombie

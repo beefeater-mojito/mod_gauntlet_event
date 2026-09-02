@@ -73,8 +73,24 @@ var ModGauntletEvents = {
         "GauntletMiniBoss",
         "GauntletBoss",
         "GauntletPreset"
-    ]
+    ],
+    FilterState: {
+        NoFilter: {
+            Id: "nofilter",
+            Icon: 'ui/icons/nofilter.png'
+        },
+        Include: {
+            Id: "include",
+            Icon: 'ui/icons/include.png'
+        }, 
+        Exclude: {
+            Id: "exclude",
+            Icon: 'ui/icons/exclude.png'
+        }
+    },
+    DisplayHiddenClass: "hideProperty"
 }
+
 
 var GauntletPoolEditorScreen = function (_parent) {
     MSUUIScreen.call(this);
@@ -128,6 +144,9 @@ var GauntletPoolEditorScreen = function (_parent) {
     this.mIconRow = null;
 
     this.mLastInvalidInput = null;
+    this.mIncludeFilters = null;
+    this.mExcludeFilters = null;
+    this.mFlagFilterButtons = null;
 };
 
 GauntletPoolEditorScreen.prototype = Object.create(MSUUIScreen.prototype)
@@ -295,6 +314,9 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
     this.mIconRow = $('<div class="l-row-group"/>');
     content.append(this.mIconRow)
 
+    this.mIncludeFilters = {};
+    this.mExcludeFilters = {};
+    this.mFlagFilterButtons = {};
     this.addFlagsIconRow(this.mIconRow);
 
     this.mListContainerLayout = $('<div class="l-list-container"/>');
@@ -493,13 +515,13 @@ GauntletPoolEditorScreen.prototype.createHelpPopup = function () {
     var compositionHelpTexts = [
         'First, the gauntlet calculates the total difficulty rating (DR) score, based on the current day when the gauntlet takes place.\n',
         'Next, it constructs the base pool from either GauntletEarly, GauntletMid or GauntletLate. The gauntlet is chosen based on both the current days and the mod setting for day threshold (for example, GauntletEarly is chosen if current day is lower than the end of earlygame threshold). Then it adds other unit from GauntletChampion, GauntletMiniBoss or GauntletBoss if allowed in the mod settings.\n',
-        'Then it filters out units with the Boss, Range or Crowd Control flags into their own separate pools. Units with multiple flags might be included in multiple pools. The gauntlet then starts to construct the composition, starting from Boss -> Range -> Crowd Control -> the rest.\n',
+        'Then it filters out units with the Boss, Range or Crowd Control flags into their own separate pools. The gauntlet then starts to construct the composition, starting from Boss -> Range -> Crowd Control -> the rest.\n',
         'Within a pool, it tallies up all units\' weight, and randomly draws units. The weight is treated as biases, with a higher bias means more likelihood of being picked. The drawn unit is then determined if valid to be added to the composition. A unit is valid if adding it would:\n',
         '\t + Not exceed the upper amount of range, crowd control or boss units. This value is random but has an upper limit based on number of gauntlets survived, and has a seperate limit for both certain individual and every unit sharing flags. (Example: at most one necromancer in a fight)\n\n',
-        '\t + Not make the total DR of squishy units exceed the squishy limit. This limit accounts for valid range, squishy melee and crowd control units added to the composition.\n',
-        '\t + Not exceed the boss\'s DR limit.\n',
+        '\t + Not make the total DR of squishy units exceed the squishy limit. This limit accounts for valid range, squishy melee and crowd control units added to the composition. This limit is adjustable in the Mod setting menu.\n',
+        '\t + Not exceed the boss\'s DR limit. This limit is adjustable in the Mod setting menu.\n',
         '\t + Guarantee at least a minimum number of units added to the composition. This minimum is based on the current days and party sizes.\n',
-        'Only valid units are added. Adding a unit spends scores equal to its DR score. Invalid units are removed from the pool, and when a pool is empty, it then moves to the next one. A base pool (early, mid, late) should have at least one unit with DR 1 without any special flags to ensure no left-over points and that the minimum number of unit constraint can be satisfiable.\n',
+        'Only valid units are added. Adding a unit spends scores equal to its DR score. Invalid units are removed from the pool, and when a pool is empty, it then moves to the next one. A base pool (early, mid, late) should have at least one unit with the smallest DR without any special flags to ensure no left-over points and that the minimum number of unit constraint can be satisfiable.\n',
         'After all of the initial DR score is spent or every pool is empty, it then reorganizes unit and returns the final composition for the fight.\n'
     ];
 
@@ -515,9 +537,9 @@ GauntletPoolEditorScreen.prototype.createHelpPopup = function () {
         "In-depth explanation: Scaling functions are subjected to the days when the gauntlet takes place (Day) and the difficulty modifier (DiffMod). DiffMod is based on the current combat difficulty of the campaign. Currently, the values are 1.2, 1.35 and 1.5 for Beginner, Veteran and Expert respectively\n",
         "d0: Days marking the end of Earlygame\n",
         "d1: Days marking the end of Midgame\n",
-        "\t+ Earlygame: when days < d0, Pool used: GauntletEarly. Score = Day * DiffMod",
-        "\t+ Midgame: when d0 ≤ Day < d1, Pool used: GauntletMid. Score = d0 * DiffMod + (Day - d0) * DiffMod / 2\n",
-        "\t+ Lategame: when d1 ≤ Day, Pool used: GauntletLate. Score = C*e^(-k*Day).\n",
+        "\t+ Earlygame: when days < d0, Pool used: GauntletEarly. ScoreEarly(Day) = Day * DiffMod",
+        "\t+ Midgame: when d0 ≤ Day < d1, Pool used: GauntletMid. ScoreMid(Day) = d0 * DiffMod + (Day - d0) * DiffMod / 2\n",
+        "\t+ Lategame: when d1 ≤ Day, Pool used: GauntletLate. ScoreLate(Day) = C*e^(-k*Day).\n",
         "\t   + C and k is calculated such that this function passes (d1, s1) and (d2, s2).\n",
         "\t   + d2: Days when Maximum Score is reached.\n",
         "\t   + s1: The maximum value of Difficulty Score from the Midgame function. In the other word, it's ScoreMid(d1)\n",
@@ -656,6 +678,7 @@ GauntletPoolEditorScreen.prototype.addSortIconRow = function (_parentDiv) {
 }
 
 GauntletPoolEditorScreen.prototype.addFlagsIconRow = function (_parentDiv) {
+    var self = this;
     var iconRow = $(
         '<div class ="flags-icon-container"/>'
     );
@@ -673,6 +696,9 @@ GauntletPoolEditorScreen.prototype.addFlagsIconRow = function (_parentDiv) {
 
         var iconTooltip = "GauntletEditorScreen.Flags." + flag.Tooltip;
         icon.bindTooltip({ contentType: 'msu-generic', modId: ModGauntletEvents.ModID, elementId: iconTooltip })
+
+        var iconFilterButton = this.addFlagFilterButton(iconLayout, key)
+        this.mFlagFilterButtons[key] = iconFilterButton
     }
     return iconRow
 }
@@ -699,6 +725,7 @@ GauntletPoolEditorScreen.prototype.updatePoolMetadata = function () {
     var weightId = ModGauntletEvents.UnitProperties.Weight.Id;
     var weightType = ModGauntletEvents.UnitProperties.Weight.Type;
     var totalWeight = 0;
+    var totalWeightVisible = 0;
     this.mListScrollContainer.children(".l-row-group").each(
         function () {
             var group = $(this);
@@ -709,8 +736,9 @@ GauntletPoolEditorScreen.prototype.updatePoolMetadata = function () {
             var input = parentRow.data(weightId);
             if (self.validateInput(input, weightType)) {
                 totalWeight += Number(input.val());
-            } else {
-                totalWeight += 0;
+                totalWeightVisible +=
+                    group.hasClass(ModGauntletEvents.DisplayHiddenClass) ?
+                        0 : Number(input.val());
             }
         }
     )
@@ -721,7 +749,10 @@ GauntletPoolEditorScreen.prototype.updatePoolMetadata = function () {
         " contains " +
         leaderCount +
         " units, and a total weight of " +
-        parseFloat(totalWeight.toPrecision(6))
+        parseFloat(totalWeight.toPrecision(6)) +
+        " for all units, " +
+        parseFloat(totalWeightVisible.toPrecision(6)) +
+        " for currently visible units"
     );
 }
 
@@ -798,15 +829,6 @@ GauntletPoolEditorScreen.prototype.validateInput = function (
     return true;
 }
 
-GauntletPoolEditorScreen.prototype.isValInteger = function (value) {
-    try {
-
-    } catch (exception) {
-        return false;
-    }
-    return true;
-}
-
 GauntletPoolEditorScreen.prototype.addCheckbox = function (
     _parent,
     _class,
@@ -871,14 +893,6 @@ GauntletPoolEditorScreen.prototype.addFlagCheckboxes = function (
     _lockedFlags
 ) {
     var self = this;
-
-    var availableFlags = [
-        "IsRange",
-        "IsSquishyMelee",
-        "IsCrowdControl",
-        "IsBoss"
-    ];
-
     var flagSet = {};
     var lockedFlagSet = {};
 
@@ -965,8 +979,22 @@ GauntletPoolEditorScreen.prototype.addFlagCheckboxes = function (
     return container;
 };
 
+// Source - https://stackoverflow.com/a/32108184
+// Posted by Adam Zerner, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-09-01, License - CC BY-SA 4.0
+GauntletPoolEditorScreen.prototype.isEmpty = function isEmpty(obj) {
+    for (var prop in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+            return false;
+        }
+    }
 
-GauntletPoolEditorScreen.prototype.getFlagsFromRow = function (_row) {
+    return true
+}
+
+
+
+GauntletPoolEditorScreen.prototype.getFlagsFromRow = function (_row, _queryFlags) {
     var checkboxMap = _row.data("flagCheckboxes");
 
     if (checkboxMap === undefined || checkboxMap === null) {
@@ -974,16 +1002,20 @@ GauntletPoolEditorScreen.prototype.getFlagsFromRow = function (_row) {
     }
 
     var flags = [];
-
-    for (var flag in ModGauntletEvents.AvailableFlags) {
+    var queriedFlags = _queryFlags
+    if (queriedFlags === null || queriedFlags === undefined) {
+        queriedFlags = ModGauntletEvents.AvailableFlags; // assume query all flags
+    }
+    // queryFlags MUST BE KEYPAIR
+    for (var flag in queriedFlags) {
         var checkbox = checkboxMap[flag];
         if (checkbox !== undefined &&
             checkbox !== null &&
-            checkbox.prop("checked") === true) {
+            checkbox.prop("checked") === true
+        ) {
             flags.push(flag);
         }
     }
-
     return flags;
 };
 
@@ -1227,7 +1259,7 @@ GauntletPoolEditorScreen.prototype.collectCurrentPoolData = function () {
         console.error("FAILED TO COLLECT UNITS DATA!")
         console.error(error);
         if (!isInputValid) {
-            this.createInvalidInputPopup(this.mLastInvalidInput)    
+            this.createInvalidInputPopup(this.mLastInvalidInput)
         }
         return null;
     }
@@ -1354,6 +1386,7 @@ GauntletPoolEditorScreen.prototype.resetAndFillUnitTables = function (_data, _se
         this.markClean();
     }
     this.updatePoolMetadata();
+    this.resetToNoFilterState();
 }
 
 
@@ -1829,6 +1862,127 @@ GauntletPoolEditorScreen.prototype.loadFromData = function (_data) {
     );
 };
 
+GauntletPoolEditorScreen.prototype.getUnitLeaderFromGroup = function (_group) {
+    var group = $(_group);
+    var parentRow = group.children(".l-row").first();
+    return parentRow
+}
+
+GauntletPoolEditorScreen.prototype.toggleVisibilityOfUnitsBasedOnFilters = function () {
+    var self = this;
+    var groups = this.mListScrollContainer.find(".l-row-group");
+    groups.each(function () {
+        var group = $(this);
+        var unitLeader = group.children(".l-row").first();
+
+        if (self.canShowUnitBasedOnFilters(unitLeader)) {
+            group.removeClass(ModGauntletEvents.DisplayHiddenClass)
+        } else {
+            group.addClass(ModGauntletEvents.DisplayHiddenClass)
+        }
+    })
+    this.updatePoolMetadata()
+}
+
+GauntletPoolEditorScreen.prototype.doesArrayContainObjKeys = function (_arr, _obj) {
+    for (var key in _obj) {
+        if (_arr.indexOf(key) === -1) {
+            return false;
+        }
+    }
+    return true;
+}
+
+GauntletPoolEditorScreen.prototype.doesArrayExcludeObjKeys = function (_arr, _obj) {
+    for (var key in _obj) {
+        if (_arr.indexOf(key) !== -1) {
+            return false
+        }
+    }
+    return true;
+}
+
+GauntletPoolEditorScreen.prototype.canShowUnitBasedOnFilters = function (_unit) {
+    var unitFlags = this.getFlagsFromRow(_unit)
+
+    return this.doesArrayContainObjKeys(unitFlags, this.mIncludeFilters) &&
+        this.doesArrayExcludeObjKeys(unitFlags, this.mExcludeFilters)
+}
+
+GauntletPoolEditorScreen.prototype.getButtonStateIdxName = function (_flagKey) {
+    return "stateIdx" + _flagKey
+}
+
+GauntletPoolEditorScreen.prototype.getFilterButtonFromContainer = function (_flagContainer, _flagKey) {
+    _flagContainer.find()
+}
+
+GauntletPoolEditorScreen.prototype.handleFilterStateTransition = function (
+    _flagKey
+) {
+    var states = ["nofilter", "include", "exclude"];
+    var filterState = ModGauntletEvents.FilterState
+    var buttonStateIdxName = this.getButtonStateIdxName(_flagKey)
+    // advance state idx
+    var stateIdx = this.mColumnFlags.data(buttonStateIdxName);
+    stateIdx = (stateIdx + 1) % states.length;
+    this.mColumnFlags.data(buttonStateIdxName, stateIdx);
+    // handleState transition
+    var nextState = states[stateIdx]
+    // nofilter -> include -> exclude -> nofilter
+    var buttonImage = this.mFlagFilterButtons[_flagKey].find('img')
+    if (nextState === "include") {
+        this.mIncludeFilters[_flagKey] = ModGauntletEvents.AvailableFlags[_flagKey]
+        buttonImage.attr('src', Path.GFX + 'ui/icons/include.png')
+    }
+    if (nextState === "exclude") {
+        delete this.mIncludeFilters[_flagKey];
+        this.mExcludeFilters[_flagKey] = ModGauntletEvents.AvailableFlags[_flagKey];
+        buttonImage.attr('src', Path.GFX + 'ui/icons/exclude.png')
+    }
+    if (nextState === "nofilter") {
+        delete this.mExcludeFilters[_flagKey];
+        buttonImage.attr('src', Path.GFX + 'ui/icons/nofilter.png')
+    }
+}
+
+GauntletPoolEditorScreen.prototype.resetToNoFilterState = function () {
+    this.mIncludeFilters = {}
+    this.mExcludeFilters = {}
+    for (var flagKey in ModGauntletEvents.AvailableFlags) {
+        this.mColumnFlags.data(this.getButtonStateIdxName(flagKey), 0)
+        var buttonImage = this.mFlagFilterButtons[flagKey].find('img');
+        buttonImage.attr('src', Path.GFX + 'ui/icons/nofilter.png')
+    }
+}
+
+
+GauntletPoolEditorScreen.prototype.addFlagFilterButton = function (
+    _container,
+    _flagName
+) {
+    var self = this;
+    var button = this.createOverlayImageButton(
+        _container,
+        'ui/icons/nofilter.png',
+        function () {
+            self.handleFilterStateTransition(_flagName)
+            self.toggleVisibilityOfUnitsBasedOnFilters()
+        },
+        '',
+        0,
+        "GauntletEditorScreen.Filters"
+    )
+    return button;
+}
+
+GauntletPoolEditorScreen.prototype.addCycleTransitionButton = function (
+    _container,
+    _flagName
+) {
+
+}
+
 GauntletPoolEditorScreen.prototype.createPopup = function (_name, _popupClass, _popupDialogContentClass) {
     this.mPopup = this.mContainer.createPopupDialog(
         _name,
@@ -1878,7 +2032,6 @@ GauntletPoolEditorScreen.prototype.addRow = function (_div, _classes, _divider) 
     }
     return row;
 }
-
 
 
 GauntletPoolEditorScreen.prototype.createFilterBar = function (_scrollContainer) {

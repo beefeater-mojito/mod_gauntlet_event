@@ -8,7 +8,8 @@
 	AllowBosses = false,
 	MinDifficultyScore = "10",
 	MaxDifficultyScore = "120",
-	MaxExpertDifficultyScoreOnDay = "110",
+	MaxExpertDifficultyScoreOnDay = "115",
+	AdditionalScore = "2",
 	EndofEarlyGameThreshold = "15",
 	EndofMidGameThreshold = "35",
 	SafeDaysUntilFirstGauntlet = "3",
@@ -16,9 +17,9 @@
 	PresetSpawnlistScore = "30",
 	SquishyLimit = 0.45,
 	BossLimit = 0.5,
-	DifficultyModifierBeginner = 1.25,
-	DifficultyModifierVeteran = 1.4,
-	DifficultyModifierExpert = 1.55,
+	DifficultyModifierBeginner = 1.0,
+	DifficultyModifierVeteran = 1.15,
+	DifficultyModifierExpert = 1.3,
 	ExtraDayBeginner = 40,
 	ExtraDaysVeteran = 20,
 	StartCombatSetLastGauntlet = false
@@ -163,16 +164,20 @@ midEndOnDay.setDescription("The day to switch the gauntlet's enemies pool from a
 midEndOnDay.addAfterChangeCallback(processIntegerAndPrintChangedValue);
 
 local minDifficultyScore = pageScaling.addStringSetting("min_difficulty_score", ::ModGauntletEvents.Settings.MinDifficultyScore, "Minimum Difficulty Score");
-minDifficultyScore.setDescription("The lower limit of difficulty score, used for creating the gauntlet's composition.");
+minDifficultyScore.setDescription("The lower limit of difficulty score, used for creating the gauntlet's composition. This limit is applied last after the calculation of difficulty score.");
 minDifficultyScore.addAfterChangeCallback(processIntegerAndPrintChangedValue);
 
 local maxDifficultyScore = pageScaling.addStringSetting("max_difficulty_score", ::ModGauntletEvents.Settings.MaxDifficultyScore, "Maximum Difficulty Score");
-maxDifficultyScore.setDescription("The upper limit of difficulty score, used for creating the gauntlet's composition.");
+maxDifficultyScore.setDescription("The upper limit of difficulty score, used for creating the gauntlet's composition. This limit is applied last after the calculation of difficulty score.");
 maxDifficultyScore.addAfterChangeCallback(processIntegerAndPrintChangedValue);
 
 local maxScoreOnDay = pageScaling.addStringSetting("max_score_on_day", ::ModGauntletEvents.Settings.MaxExpertDifficultyScoreOnDay, "Maximum Difficulty Score reached on Days (Expert)");
 maxScoreOnDay.setDescription("The day when the maximum difficulty score is reached, on Expert combat difficulty.");
 maxScoreOnDay.addAfterChangeCallback(processIntegerAndPrintChangedValue);
+
+local additionalScore = pageScaling.addStringSetting("additional_score", ::ModGauntletEvents.Settings.AdditionalScore, "Additional Difficulty Score");
+additionalScore.setDescription("Flat score value to the Difficulty Score. Can also be interpreted as Difficulty Score on day 0.");
+additionalScore.addAfterChangeCallback(processIntegerAndPrintChangedValue);
 
 pageScaling.addTitle("compositionGauntlet", "Composition");
 
@@ -185,18 +190,18 @@ bossLimit.setDescription("The limit for the percentage of total Diffculty Score,
 bossLimit.addAfterChangeCallback(printChangedValue) // same here
 
 pageScaling.addSpacer("spacerGauntlet", "72rem", "4rem")
-pageScaling.addTitle("difficultyBasedGauntlet", "Difficulty-based Setting (default is preferable)")
+pageScaling.addTitle("difficultyBasedGauntlet", "Difficulty-based Setting")
 
 local diffModBeginner = pageScaling.addRangeSetting("diff_mod_beginner", ::ModGauntletEvents.Settings.DifficultyModifierBeginner, 1, 3, 0.05, "Difficulty Modifier (Beginner)")
-diffModBeginner.setDescription("Difficulty Modifier for Beginner Combat settings. Recommend to leave as it is.")
+diffModBeginner.setDescription("Difficulty Modifier for Beginner Combat settings. Recommend values [1.0, 1.2].")
 diffModBeginner.addAfterChangeCallback(printChangedValue)
 
 local diffModVeteran = pageScaling.addRangeSetting("diff_mod_veteran", ::ModGauntletEvents.Settings.DifficultyModifierVeteran, 1, 3, 0.05, "Difficulty Modifier (Veteran)")
-diffModVeteran.setDescription("Difficulty Modifier for Veteran Combat settings. Recommend to leave as it is.")
+diffModVeteran.setDescription("Difficulty Modifier for Veteran Combat settings. Recommend values [1.15, 1.3].")
 diffModVeteran.addAfterChangeCallback(printChangedValue)
 
 local diffModExpert = pageScaling.addRangeSetting("diff_mod_expert", ::ModGauntletEvents.Settings.DifficultyModifierExpert, 1, 3, 0.05, "Difficulty Modifier (Expert)")
-diffModExpert.setDescription("Difficulty Modifier for Expert Combat settings. Recommend to leave as it is.")
+diffModExpert.setDescription("Difficulty Modifier for Expert Combat settings. Recommend values [1.3, 1.5].")
 diffModExpert.addAfterChangeCallback(printChangedValue);
 
 // local extraDaysBeginner = pageScaling.addStringSetting("extra_day_beginner", ::ModGauntletEvents.Settings.ExtraDayBeginner, "Extra days for Days Max Difficulty Score reached (Beginner)")
