@@ -10,7 +10,7 @@
 	MaxDifficultyScore = "120",
 	MaxExpertDifficultyScoreOnDay = "115",
 	AdditionalScore = "2",
-	EndofEarlyGameThreshold = "15",
+	EndofEarlyGameThreshold = "12",
 	EndofMidGameThreshold = "35",
 	SafeDaysUntilFirstGauntlet = "3",
 	UsePresetSpawnlist = false,

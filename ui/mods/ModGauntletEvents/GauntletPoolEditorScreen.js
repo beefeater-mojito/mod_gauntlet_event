@@ -75,17 +75,28 @@ var ModGauntletEvents = {
         "GauntletPreset"
     ],
     FilterState: {
+        // nofilter -> include -> exclude -> nofilter
         NoFilter: {
             Id: "nofilter",
-            Icon: 'ui/icons/nofilter.png'
+            Icon: 'ui/icons/gauntlet_editor_nofilter.png',
+            doStateTransition: function (_flagKey, _includeFilters, _excludeFilters) {
+                delete _excludeFilters[_flagKey];
+            }
         },
         Include: {
             Id: "include",
-            Icon: 'ui/icons/include.png'
-        }, 
+            Icon: 'ui/icons/gauntlet_editor_include.png',
+            doStateTransition: function (_flagKey, _includeFilters, _excludeFilters) {
+                _includeFilters[_flagKey] = ModGauntletEvents.AvailableFlags[_flagKey];
+            }
+        },
         Exclude: {
             Id: "exclude",
-            Icon: 'ui/icons/exclude.png'
+            Icon: 'ui/icons/gauntlet_editor_exclude.png',
+            doStateTransition: function (_flagKey, _includeFilters, _excludeFilters) {
+                delete _includeFilters[_flagKey];
+                _excludeFilters[_flagKey] = ModGauntletEvents.AvailableFlags[_flagKey];
+            }
         }
     },
     DisplayHiddenClass: "hideProperty"
@@ -285,7 +296,7 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
     )
     this.createOverlayImageButton(
         this.mColumnButtons,
-        'ui/icons/copy_button.png',
+        'ui/icons/gauntlet_editor_copy_button.png',
         function () {
             var success = self.copyCurrentPoolDataToClipboard();
             if (!success) {
@@ -298,7 +309,7 @@ GauntletPoolEditorScreen.prototype.createDIV = function (_parentDiv) {
     )
     this.createOverlayImageButton(
         this.mColumnButtons,
-        'ui/icons/clipboard-notes_button.png',
+        'ui/icons/gauntlet_editor_clipboard_notes_button.png',
         function () {
             self.pastePoolDataFromClipboard()
         },
@@ -1917,33 +1928,50 @@ GauntletPoolEditorScreen.prototype.getFilterButtonFromContainer = function (_fla
     _flagContainer.find()
 }
 
-GauntletPoolEditorScreen.prototype.handleFilterStateTransition = function (
+GauntletPoolEditorScreen.prototype.advanceFilterState = function (
     _flagKey
 ) {
-    var states = ["nofilter", "include", "exclude"];
-    var filterState = ModGauntletEvents.FilterState
+    var filterStates = ModGauntletEvents.FilterState
+    var states = []
+    for (var key in filterStates) {
+        states.push(filterStates[key].Id)
+    }
+
     var buttonStateIdxName = this.getButtonStateIdxName(_flagKey)
     // advance state idx
     var stateIdx = this.mColumnFlags.data(buttonStateIdxName);
     stateIdx = (stateIdx + 1) % states.length;
     this.mColumnFlags.data(buttonStateIdxName, stateIdx);
-    // handleState transition
-    var nextState = states[stateIdx]
-    // nofilter -> include -> exclude -> nofilter
+
+    this.handleFilterStateTransition(states[stateIdx], _flagKey)
+}
+
+GauntletPoolEditorScreen.prototype.handleFilterStateTransition = function (
+    _nextState,
+    _flagKey
+) {
+    var filterStates = ModGauntletEvents.FilterState
     var buttonImage = this.mFlagFilterButtons[_flagKey].find('img')
-    if (nextState === "include") {
-        this.mIncludeFilters[_flagKey] = ModGauntletEvents.AvailableFlags[_flagKey]
-        buttonImage.attr('src', Path.GFX + 'ui/icons/include.png')
+    for (var key in filterStates) {
+        if (_nextState === filterStates[key].Id) {
+            filterStates[key].doStateTransition(_flagKey, this.mIncludeFilters, this.mExcludeFilters);
+            buttonImage.attr('src', Path.GFX + filterStates[key].Icon)
+            break;
+        }
     }
-    if (nextState === "exclude") {
-        delete this.mIncludeFilters[_flagKey];
-        this.mExcludeFilters[_flagKey] = ModGauntletEvents.AvailableFlags[_flagKey];
-        buttonImage.attr('src', Path.GFX + 'ui/icons/exclude.png')
-    }
-    if (nextState === "nofilter") {
-        delete this.mExcludeFilters[_flagKey];
-        buttonImage.attr('src', Path.GFX + 'ui/icons/nofilter.png')
-    }
+    // if (_nextState === filterStates.Include.Id) {
+    //     this.mIncludeFilters[_flagKey] = ModGauntletEvents.AvailableFlags[_flagKey]
+    //     buttonImage.attr('src', Path.GFX + filterStates.Include.Icon)
+    // }
+    // if (_nextState === filterStates.Exclude.Id) {
+    //     delete this.mIncludeFilters[_flagKey];
+    //     this.mExcludeFilters[_flagKey] = ModGauntletEvents.AvailableFlags[_flagKey];
+    //     buttonImage.attr('src', Path.GFX + filterStates.Exclude.Icon)
+    // }
+    // if (_nextState === filterStates.NoFilter.Id) {
+    //     delete this.mExcludeFilters[_flagKey];
+    //     buttonImage.attr('src', Path.GFX + filterStates.NoFilter.Icon)
+    // }
 }
 
 GauntletPoolEditorScreen.prototype.resetToNoFilterState = function () {
@@ -1952,7 +1980,10 @@ GauntletPoolEditorScreen.prototype.resetToNoFilterState = function () {
     for (var flagKey in ModGauntletEvents.AvailableFlags) {
         this.mColumnFlags.data(this.getButtonStateIdxName(flagKey), 0)
         var buttonImage = this.mFlagFilterButtons[flagKey].find('img');
-        buttonImage.attr('src', Path.GFX + 'ui/icons/nofilter.png')
+        buttonImage.attr(
+            'src',
+            Path.GFX + ModGauntletEvents.FilterState.NoFilter.Icon
+        )
     }
 }
 
@@ -1966,7 +1997,7 @@ GauntletPoolEditorScreen.prototype.addFlagFilterButton = function (
         _container,
         'ui/icons/nofilter.png',
         function () {
-            self.handleFilterStateTransition(_flagName)
+            self.advanceFilterState(_flagName)
             self.toggleVisibilityOfUnitsBasedOnFilters()
         },
         '',
@@ -1974,13 +2005,6 @@ GauntletPoolEditorScreen.prototype.addFlagFilterButton = function (
         "GauntletEditorScreen.Filters"
     )
     return button;
-}
-
-GauntletPoolEditorScreen.prototype.addCycleTransitionButton = function (
-    _container,
-    _flagName
-) {
-
 }
 
 GauntletPoolEditorScreen.prototype.createPopup = function (_name, _popupClass, _popupDialogContentClass) {
