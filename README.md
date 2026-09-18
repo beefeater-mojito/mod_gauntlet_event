@@ -15,6 +15,9 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
   * Each unit's number, difficulty rating, weight and properties can now be user's input.
   * Unit can be added, deleted and even co-spawn with others.
   * Persistent data and saving features for customized gauntlet pool.
+* Allies can come to help you during the fight!
+  * Disable as default, enable it in the Mod Setting menu of The Gauntlet tab.
+  * Customizable gauntlet pool and difficulty scores for building the allies composition.
 * Customizable thresholds, flags and scalings (WIP).
    
 \*While the special events (examples are new ambitions and desertions) are checked frequently, there are a few edge cases where events might be prevented from firing, such as wandering near a hostile party.
@@ -62,9 +65,9 @@ Players can copy the edited pool's current composition, stored as JSON, into the
 
 ## Persistent data
 
-The Gauntlet saves the composition of the default six pools used in the event's logic. Its data are read and written by the MSU's Persistent Data feature. You can access the file at `Documents\Battle Brothers\savegames\MSU#mod_gauntlet_events#GauntletData.sav`.
+The Gauntlet saves the composition of the default seven pools used in the event's logic. Its data are read and written by the MSU's Persistent Data feature. You can access the file at `Documents\Battle Brothers\savegames\MSU#mod_gauntlet_events#GauntletData.sav`.
 
-You can also access a pool's composition by the editor's copy-and-paste feature.
+You can also access a pool's composition by the Gauntlet Pool Editor.
 
 # Suggested setting (WIP)
 
