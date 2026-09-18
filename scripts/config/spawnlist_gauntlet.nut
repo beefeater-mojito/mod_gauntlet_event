@@ -200,7 +200,7 @@ gt.Const.World.Spawn.GauntletEarly <- [
 			},
 			{
 				UnitKey = "Necromancer",
-				DifficultyRating = 11,
+				DifficultyRating = 10,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -409,11 +409,6 @@ gt.Const.World.Spawn.GauntletMid <- [
 				DifficultyRating = 1,
 				IsSquishyMelee = true
 			},
-			{
-				UnitKey = "GoblinOverseer",
-				DifficultyRating = 6,
-				IsRange = true
-			},
 			// beast
 			{
 				UnitKey = "GhoulHIGH",
@@ -458,14 +453,11 @@ gt.Const.World.Spawn.GauntletMid <- [
 			},
 			{
 				UnitKey = "Necromancer",
-				DifficultyRating = 15,
+				DifficultyRating = 14,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
 						UnitKey = "ZombieKnightBodyguard"
-					},
-					{
-						UnitKey = "ZombieYeomanBodyguard"
 					},
 					{
 						UnitKey = "ZombieKnight"
@@ -511,7 +503,7 @@ gt.Const.World.Spawn.GauntletMid <- [
 				CoSpawn = [
 					{
 						UnitKey = "SkeletonHeavyBodyguard",
-						Num = 1
+						Num = 2
 					}
 				]
 			},
@@ -748,7 +740,7 @@ gt.Const.World.Spawn.GauntletLate <- [
 			},
 			{
 				UnitKey = "Necromancer",
-				DifficultyRating = 17,
+				DifficultyRating = 15,
 				IsCrowdControl = true,
 				CoSpawn = [
 					{
@@ -1041,6 +1033,75 @@ gt.Const.World.Spawn.GauntletPreset <- [
 	}
 ]
 
+gt.Const.World.Spawn.GauntletAllies <- [
+	{
+		Cost = 0,
+		MovementSpeedMult = 1.0,
+		VisibilityMult = 1.0,
+		VisionMult = 1.0,
+		Body = "figure_bandit_01",
+		Troops = [
+			{
+				Type = this.Const.World.Spawn.Troops.Wardog,
+				Num = 9
+			}
+		],
+		Pool = [
+			{
+				UnitKey = "Footman",
+				DifficultyRating = 2,
+			},
+			{
+				UnitKey = "Billman",
+				DifficultyRating = 2
+			},
+			{
+				UnitKey = "Sergeant",
+				DifficultyRating = 3
+			},
+			{
+				UnitKey = "Conscript",
+				DifficultyRating = 2,
+			},
+			{
+				UnitKey = "ConscriptPolearm",
+				DifficultyRating = 3
+			},
+			{
+				UnitKey = "Assassin",
+				DifficultyRating = 6
+				Weight = 1.5
+			},
+			{
+				UnitKey = "BarbarianMarauder",
+				DifficultyRating = 2,
+			},
+			{
+				UnitKey = "OrcYoung",
+				DifficultyRating = 1
+			},
+			{
+				UnitKey = "OrcWarriorLOW",
+				DifficultyRating = 5
+			},
+			{
+				UnitKey = "BarbarianUnhold"
+				DifficultyRating = 8,
+				Weight = 2,
+				CoSpawn = [
+					{
+						UnitKey = "BarbarianBeastmaster"
+					}
+				]
+			},
+			{
+				UnitKey = "Serpent",
+				DifficultyRating = 3
+			}
+		]
+	}
+]
+
 function onCostCompare(_t1, _t2) {
 	if (_t1.Cost < _t2.Cost) {
 		return -1;
@@ -1074,3 +1135,4 @@ this.calculateCosts(this.Const.World.Spawn.GauntletChampion)
 this.calculateCosts(this.Const.World.Spawn.GauntletMiniBoss)
 this.calculateCosts(this.Const.World.Spawn.GauntletBoss)
 this.calculateCosts(this.Const.World.Spawn.GauntletPreset)
+this.calculateCosts(this.Const.World.Spawn.GauntletAllies)

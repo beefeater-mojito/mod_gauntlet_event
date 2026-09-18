@@ -1,6 +1,7 @@
 ::ModGauntletEvents.Settings <- {
 	EnableGauntlet = true,
 	BaseGauntletInterval = "10",
+	SnoozeDays = "3",
 	AllowLootingRegardlessEcoDiff = false,
 	AllowSuppliesAfterCombat = true,
 	AllowChampions = false,
@@ -10,7 +11,7 @@
 	MaxDifficultyScore = "120",
 	MaxExpertDifficultyScoreOnDay = "115",
 	AdditionalScore = "2",
-	EndofEarlyGameThreshold = "12",
+	EndofEarlyGameThreshold = "14",
 	EndofMidGameThreshold = "35",
 	SafeDaysUntilFirstGauntlet = "3",
 	UsePresetSpawnlist = false,
@@ -22,9 +23,14 @@
 	DifficultyModifierExpert = 1.3,
 	ExtraDayBeginner = 40,
 	ExtraDaysVeteran = 20,
-	StartCombatSetLastGauntlet = false
+	StartCombatSetLastGauntlet = false,
+	AllowAllies = false,
+	AlliesSpawnlist = "GauntletAllies",
+	AlliesScoresMethod = "Static",
+	AlliesScoresConstant = "10",
+	AlliesScoresPercentage = 0.25,
+	AddAlliesScoresToEnemies = true
 };
-
 
 local tools = {
 	processIntegerInput = function(_input, _oldValue) {
@@ -126,6 +132,10 @@ local safeDaysUntilFirstGauntlet = page.addStringSetting("safe_day_until_1st_gau
 safeDaysUntilFirstGauntlet.setDescription("Number of safe days before launching the 1st gauntlet events.");
 safeDaysUntilFirstGauntlet.addAfterChangeCallback(processIntegerAndPrintChangedValue);
 
+local snoozeDays = page.addStringSetting("snooze_days", ::ModGauntletEvents.Settings.SnoozeDays, "Cooldown Extra Days")
+snoozeDays.setDescription("Extra days added to cooldown when choosing \"not ready\" option during the gauntlet events.")
+snoozeDays.addAfterChangeCallback(processIntegerAndPrintChangedValue)
+
 page.addTitle("suppliesGauntlet", "Combat Reward");
 
 local allowLootingRegardlessEcoDiff = page.addBooleanSetting("allow_looting_regardless_ecodiff", ::ModGauntletEvents.Settings.AllowLootingRegardlessEcoDiff, "Allow Looting, regardless of Economy Difficulty");
@@ -212,6 +222,31 @@ diffModExpert.addAfterChangeCallback(printChangedValue);
 // extraDaysVeteran.setDescription("Extra days for scaling function to reach max value on the Veteran difficulty. Adding to Days when Maximum Difficulty Score is reached (Expert). Recommend to be 2 times the interval value.")
 // extraDaysVeteran.addAfterChangeCallback(processIntegerAndPrintChangedValue)
 
+local pageAllies = ::ModGauntletEvents.Mod.ModSettings.addPage("allies_page", "Allies")
+local allowAllies = pageAllies.addBooleanSetting("allow_allies", ::ModGauntletEvents.Settings.AllowAllies, "Allow Allies spawn");
+allowAllies.setDescription("Allow allies to be spawn during the gauntlet fight.")
+allowAllies.addAfterChangeCallback(printChangedValue);
+
+local useAlliesSpawnlist = pageAllies.addEnumSetting("allies_spawnlist", ::ModGauntletEvents.Settings.AlliesSpawnlist, ["GauntletAllies", "Same as enemies\'"], "Choose Allies spawnlist");
+useAlliesSpawnlist.setDescription("Choose the type of allies spawnlist to be used when generating allies. \"Same as enemies\'\" will draw from the same troops pool that is used to generate enemies compositions.")
+useAlliesSpawnlist.addAfterChangeCallback(printChangedValue);
+
+local alliesScoresInputType = pageAllies.addEnumSetting("allies_scores_input_type", ::ModGauntletEvents.Settings.AlliesScoresMethod, ["Static", "Percentage"], "Determining allies' DR method");
+alliesScoresInputType.setDescription("Choose how to determine DR scores to build allies composition.\"Static\" uses the constant score in \"Allies Static DR score\". \"Percentage\" uses the rate of difficulty scores used in enemies composition.")
+alliesScoresInputType.addAfterChangeCallback(printChangedValue);
+
+local alliesScoresConstant = pageAllies.addStringSetting("allies_scores_constant", ::ModGauntletEvents.Settings.AlliesScoresConstant, "Allies' Constant DR Scores");
+alliesScoresConstant.setDescription("Constant difficulty score used to generate the allies composition. Require allies\' DR method to be \"Static\".");
+alliesScoresConstant.addAfterChangeCallback(processIntegerAndPrintChangedValue);
+
+local alliesScoresPercentage = pageAllies.addRangeSetting("allies_scores_percentage", ::ModGauntletEvents.Settings.AlliesScoresPercentage, 0, 0.5, 0.05, "Allies DR Scores Percentage")
+alliesScoresPercentage.setDescription("The rate of enemies composition's difficulty score used to generate the allies composition. Require allies\' DR method to be \"Percentage\".")
+alliesScoresPercentage.addAfterChangeCallback(printChangedValue);
+
+local addAlliesScoreToEnemies = pageAllies.addBooleanSetting("add_allies_scores_to_enemies", ::ModGauntletEvents.Settings.AddAlliesScoresToEnemies, "Add Allies DR score to Enemies'");
+addAlliesScoreToEnemies.setDescription("Add the DR score of allies' composition when generating enemies' composition. Recommend to enable this.")
+addAlliesScoreToEnemies.addAfterChangeCallback(processIntegerAndPrintChangedValue)
+
 local pagePreset = ::ModGauntletEvents.Mod.ModSettings.addPage("preset_page", "Preset/Debug");
 pagePreset.addTitle("titlePreset", "Preset/Debug Setting")
 
@@ -223,6 +258,6 @@ local presetSpawnlistScore = pagePreset.addStringSetting("preset_spawnlist_score
 presetSpawnlistScore.setDescription("Difficulty score for the preset spawnlist. Intended usage is for debug only.");
 presetSpawnlistScore.addAfterChangeCallback(processIntegerAndPrintChangedValue);
 
-local startCombatSetLastGauntlet = pagePreset.addBooleanSetting("start_combat_set_last",::ModGauntletEvents.Settings.StartCombatSetLastGauntlet, "Start Combat Reset Cooldown")
+local startCombatSetLastGauntlet = pagePreset.addBooleanSetting("start_combat_set_last",::ModGauntletEvents.Settings.StartCombatSetLastGauntlet, "Editor Combat Reset Cooldown")
 startCombatSetLastGauntlet.setDescription("\'Start Combat\' option in the editor menu resets the gauntlet event's cooldown.")
 startCombatSetLastGauntlet.addAfterChangeCallback(printChangedValue)

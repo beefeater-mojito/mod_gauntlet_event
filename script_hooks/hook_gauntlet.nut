@@ -189,3 +189,26 @@ local equipUnarmedGears = function () {
 		}
 	}
 })
+
+// Flip allies in gauntlet fights
+::ModGauntletEvents.MH.hook("scripts/entity/tactical/tactical_entity_manager", function(q){
+	q.setupEntity = @(__original) function( _e, _t){
+		__original(_e, _t);
+		if (World.Statistics.getFlags().get("HasGauntletInit")) {
+			local faction = ::World.FactionManager.getFaction(_e.getFaction());
+			if (faction.isAlliedWithPlayer())
+			{
+				::logDebug(debug_init + "FLIPPING ALLIES")
+				foreach(key in ::ModGauntletEvents.Setup.getSpriteList())
+				{
+					if (_e.hasSprite(key))
+					{
+						_e.getSprite(key).setHorizontalFlipping(true);
+					}
+				}
+				_e.onFactionChanged();
+			}
+		}
+	}
+	
+})

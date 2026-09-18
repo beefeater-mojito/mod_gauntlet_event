@@ -1,11 +1,19 @@
 local mod = ::ModGauntletEvents.Mod;
 local filename = ::ModGauntletEvents.Setup.getFilename();
+local setup = ::ModGauntletEvents.Setup;
 if (!(mod.PersistentData.hasFile(filename))) {
-	::ModGauntletEvents.Setup.defaultOverwriteAll();
+	setup.defaultOverwriteAll();
 } else {
+	local debug_init = "VERIFYING GAUNTLET FILE: "; 
+	::logDebug(debug_init + "CHECKING POOLS KEYS")
+	local check = setup.checkMissingDefaultPoolsNameInFile();
+	if (!check){
+		::logDebug("FAILED TO CHECK MISSING DEFAULT POOLS NAME!")
+		throw "checkMissingDefault FAILED!";
+	}
 
-	::logDebug("VERIFYING GAUNTLET FILE!");
-	local verifiedFile = ::ModGauntletEvents.Setup.assertFileDataIsCorrect()
+	::logDebug(debug_init + "VERIFYING DATA INSIDE POOLS!");
+	local verifiedFile = setup.assertFileDataIsCorrect()
 	if (verifiedFile){
 		::logDebug("VERIFYING SUCCESS!")
 	} else {

@@ -72,7 +72,8 @@ var ModGauntletEvents = {
         "GauntletChampion",
         "GauntletMiniBoss",
         "GauntletBoss",
-        "GauntletPreset"
+        "GauntletPreset",
+        "GauntletAllies"
     ],
     FilterState: {
         // nofilter -> include -> exclude -> nofilter
@@ -1959,19 +1960,6 @@ GauntletPoolEditorScreen.prototype.handleFilterStateTransition = function (
             break;
         }
     }
-    // if (_nextState === filterStates.Include.Id) {
-    //     this.mIncludeFilters[_flagKey] = ModGauntletEvents.AvailableFlags[_flagKey]
-    //     buttonImage.attr('src', Path.GFX + filterStates.Include.Icon)
-    // }
-    // if (_nextState === filterStates.Exclude.Id) {
-    //     delete this.mIncludeFilters[_flagKey];
-    //     this.mExcludeFilters[_flagKey] = ModGauntletEvents.AvailableFlags[_flagKey];
-    //     buttonImage.attr('src', Path.GFX + filterStates.Exclude.Icon)
-    // }
-    // if (_nextState === filterStates.NoFilter.Id) {
-    //     delete this.mExcludeFilters[_flagKey];
-    //     buttonImage.attr('src', Path.GFX + filterStates.NoFilter.Icon)
-    // }
 }
 
 GauntletPoolEditorScreen.prototype.resetToNoFilterState = function () {
@@ -1995,7 +1983,7 @@ GauntletPoolEditorScreen.prototype.addFlagFilterButton = function (
     var self = this;
     var button = this.createOverlayImageButton(
         _container,
-        'ui/icons/nofilter.png',
+        ModGauntletEvents.FilterState.NoFilter.Icon,
         function () {
             self.advanceFilterState(_flagName)
             self.toggleVisibilityOfUnitsBasedOnFilters()

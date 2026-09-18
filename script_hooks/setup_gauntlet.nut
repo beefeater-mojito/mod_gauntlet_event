@@ -9,9 +9,48 @@ this.setup_gauntlet <- {
 			"GauntletChampion",
 			"GauntletMiniBoss",
 			"GauntletBoss",
-			"GauntletPreset"
+			"GauntletPreset",
+			"GauntletAllies"
 		],
-		GauntletDebugInit = "GAUNTLET DEBUG: "
+		GauntletDebugInit = "GAUNTLET DEBUG: ",
+		FlipableSprites = [
+			"body", 
+			"armor", 
+			"head", 
+			"injury", 
+			"closed_eyes",
+			"background",
+			"quiver",
+			"body",
+			"tattoo_body",
+			"injury_body",
+			"armor",
+			"surcoat",
+			"armor_upgrade_back",
+			"armor_upgrade_front",
+			"shaft",
+			"head",
+			"closed_eyes",
+			"eye_rings",
+			"tattoo_head",
+			"injury",
+			"beard",
+			"hair",
+			"helmet",
+			"helmet_damage",
+			"beard_top",
+			"body_blood",
+			"accessory",
+			"accessory_special",
+			"dirt",
+			"permanent_injury_1",
+			"permanent_injury_2",
+			"permanent_injury_3",
+			"permanent_injury_4",
+			"bandage_1",
+			"bandage_2",
+			"bandage_3",
+		]
 	}
 	function getFilename() {
 		return this.m.Filename;
@@ -24,6 +63,9 @@ this.setup_gauntlet <- {
 	}
 	function getGauntletEventID() {
 		return this.m.GauntletEventID
+	}
+	function getSpriteList(){
+		return this.m.FlipableSprites
 	}
 
 
@@ -105,6 +147,28 @@ this.setup_gauntlet <- {
 		}
 
 		return true
+	}
+
+	function checkMissingDefaultPoolsNameInFile(){
+		try {
+			local mod = ::ModGauntletEvents.Mod;
+			local filename = this.getFilename();
+			local readData = mod.PersistentData.readFile(filename);
+			foreach(poolkey in this.getDefaultPoolNames()){
+				if(poolkey in readData){
+					continue;
+				} else {
+					::logDebug("FOUND THE MISSING POOLS: " + poolkey);
+					::logDebug("FILLING THE DEFAULT DATA!");
+					this.defaultOverwritePool(poolkey);
+				}
+			}
+		} catch (e) {
+			::logError("Error while checking missing pool data in mod's file!");
+			::logError(e);
+			return false;
+		}
+		return true;
 	}
 
 	function writePoolToFile(_poolKey, _poolProperty) {
