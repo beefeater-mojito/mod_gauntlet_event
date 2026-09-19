@@ -16,7 +16,7 @@ A mod for Battle Brother that add a special event triggering a non-avoidable fig
   * Unit can be added, deleted and even co-spawn with others.
   * Persistent data and saving features for customized gauntlet pool.
 * Allies can come to help you during the fight!
-  * Disable as default, enable it in the Mod Setting menu of The Gauntlet tab.
+  * Disabled as default, enable it in the Mod Setting menu of The Gauntlet tab.
   * Customizable gauntlet pool and difficulty scores for building the allies composition.
 * Customizable thresholds, flags and scalings (WIP).
    

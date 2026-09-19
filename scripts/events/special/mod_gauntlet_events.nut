@@ -583,6 +583,7 @@ mod_gauntlet_events <- inherit("scripts/events/event", {
 				{
 					Text = "To battle!",
 					function getResult(_event) {
+						::World.Statistics.getFlags().set("GauntletSnoozeDays", 0);
 						_event.registerToShowAfterCombat("Survived", "Survived");
 						_event.preparePropertiesAndStartCombat();
 						return 1; // 1 so that processInput doesn't throw a fuss
